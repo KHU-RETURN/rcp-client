@@ -22,7 +22,9 @@ const ROUTE_NAMES = {
   signup: 'signup',
   changes: 'changes',
   instances: 'instances',
+  storage: 'storage',
   create: 'create',
+  detail: 'detail',
   result: 'result',
   terminal: 'terminal',
 };
@@ -88,6 +90,29 @@ const demoFlavors = [
   { id: 'c1.large', name: 'c1.large', vcpus: 8, ram: 8192, disk: 60, max_configurable: 0 },
 ];
 
+const storageBuckets = [
+  {
+    id: 'media-assets',
+    name: 'media-assets',
+    class: 'Standard',
+    region: 'KR-Seoul',
+    objects: 1842,
+    size: '48.2 GB',
+    updated: '2026-03-29T08:20:00Z',
+    note: '서비스 업로드 파일과 이미지 자산',
+  },
+  {
+    id: 'instance-backups',
+    name: 'instance-backups',
+    class: 'Archive',
+    region: 'KR-Seoul',
+    objects: 96,
+    size: '312.4 GB',
+    updated: '2026-03-28T22:10:00Z',
+    note: '정기 백업과 장기 보관 파일',
+  },
+];
+
 const sectionOrder = ['basic', 'compute', 'image-network', 'access', 'review'];
 const app = document.querySelector('#app');
 
@@ -122,6 +147,7 @@ const state = {
   result: readStorage(STORAGE_KEYS.result, null),
   instances: readStorage(STORAGE_KEYS.instances, buildSeedInstances()),
   selectedInstanceId: readStorage(STORAGE_KEYS.selectedInstanceId, null),
+  selectedBucketId: storageBuckets[0]?.id || null,
   instanceQuery: '',
   instanceStatusFilter: 'all',
   pendingRoutePath: null,
@@ -134,6 +160,8 @@ const state = {
   creationStatus: { state: 'idle', message: '' },
   terminalRuntime: null,
   terminalModules: null,
+  terminalFullscreen: false,
+  terminalReconnectTimer: null,
 };
 
 function buildSeedInstances() {
@@ -182,24 +210,39 @@ function parseRoute(pathname) {
     return { name: ROUTE_NAMES.changes, path: '/changes' };
   }
 
-  if (pathname === '/instances') {
-    return { name: ROUTE_NAMES.instances, path: '/instances' };
+  if (pathname === '/storage') {
+    return { name: ROUTE_NAMES.storage, path: '/storage' };
   }
 
-  if (pathname === '/instances/new') {
-    return { name: ROUTE_NAMES.create, path: '/instances/new' };
+  if (pathname === '/compute' || pathname === '/instances') {
+    return { name: ROUTE_NAMES.instances, path: '/compute' };
   }
 
-  if (pathname === '/instances/create/result') {
-    return { name: ROUTE_NAMES.result, path: '/instances/create/result' };
+  if (pathname === '/compute/create' || pathname === '/instances/new') {
+    return { name: ROUTE_NAMES.create, path: '/compute/create' };
   }
 
-  const terminalMatch = pathname.match(/^\/instances\/([^/]+)\/terminal$/);
+  if (pathname === '/compute/create/result' || pathname === '/instances/create/result') {
+    return { name: ROUTE_NAMES.result, path: '/compute/create/result' };
+  }
+
+  const detailMatch = pathname.match(/^\/(?:compute\/instances|instances)\/([^/]+)$/);
+  if (detailMatch) {
+    const instanceId = decodeURIComponent(detailMatch[1]);
+    return {
+      name: ROUTE_NAMES.detail,
+      path: `/compute/instances/${encodeURIComponent(instanceId)}`,
+      instanceId,
+    };
+  }
+
+  const terminalMatch = pathname.match(/^\/(?:compute\/instances|instances)\/([^/]+)\/terminal$/);
   if (terminalMatch) {
+    const instanceId = decodeURIComponent(terminalMatch[1]);
     return {
       name: ROUTE_NAMES.terminal,
-      path: pathname,
-      instanceId: decodeURIComponent(terminalMatch[1]),
+      path: `/compute/instances/${encodeURIComponent(instanceId)}/terminal`,
+      instanceId,
     };
   }
 
@@ -233,6 +276,10 @@ function persistInstances() {
 
 function persistSelectedInstance() {
   writeStorage(STORAGE_KEYS.selectedInstanceId, state.selectedInstanceId);
+}
+
+function persistSelectedBucket() {
+  writeStorage(STORAGE_KEYS.selectedBucketId, state.selectedBucketId);
 }
 
 function persistAuthUsers() {
@@ -291,10 +338,6 @@ function navigate(path, options = {}) {
   } else if (route.name !== ROUTE_NAMES.login && state.session) {
     ensureBackendHealth();
   }
-
-  if (route.name === ROUTE_NAMES.terminal) {
-    setupTerminalIfNeeded();
-  }
 }
 
 window.addEventListener('popstate', () => {
@@ -304,9 +347,6 @@ window.addEventListener('popstate', () => {
     ensureFlavorData();
   } else if (state.route.name !== ROUTE_NAMES.login && state.session) {
     ensureBackendHealth();
-  }
-  if (state.route.name === ROUTE_NAMES.terminal) {
-    setupTerminalIfNeeded();
   }
 });
 
@@ -465,6 +505,10 @@ function getSelectedInstance() {
   return state.instances.find((item) => item.id === state.selectedInstanceId) || null;
 }
 
+function getSelectedBucket() {
+  return storageBuckets.find((item) => item.id === state.selectedBucketId) || storageBuckets[0] || null;
+}
+
 function getVisibleInstances() {
   const query = state.instanceQuery.trim().toLowerCase();
   const status = state.instanceStatusFilter;
@@ -581,38 +625,42 @@ function getSectionStates() {
 function getAppHealth() {
   if (state.connectionMode === 'live') {
     return {
-      label: 'Live backend connected',
+      label: 'Connected',
       tone: 'live',
-      detail: 'Flavor 조회와 생성 요청을 현재 백엔드에 연결합니다.',
+      detail: '실시간 백엔드 연결',
     };
   }
 
   if (state.connectionMode === 'demo') {
     return {
-      label: 'Demo fallback active',
+      label: 'Preview mode',
       tone: 'demo',
-      detail: `실제 API 연결에 실패해 데모 데이터로 동작합니다${state.connectionReason ? ` (${state.connectionReason})` : ''}.`,
+      detail: '로컬 데이터 기반 미리보기',
     };
   }
 
   return {
-    label: 'Checking backend',
+    label: 'Checking',
     tone: 'neutral',
-    detail: '연결 상태를 확인하는 중입니다.',
+    detail: '연결 확인 중',
   };
 }
 
 function getInstancesHealth() {
   return state.connectionMode === 'live'
-    ? '목록은 브라우저에 추적된 local inventory입니다. 백엔드 list API가 생기면 교체됩니다.'
-    : '백엔드 list API가 없어 브라우저 inventory를 보여줍니다.';
+    ? '최근 인스턴스'
+    : '샘플 · 최근 생성 인스턴스';
 }
 
 function getInstanceSourceLabel(source) {
-  if (source === 'mock-seed') return 'Sample';
-  if (source === 'mock-created') return 'Created here';
-  if (source === 'local-live') return 'Live create';
+  if (source === 'mock-seed') return 'Default';
+  if (source === 'mock-created') return 'New';
+  if (source === 'local-live') return 'Created';
   return source;
+}
+
+function getDisplayInstanceId(id) {
+  return String(id || '').replace(/^mock-/, '');
 }
 
 function getRecommendation(flavor, index) {
@@ -788,6 +836,10 @@ async function handleCreateInstance() {
 }
 
 function disposeTerminalRuntime() {
+  if (state.terminalReconnectTimer) {
+    window.clearTimeout(state.terminalReconnectTimer);
+    state.terminalReconnectTimer = null;
+  }
   if (state.terminalRuntime?.intervalId) {
     window.clearInterval(state.terminalRuntime.intervalId);
   }
@@ -803,7 +855,43 @@ function disposeTerminalRuntime() {
   state.terminalRuntime = null;
 }
 
-async function setupTerminalIfNeeded() {
+function updateTerminalFullscreenState() {
+  const shell = document.querySelector('.terminal-shell');
+  const workspace = document.querySelector('.workspace-terminal');
+  const toggle = document.querySelector('[data-action="terminal-fullscreen"]');
+
+  state.terminalFullscreen = Boolean(
+    document.fullscreenElement &&
+    shell &&
+    (document.fullscreenElement === shell || shell.contains(document.fullscreenElement)),
+  );
+
+  shell?.classList.toggle('is-fullscreen', state.terminalFullscreen);
+  workspace?.classList.toggle('terminal-fullscreen', state.terminalFullscreen);
+
+  if (toggle) {
+    toggle.textContent = state.terminalFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+  }
+
+  state.terminalRuntime?.fitAddon?.fit();
+
+  if (state.route.name === ROUTE_NAMES.terminal && state.terminalRuntime) {
+    scheduleTerminalReconnect();
+  }
+}
+
+function scheduleTerminalReconnect() {
+  if (state.terminalReconnectTimer) {
+    window.clearTimeout(state.terminalReconnectTimer);
+  }
+
+  state.terminalReconnectTimer = window.setTimeout(() => {
+    state.terminalReconnectTimer = null;
+    setupTerminalIfNeeded(true);
+  }, 90);
+}
+
+async function setupTerminalIfNeeded(force = false) {
   if (state.route.name !== ROUTE_NAMES.terminal) {
     disposeTerminalRuntime();
     return;
@@ -815,7 +903,7 @@ async function setupTerminalIfNeeded() {
     return;
   }
 
-  if (state.terminalRuntime?.instanceId === instance.id) {
+  if (!force && state.terminalRuntime?.instanceId === instance.id) {
     return;
   }
 
@@ -855,6 +943,7 @@ async function setupTerminalIfNeeded() {
 
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
+  host.innerHTML = '';
   terminal.open(host);
   fitAddon.fit();
 
@@ -1033,8 +1122,18 @@ function render() {
     return;
   }
 
+  if (state.route.name === ROUTE_NAMES.storage) {
+    app.innerHTML = renderStorageView();
+    return;
+  }
+
   if (state.route.name === ROUTE_NAMES.instances) {
     app.innerHTML = renderInstancesView();
+    return;
+  }
+
+  if (state.route.name === ROUTE_NAMES.detail) {
+    app.innerHTML = renderInstanceDetailView();
     return;
   }
 
@@ -1054,18 +1153,24 @@ function render() {
 
 function renderTopbar(active) {
   const health = getAppHealth();
+  const computeActive =
+    active === ROUTE_NAMES.instances ||
+    active === ROUTE_NAMES.create ||
+    active === ROUTE_NAMES.detail ||
+    active === ROUTE_NAMES.result ||
+    active === ROUTE_NAMES.terminal;
   return `
     <header class="topbar">
       <div class="brand">
-        <img class="brand-logo" src="${BRAND_ASSETS.dark}" alt="RETURN logo" />
+        <img class="brand-logo" src="${BRAND_ASSETS.light}" alt="RETURN logo" />
         <div>
           <strong>Return Cloud Platform</strong>
-          <span>${active === ROUTE_NAMES.result ? 'Result' : active === ROUTE_NAMES.terminal ? 'Terminal' : active === ROUTE_NAMES.instances ? 'Instances' : 'Create VM'}</span>
+          <span>${active === ROUTE_NAMES.storage ? 'Storage' : 'Compute'}</span>
         </div>
       </div>
       <nav class="topbar-nav" aria-label="Primary">
-        <button class="nav-button ${active === ROUTE_NAMES.instances ? 'active' : ''}" data-action="go-instances">Instances</button>
-        <button class="nav-button ${active === ROUTE_NAMES.create ? 'active' : ''}" data-action="go-create">Create VM</button>
+        <button class="nav-button ${computeActive ? 'active' : ''}" data-action="go-compute">Compute</button>
+        <button class="nav-button ${active === ROUTE_NAMES.storage ? 'active' : ''}" data-action="go-storage">Storage</button>
       </nav>
       <div class="topbar-tools">
         <span class="status-pill ${health.tone}">${health.label}</span>
@@ -1390,36 +1495,28 @@ function renderInstancesView() {
       ${renderTopbar(ROUTE_NAMES.instances)}
       <main class="workspace workspace-list">
         <section class="workspace-main list-main">
-          <section class="notice-strip inventory-strip ${health.tone}">
-            <div class="strip-copy">
-              <p class="eyebrow">Inventory</p>
-              <h2>Instances</h2>
-              <p>${getInstancesHealth()}</p>
-            </div>
-            <div class="strip-stats" aria-label="Inventory summary">
-              <div class="mini-stat">
-                <span>Visible</span>
-                <strong>${visibleInstances.length}</strong>
-              </div>
-              <div class="mini-stat">
-                <span>Total</span>
-                <strong>${state.instances.length}</strong>
-              </div>
-              <div class="mini-stat">
-                <span>Active</span>
-                <strong>${activeCount}</strong>
-              </div>
-            </div>
-          </section>
-
           <section class="editor-section editor-section-flat">
             <div class="section-head section-head-tight">
               <div>
-                <p class="eyebrow">Workspace</p>
-                <h2>생성한 인스턴스를 한눈에 확인</h2>
-                <p class="muted section-support">검색, 상태 필터, 터미널 진입까지 같은 화면에서 처리합니다.</p>
+                <p class="eyebrow">Compute</p>
+                <h2>Instances</h2>
+                <p class="muted section-support">${getInstancesHealth()}</p>
               </div>
-              <div class="action-row compact">
+              <div class="section-head-meta">
+                <div class="section-stats" aria-label="Inventory summary">
+                  <div class="mini-stat">
+                    <span>Visible</span>
+                    <strong>${visibleInstances.length}</strong>
+                  </div>
+                  <div class="mini-stat">
+                    <span>Total</span>
+                    <strong>${state.instances.length}</strong>
+                  </div>
+                  <div class="mini-stat">
+                    <span>Active</span>
+                    <strong>${activeCount}</strong>
+                  </div>
+                </div>
                 <button class="primary-button" data-action="go-create">Create new VM</button>
               </div>
             </div>
@@ -1427,13 +1524,13 @@ function renderInstancesView() {
             <div class="inventory-toolbar">
               <label class="field inventory-search">
                 <span>Search</span>
-                <input name="instanceQuery" type="text" placeholder="name, id, flavor" value="${escapeHtml(state.instanceQuery)}" />
+                <input name="instanceQuery" type="text" placeholder="Search instances" value="${escapeHtml(state.instanceQuery)}" />
               </label>
               <div class="toolbar-side">
                 <div class="filter-row" aria-label="Instance status filters">
                   <button class="filter-chip ${state.instanceStatusFilter === 'all' ? 'active' : ''}" data-action="filter-instances" data-status="all">All ${state.instances.length}</button>
                   <button class="filter-chip ${state.instanceStatusFilter === 'active' ? 'active' : ''}" data-action="filter-instances" data-status="active">Active ${activeCount}</button>
-                  <button class="filter-chip ${state.instanceStatusFilter === 'build' ? 'active' : ''}" data-action="filter-instances" data-status="build">Build ${buildCount}</button>
+                  <button class="filter-chip ${state.instanceStatusFilter === 'build' ? 'active' : ''}" data-action="filter-instances" data-status="build">Building ${buildCount}</button>
                 </div>
                 ${errorCount ? `<span class="toolbar-meta">Issues ${errorCount}</span>` : ''}
               </div>
@@ -1458,7 +1555,7 @@ function renderInstancesView() {
                         <tr class="${instance.id === state.selectedInstanceId ? 'selected' : ''}" data-action="select-instance" data-instance-id="${instance.id}">
                           <td>
                             <strong>${escapeHtml(instance.name)}</strong>
-                            <small>${escapeHtml(instance.id)}</small>
+                            <small>${escapeHtml(getDisplayInstanceId(instance.id))}</small>
                           </td>
                           <td><span class="inline-badge ${statusTone(instance.status)}">${escapeHtml(instance.status)}</span></td>
                           <td>${escapeHtml(instance.flavorId)}</td>
@@ -1485,14 +1582,14 @@ function renderInstancesView() {
         <aside class="workspace-summary list-detail">
           <div class="summary-headline summary-headline-compact">
             <div>
-              <p class="eyebrow">Selected instance</p>
-              <h2>${escapeHtml(selectedInstance?.name || 'No instance')}</h2>
+              <p class="eyebrow">Instance details</p>
+              <h2>${escapeHtml(selectedInstance?.name || 'No selection')}</h2>
             </div>
             ${selectedInstance ? `<span class="inline-badge ${statusTone(selectedInstance.status)}">${escapeHtml(selectedInstance.status)}</span>` : ''}
           </div>
           ${selectedInstance ? `
             <dl class="summary-grid large">
-              <div><dt>ID</dt><dd>${escapeHtml(selectedInstance.id)}</dd></div>
+              <div><dt>ID</dt><dd>${escapeHtml(getDisplayInstanceId(selectedInstance.id))}</dd></div>
               <div><dt>Flavor</dt><dd>${escapeHtml(selectedInstance.flavorId)}</dd></div>
               <div><dt>Image</dt><dd>${escapeHtml(selectedInstance.imageId)}</dd></div>
               <div><dt>Network</dt><dd>${escapeHtml(selectedInstance.networkId || 'Not set')}</dd></div>
@@ -1500,16 +1597,162 @@ function renderInstancesView() {
               <div><dt>Mode</dt><dd>${escapeHtml(selectedInstance.mode)}</dd></div>
             </dl>
             <div class="summary-note">
-              <strong>Operator note</strong>
-              <p>${escapeHtml(selectedInstance.note || 'No note added yet.')}</p>
+              <strong>Note</strong>
+              <p>${escapeHtml(selectedInstance.note || 'No note')}</p>
             </div>
             <div class="action-row compact sidebar-actions">
               <button class="primary-button" data-action="open-terminal" data-instance-id="${selectedInstance.id}">Open terminal</button>
-              <button class="ghost-button" data-action="go-create">Create another</button>
+              <button class="ghost-button" data-action="go-instance-detail" data-instance-id="${selectedInstance.id}">View details</button>
             </div>
           ` : `
             <p class="muted">표시할 인스턴스가 없습니다.</p>
           `}
+        </aside>
+      </main>
+    </div>
+  `;
+}
+
+function renderInstanceDetailView() {
+  const instance = getInstanceById(state.route.instanceId);
+
+  return `
+    <div class="page page-instances shell-enter">
+      ${renderTopbar(ROUTE_NAMES.detail)}
+      <main class="workspace workspace-list">
+        <section class="workspace-main list-main">
+          <section class="editor-section editor-section-flat">
+            <div class="section-head section-head-tight">
+              <div>
+                <p class="eyebrow">Compute</p>
+                <h2>Instance details</h2>
+                <p class="muted section-support">선택한 인스턴스의 속성과 접근 정보를 확인합니다.</p>
+              </div>
+              <div class="action-row compact">
+                <button class="ghost-button" data-action="go-instances">Back to instances</button>
+              </div>
+            </div>
+
+            ${instance ? `
+              <div class="detail-page-grid">
+                <section class="detail-page-main table-frame">
+                  <div class="detail-page-header">
+                    <div>
+                      <p class="eyebrow">Instance</p>
+                      <h2>${escapeHtml(instance.name)}</h2>
+                    </div>
+                    <span class="inline-badge ${statusTone(instance.status)}">${escapeHtml(instance.status)}</span>
+                  </div>
+                  <dl class="summary-grid large detail-grid">
+                    <div><dt>ID</dt><dd>${escapeHtml(getDisplayInstanceId(instance.id))}</dd></div>
+                    <div><dt>Flavor</dt><dd>${escapeHtml(instance.flavorId)}</dd></div>
+                    <div><dt>Image</dt><dd>${escapeHtml(instance.imageId)}</dd></div>
+                    <div><dt>Network</dt><dd>${escapeHtml(instance.networkId || 'Not set')}</dd></div>
+                    <div><dt>SSH key</dt><dd>${escapeHtml(instance.keyName || 'Not registered')}</dd></div>
+                    <div><dt>Mode</dt><dd>${escapeHtml(instance.mode)}</dd></div>
+                    <div><dt>Created</dt><dd>${escapeHtml(humanizeDate(instance.created))}</dd></div>
+                    <div><dt>Updated</dt><dd>${escapeHtml(humanizeDate(instance.updated))}</dd></div>
+                  </dl>
+                </section>
+
+                <aside class="workspace-summary detail-side">
+                  <div class="summary-headline">
+                    <p class="eyebrow">Actions</p>
+                    <h2>${escapeHtml(instance.name)}</h2>
+                  </div>
+                  <div class="summary-note">
+                    <strong>Note</strong>
+                    <p>${escapeHtml(instance.note || 'No note')}</p>
+                  </div>
+                  <div class="action-row compact sidebar-actions">
+                    <button class="primary-button" data-action="open-terminal" data-instance-id="${instance.id}">Open terminal</button>
+                    <button class="ghost-button" data-action="go-create">Create VM</button>
+                  </div>
+                </aside>
+              </div>
+            ` : `
+              <div class="empty-block">
+                <strong>인스턴스를 찾을 수 없습니다.</strong>
+                <p>목록으로 돌아가 다른 인스턴스를 선택해 주세요.</p>
+              </div>
+            `}
+          </section>
+        </section>
+      </main>
+    </div>
+  `;
+}
+
+function renderStorageView() {
+  const selectedBucket = getSelectedBucket();
+
+  return `
+    <div class="page page-instances shell-enter">
+      ${renderTopbar(ROUTE_NAMES.storage)}
+      <main class="workspace workspace-list">
+        <section class="workspace-main list-main">
+          <section class="editor-section editor-section-flat">
+            <div class="section-head section-head-tight">
+              <div>
+                <p class="eyebrow">Storage</p>
+                <h2>Object Storage</h2>
+                <p class="muted section-support">버킷과 오브젝트 저장 영역을 확인합니다.</p>
+              </div>
+            </div>
+
+            <div class="table-frame">
+              <table class="flavor-table instance-table" data-ui="storage-table">
+                <thead>
+                  <tr>
+                    <th>Bucket</th>
+                    <th>Class</th>
+                    <th>Region</th>
+                    <th>Objects</th>
+                    <th>Size</th>
+                    <th>Updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${storageBuckets
+                    .map(
+                      (bucket) => `
+                        <tr class="${bucket.id === state.selectedBucketId ? 'selected' : ''}" data-action="select-bucket" data-bucket-id="${bucket.id}">
+                          <td><strong>${escapeHtml(bucket.name)}</strong></td>
+                          <td>${escapeHtml(bucket.class)}</td>
+                          <td>${escapeHtml(bucket.region)}</td>
+                          <td>${bucket.objects.toLocaleString('en-US')}</td>
+                          <td>${escapeHtml(bucket.size)}</td>
+                          <td>${escapeHtml(humanizeDate(bucket.updated))}</td>
+                        </tr>
+                      `,
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <aside class="workspace-summary list-detail">
+          <div class="summary-headline summary-headline-compact">
+            <div>
+              <p class="eyebrow">Bucket details</p>
+              <h2>${escapeHtml(selectedBucket?.name || 'No selection')}</h2>
+            </div>
+          </div>
+          ${selectedBucket ? `
+            <dl class="summary-grid large">
+              <div><dt>Class</dt><dd>${escapeHtml(selectedBucket.class)}</dd></div>
+              <div><dt>Region</dt><dd>${escapeHtml(selectedBucket.region)}</dd></div>
+              <div><dt>Objects</dt><dd>${selectedBucket.objects.toLocaleString('en-US')}</dd></div>
+              <div><dt>Size</dt><dd>${escapeHtml(selectedBucket.size)}</dd></div>
+              <div><dt>Updated</dt><dd>${escapeHtml(humanizeDate(selectedBucket.updated))}</dd></div>
+            </dl>
+            <div class="summary-note">
+              <strong>Note</strong>
+              <p>${escapeHtml(selectedBucket.note)}</p>
+            </div>
+          ` : `<p class="muted">표시할 버킷이 없습니다.</p>`}
         </aside>
       </main>
     </div>
@@ -1531,9 +1774,9 @@ function renderCreateView() {
       <main class="workspace">
         <aside class="workspace-rail">
           <div class="rail-intro">
-            <p class="eyebrow">Workflow</p>
+            <p class="eyebrow">Compute</p>
             <h2>Create VM</h2>
-            <p class="muted">한 페이지 안에서 입력, 검토, 생성까지 끝냅니다.</p>
+            <p class="muted">필수 설정만 확인하고 바로 생성합니다.</p>
           </div>
           <nav class="section-rail" aria-label="Section navigation">
             ${sectionOrder
@@ -1555,24 +1798,25 @@ function renderCreateView() {
         </aside>
 
         <section class="workspace-main">
-          <section class="notice-strip ${health.tone}">
+          <section class="notice-strip create-strip ${health.tone}">
             <div>
-              <strong>${health.label}</strong>
-              <p>${health.detail}</p>
+              <strong>Compute / Create</strong>
+              <p>${selectedFlavor ? `${selectedFlavor.name} 기준으로 인스턴스를 준비합니다.` : '인스턴스 생성 설정을 확인합니다.'}</p>
             </div>
             <ul>
-              <li>Session: local</li>
-              <li>Image/network: guided assist</li>
+              <li>${health.label}</li>
+              <li>${state.draft.imageId ? 'Image ready' : 'Image required'}</li>
+              <li>${state.keypairStatus.response?.name ? 'SSH ready' : 'SSH optional'}</li>
             </ul>
           </section>
 
           <section class="editor-section" id="basic">
             <div class="section-head">
               <div>
-                <p class="eyebrow">01 · Basic information</p>
-                <h2>운영에서 다시 찾기 쉬운 이름부터 정리</h2>
+                <p class="eyebrow">01 · Basic</p>
+                <h2>기본 정보</h2>
               </div>
-              <p class="muted">목록 화면이 아직 없어도, 지금 정한 이름이 나중에 식별 기준이 됩니다.</p>
+              <p class="muted">이름과 메모를 정리합니다.</p>
             </div>
             <div class="field-grid">
               <label class="field">
@@ -1583,7 +1827,7 @@ function renderCreateView() {
               <label class="field field-wide">
                 <span>Operator note</span>
                 <textarea name="description" rows="3" placeholder="용도, 담당자, 수업명 등을 짧게 적습니다.">${escapeHtml(state.draft.description)}</textarea>
-                <small>현재는 목록과 결과 화면에서만 참고하는 프런트 내부 메모입니다.</small>
+                <small>목록과 상세에서 같이 보입니다.</small>
               </label>
             </div>
           </section>
@@ -1591,10 +1835,10 @@ function renderCreateView() {
           <section class="editor-section" id="compute">
             <div class="section-head">
               <div>
-                <p class="eyebrow">02 · Compute sizing</p>
-                <h2>현재 quota 안에서 가장 적절한 사양 선택</h2>
+                <p class="eyebrow">02 · Sizing</p>
+                <h2>사양</h2>
               </div>
-              <p class="muted">비교가 쉬운 compact table을 유지합니다.</p>
+              <p class="muted">quota 기준으로 선택합니다.</p>
             </div>
             <div class="table-frame">
               ${renderFlavorTable(selectedFlavor)}
@@ -1604,10 +1848,10 @@ function renderCreateView() {
           <section class="editor-section" id="image-network">
             <div class="section-head">
               <div>
-                <p class="eyebrow">03 · Image & network</p>
-                <h2>친숙한 이름으로 시작하고 필요할 때만 raw ID 사용</h2>
+                <p class="eyebrow">03 · Image / Network</p>
+                <h2>이미지 · 네트워크</h2>
               </div>
-              <p class="muted">백엔드에 목록 API가 없어서 guided assist와 direct input을 함께 둡니다.</p>
+              <p class="muted">assist 또는 직접 입력으로 설정합니다.</p>
             </div>
 
             <div class="paired-blocks">
@@ -1675,9 +1919,9 @@ function renderCreateView() {
             <div class="section-head">
               <div>
                 <p class="eyebrow">04 · Access</p>
-                <h2>SSH 공개키를 먼저 등록해 접속 준비를 남깁니다</h2>
+                <h2>접근</h2>
               </div>
-              <p class="muted">현재 create payload에는 직접 연결되지 않지만, 후속 SSH 흐름을 위해 강하게 권장합니다.</p>
+              <p class="muted">SSH 키 등록은 선택입니다.</p>
             </div>
 
             <div class="field-grid field-grid-access">
@@ -1712,9 +1956,9 @@ function renderCreateView() {
             <div class="section-head">
               <div>
                 <p class="eyebrow">05 · Review</p>
-                <h2>실제로 전송될 payload를 보고 생성</h2>
+                <h2>검토</h2>
               </div>
-              <p class="muted">전송 전 JSON을 숨기지 않습니다.</p>
+              <p class="muted">생성 전에 최종 값을 확인합니다.</p>
             </div>
 
             <div class="review-layout">
@@ -1725,12 +1969,12 @@ function renderCreateView() {
                   <li><strong>Resources</strong><span>${selectedFlavor ? `${selectedFlavor.vcpus} vCPU · ${formatRam(selectedFlavor.ram)} · ${selectedFlavor.disk} GB disk` : '-'}</span></li>
                   <li><strong>Image</strong><span>${escapeHtml(payload.image_id || '-')}</span></li>
                   <li><strong>Network</strong><span>${escapeHtml(payload.network_id || 'Not set')}</span></li>
-                  <li><strong>Key registration</strong><span>${escapeHtml(state.keypairStatus.response?.name || 'Optional')}</span></li>
+                  <li><strong>SSH key</strong><span>${escapeHtml(state.keypairStatus.response?.name || 'Optional')}</span></li>
                 </ul>
                 ${state.creationStatus.message ? `<p class="inline-status ${state.creationStatus.state}" aria-live="polite">${state.creationStatus.message}</p>` : ''}
                 <div class="action-row compact">
                   <button class="primary-button" data-action="create-instance" data-ui="create-vm" ${canCreate ? '' : 'disabled'}>
-                    ${state.creationStatus.state === 'saving' ? 'Creating...' : 'Create VM'}
+                    ${state.creationStatus.state === 'saving' ? 'Creating...' : 'Create instance'}
                   </button>
                   <button class="ghost-button" data-action="jump-section" data-target="basic">Back to edit</button>
                 </div>
@@ -1742,7 +1986,7 @@ function renderCreateView() {
 
         <aside class="workspace-summary">
           <div class="summary-headline">
-            <p class="eyebrow">Summary</p>
+            <p class="eyebrow">Create review</p>
             <h2 data-ui="summary-name">${escapeHtml(state.draft.name || 'Untitled VM')}</h2>
           </div>
           <dl class="summary-grid">
@@ -1768,8 +2012,8 @@ function renderCreateView() {
               .join('')}
           </div>
           <div class="summary-note">
-            <strong>Operator note</strong>
-            <p>${escapeHtml(state.draft.description || 'No note added yet.')}</p>
+            <strong>Note</strong>
+            <p>${escapeHtml(state.draft.description || 'No note')}</p>
           </div>
         </aside>
       </main>
@@ -1903,26 +2147,22 @@ function renderTerminalView() {
   return `
     <div class="page page-terminal shell-enter">
       ${renderTopbar(ROUTE_NAMES.terminal)}
-      <main class="workspace workspace-terminal">
+      <main class="workspace workspace-terminal ${state.terminalFullscreen ? 'terminal-fullscreen' : ''}">
         <section class="workspace-main terminal-main">
-          <section class="notice-strip demo">
-            <div>
-              <strong>Terminal session</strong>
-              <p>xterm.js 기반 UI를 제공하고, websocket SSH transport는 아직 연결 전 단계입니다.</p>
-            </div>
-            <ul>
-              <li>Transport: xterm shell</li>
-              <li>Commands: help / ls / cat instance.txt</li>
-            </ul>
-          </section>
-
-          <section class="terminal-shell">
+          <section class="terminal-shell ${state.terminalFullscreen ? 'is-fullscreen' : ''}">
             <div class="terminal-shell-head">
-              <div>
-                <p class="eyebrow">Terminal</p>
+              <div class="terminal-heading">
+                <div class="terminal-breadcrumb">
+                  <button class="breadcrumb-link" data-action="go-compute">Compute</button>
+                  <span>/</span>
+                  <button class="breadcrumb-link" data-action="go-instances">Instances</button>
+                  <span>/</span>
+                  <strong>${escapeHtml(instance?.name || 'Unknown instance')}</strong>
+                </div>
                 <h2>${escapeHtml(instance?.name || 'Unknown instance')}</h2>
               </div>
               <div class="action-row compact">
+                <button class="ghost-button" data-action="terminal-fullscreen">${state.terminalFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</button>
                 <button class="ghost-button" data-action="terminal-clear">Clear</button>
                 <button class="ghost-button" data-action="terminal-reconnect">Reconnect</button>
                 <button class="ghost-button" data-action="go-instances">Back to list</button>
@@ -1934,23 +2174,23 @@ function renderTerminalView() {
 
         <aside class="workspace-summary terminal-detail">
           <div class="summary-headline">
-            <p class="eyebrow">Session info</p>
+            <p class="eyebrow">Instance</p>
             <h2>${escapeHtml(instance?.name || 'No instance')}</h2>
           </div>
           ${instance ? `
             <dl class="summary-grid large">
-              <div><dt>ID</dt><dd>${escapeHtml(instance.id)}</dd></div>
+              <div><dt>ID</dt><dd>${escapeHtml(getDisplayInstanceId(instance.id))}</dd></div>
               <div><dt>Status</dt><dd><span class="inline-badge ${statusTone(instance.status)}">${escapeHtml(instance.status)}</span></dd></div>
               <div><dt>Flavor</dt><dd>${escapeHtml(instance.flavorId)}</dd></div>
               <div><dt>Network</dt><dd>${escapeHtml(instance.networkId || 'Not set')}</dd></div>
-              <div><dt>SSH key</dt><dd>${escapeHtml(instance.keyName || 'Not registered')}</dd></div>
+              <div><dt>SSH key</dt><dd>${escapeHtml(instance.keyName || 'Not set')}</dd></div>
             </dl>
             <div class="summary-note">
-              <strong>Session notes</strong>
-              <p>이 화면은 xterm.js UI와 기본 명령 반응을 먼저 제공합니다. 실제 websocket SSH가 붙으면 같은 화면 구조 위에 transport만 교체하면 됩니다.</p>
+              <strong>Access</strong>
+              <p>Browser terminal</p>
             </div>
             <div class="command-list">
-              <strong>Suggested commands</strong>
+              <strong>Commands</strong>
               <ul>
                 <li><code>help</code></li>
                 <li><code>cat instance.txt</code></li>
@@ -2036,7 +2276,7 @@ document.addEventListener('click', async (event) => {
     state.keypairStatus = { state: 'idle', message: '', response: null };
     state.creationStatus = { state: 'idle', message: '' };
     state.authMessage = null;
-    const nextPath = state.pendingRoutePath || '/instances';
+    const nextPath = state.pendingRoutePath || '/compute';
     state.pendingRoutePath = null;
     navigate(nextPath, { replace: true });
     return;
@@ -2050,7 +2290,7 @@ document.addEventListener('click', async (event) => {
     state.keypairStatus = { state: 'idle', message: '', response: null };
     state.creationStatus = { state: 'idle', message: '' };
     state.authMessage = null;
-    const nextPath = state.pendingRoutePath || '/instances';
+    const nextPath = state.pendingRoutePath || '/compute';
     state.pendingRoutePath = null;
     navigate(nextPath, { replace: true });
     return;
@@ -2093,7 +2333,7 @@ document.addEventListener('click', async (event) => {
     state.authMessage = { type: 'saved', text: `${nextUser.name} 계정을 만들었고 바로 로그인합니다.` };
     state.session = nextUser;
     writeStorage(STORAGE_KEYS.session, nextUser);
-    const nextPath = state.pendingRoutePath || '/instances';
+    const nextPath = state.pendingRoutePath || '/compute';
     state.pendingRoutePath = null;
     navigate(nextPath, { replace: true });
     return;
@@ -2109,12 +2349,22 @@ document.addEventListener('click', async (event) => {
   }
 
   if (action === 'go-create') {
-    navigate('/instances/new');
+    navigate('/compute/create');
+    return;
+  }
+
+  if (action === 'go-compute') {
+    navigate('/compute');
+    return;
+  }
+
+  if (action === 'go-storage') {
+    navigate('/storage');
     return;
   }
 
   if (action === 'go-instances') {
-    navigate('/instances');
+    navigate('/compute');
     return;
   }
 
@@ -2149,6 +2399,22 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
+  if (action === 'go-instance-detail') {
+    const instanceId = target.dataset.instanceId || state.selectedInstanceId;
+    if (!instanceId) return;
+    state.selectedInstanceId = instanceId;
+    persistSelectedInstance();
+    navigate(`/compute/instances/${encodeURIComponent(instanceId)}`);
+    return;
+  }
+
+  if (action === 'select-bucket') {
+    state.selectedBucketId = target.dataset.bucketId;
+    persistSelectedBucket();
+    render();
+    return;
+  }
+
   if (action === 'filter-instances') {
     state.instanceStatusFilter = target.dataset.status || 'all';
     render();
@@ -2160,12 +2426,24 @@ document.addEventListener('click', async (event) => {
     if (!instanceId) return;
     state.selectedInstanceId = instanceId;
     persistSelectedInstance();
-    navigate(`/instances/${encodeURIComponent(instanceId)}/terminal`);
+    navigate(`/compute/instances/${encodeURIComponent(instanceId)}/terminal`);
     return;
   }
 
   if (action === 'terminal-clear') {
     state.terminalRuntime?.terminal?.clear();
+    return;
+  }
+
+  if (action === 'terminal-fullscreen') {
+    const shell = document.querySelector('.terminal-shell');
+    if (!shell) return;
+
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+    } else {
+      shell.requestFullscreen?.();
+    }
     return;
   }
 
@@ -2227,6 +2505,7 @@ document.addEventListener('input', (event) => {
 });
 
 (function boot() {
+  document.addEventListener('fullscreenchange', updateTerminalFullscreenState);
   if (state.route.path !== window.location.pathname) {
     window.history.replaceState({}, '', state.route.path);
   }
@@ -2241,8 +2520,5 @@ document.addEventListener('input', (event) => {
     state.session
   ) {
     ensureBackendHealth();
-  }
-  if (state.route.name === ROUTE_NAMES.terminal) {
-    setupTerminalIfNeeded();
   }
 })();
