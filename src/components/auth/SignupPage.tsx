@@ -62,7 +62,7 @@ export function SignupPage() {
   );
 
   return (
-    <AuthLayout headerTitle="Create account" headerSubtitle="" headerActions={headerActions}>
+    <AuthLayout headerTitle="Create account" headerSubtitle="" headerActions={headerActions} pageClass="page-signup">
       <div className="auth-login-box">
         <div className="auth-copy">
           <h2>회원가입</h2>

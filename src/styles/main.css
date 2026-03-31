@@ -285,6 +285,10 @@ h3 {
   animation: none;
 }
 
+.page-signup .auth-shell {
+  align-items: start;
+}
+
 .page-login .auth-card {
   animation: authFade 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
