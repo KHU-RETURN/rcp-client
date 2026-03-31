@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const port = Number(process.env.PORT || 4173);
 const apiTarget = new URL(process.env.RCP_API_TARGET || 'http://127.0.0.1:8080');
-const demoMode = process.env.RCP_DEMO_MODE || 'auto';
+const distDir = path.join(__dirname, 'dist');
 
 const mimeTypes = new Map([
   ['.html', 'text/html; charset=utf-8'],
@@ -111,12 +111,12 @@ async function serveStatic(res, pathname) {
   const looksLikeAsset = path.extname(normalized).length > 0;
 
   if (!looksLikeAsset) {
-    await sendFile(res, path.join(__dirname, 'index.html'));
+    await sendFile(res, path.join(distDir, 'index.html'));
     return;
   }
 
-  const safePath = path.normalize(path.join(__dirname, pathname));
-  if (!safePath.startsWith(__dirname)) {
+  const safePath = path.normalize(path.join(distDir, pathname));
+  if (!safePath.startsWith(distDir)) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Forbidden');
     return;
@@ -140,14 +140,7 @@ async function sendFile(res, filePath) {
   const contentType = mimeTypes.get(ext) || 'application/octet-stream';
   let content = await fs.readFile(filePath);
 
-  if (filePath.endsWith('index.html')) {
-    content = Buffer.from(
-      content
-        .toString('utf-8')
-        .replaceAll('__RCP_API_BASE_URL__', process.env.RCP_API_BASE_URL || '')
-        .replaceAll('__RCP_DEMO_MODE__', demoMode),
-    );
-  }
+  // Vite bakes env vars at build time; no runtime injection needed for the built app.
 
   res.writeHead(200, { 'Content-Type': contentType });
   res.end(content);
