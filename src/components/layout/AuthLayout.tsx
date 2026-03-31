@@ -5,11 +5,12 @@ interface AuthLayoutProps {
   headerSubtitle: string;
   headerActions?: ReactNode;
   children: ReactNode;
+  pageClass?: string;
 }
 
-export function AuthLayout({ headerTitle, headerSubtitle, headerActions, children }: AuthLayoutProps) {
+export function AuthLayout({ headerTitle, headerSubtitle, headerActions, children, pageClass }: AuthLayoutProps) {
   return (
-    <div className="page page-login shell-enter">
+    <div className={`page page-login shell-enter${pageClass ? ` ${pageClass}` : ''}`}>
       <main className="auth-shell">
         <section className="auth-brand-panel">
           <div className="auth-brand-copy">
