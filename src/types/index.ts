@@ -22,6 +22,7 @@ export type {
   CreateInstancePayload,
   CreateKeypairPayload,
   CreateInstanceResponse,
+  ServerInstanceResponse,
   CreationResult,
 } from './api';
 export { ApiRequestError } from './api';

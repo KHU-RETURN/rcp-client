@@ -3,6 +3,9 @@ export interface Session {
   name: string;
   role: string;
   subtitle: string;
+  email?: string;
+  accessToken?: string;
+  refreshToken?: string;
   source?: string;
 }
 
