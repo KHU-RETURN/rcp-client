@@ -2,6 +2,8 @@ export const ROUTE_NAMES = {
   login: 'login',
   signup: 'signup',
   changes: 'changes',
+  sshAuth: 'ssh-auth',
+  sshComplete: 'ssh-complete',
   instances: 'instances',
   storage: 'storage',
   create: 'create',
