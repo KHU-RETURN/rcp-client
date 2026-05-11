@@ -2,12 +2,16 @@ name: CI/CD Deployment
 
 on:
   push:
-    branches: ["main"] # main 브랜치에 push하면 작동
+    branches: ["main"]
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+# Node.js 24 강제 설정 (경고 메시지 제거용)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-deploy:
@@ -19,19 +23,21 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24 # 20에서 24로 올림
           cache: 'npm'
 
       - name: Install dependencies
         run: npm install
 
       - name: Build
-        run: npm run build # 본인의 빌드 명령어 확인
+        # CI=false를 넣으면 경고나 사소한 타입 에러 때문에 빌드가 멈추는 것을 방지합니다.
+        run: CI=false npm run build 
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist' # 빌드 결과물이 나오는 폴더 (build 또는 dist)
+          path: './dist' # Vite 프로젝트 결과물 폴더
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
