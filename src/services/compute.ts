@@ -1,5 +1,5 @@
 import { apiRequest } from './api';
-import { createDemoInstance, createDemoKeypair, buildInventoryRecord } from './demo';
+import { createDemoInstance, createDemoKeypair, buildInventoryRecord, buildInventoryRecordFromServer } from './demo';
 import { validatePublicKey, translateError, wait } from '../utils';
 import type {
   CreateInstancePayload,
@@ -8,6 +8,8 @@ import type {
   KeypairResponse,
   KeypairStatus,
   CreationResult,
+  Instance,
+  ServerInstanceResponse,
 } from '../types';
 
 export async function registerKeypair(
@@ -76,4 +78,9 @@ export async function createInstance(
       instanceId: null,
     };
   }
+}
+
+export async function fetchInstances(): Promise<Instance[]> {
+  const response = await apiRequest<ServerInstanceResponse[]>('/api/v1/compute/instances');
+  return response.map(buildInventoryRecordFromServer);
 }
