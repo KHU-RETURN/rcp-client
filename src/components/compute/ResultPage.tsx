@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { ROUTE_NAMES } from '../../constants';
 import { humanizeDate } from '../../utils';
+import type { CreateInstanceResponse } from '../../types';
 
 export function ResultPage() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export function ResultPage() {
     );
   }
 
-  const response = result.response ?? {};
+  const response: Partial<CreateInstanceResponse> = result.response ?? {};
 
   return (
     <div className="page page-result shell-enter">
