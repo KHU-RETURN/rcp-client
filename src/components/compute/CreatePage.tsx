@@ -79,6 +79,7 @@ export function CreatePage() {
     image_id: draft.imageId.trim(),
     flavor_id: draft.selectedFlavorId,
     ...(draft.networkId.trim() ? { network_id: draft.networkId.trim() } : {}),
+    ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
   };
 
   const canCreate = sections.review.valid && creationStatus.state !== 'saving';

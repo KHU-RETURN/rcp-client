@@ -13,9 +13,9 @@ import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
 import { rcpConfig } from '../../config';
 import { demoFlavors, buildSeedInstances } from '../../constants';
-import { sortFlavors } from '../../utils';
+import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
-import { registerKeypair, createInstance } from '../../services/compute';
+import { registerKeypair, createInstance, fetchInstances as fetchComputeInstances } from '../../services/compute';
 import { buildInventoryRecord } from '../../services/demo';
 
 export interface ComputeSlice {
@@ -30,6 +30,7 @@ export interface ComputeSlice {
   result: CreationResult | null;
 
   ensureFlavorData: () => Promise<void>;
+  ensureInstanceData: () => Promise<void>;
   upsertInstance: (instance: Instance) => void;
   setSelectedInstanceId: (id: string | null) => void;
   ensureSelectedInstance: () => void;
@@ -74,7 +75,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     }
 
     try {
-      const data = await apiRequest<Flavor[]>('/api/v1/compute/flavors/available');
+      const data = await apiRequest<Flavor[]>('/api/v1/compute/flavors?available=true');
       set({ flavors: sortFlavors(data), flavorsStatus: 'ready', connectionMode: 'live', connectionReason: '' });
     } catch {
       set({ flavors: sortFlavors(demoFlavors), flavorsStatus: 'ready' });
@@ -82,6 +83,33 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
 
     ensureDefaultFlavor(get);
     void connectionMode;
+  },
+
+  ensureInstanceData: async () => {
+    const { backendHealthStatus, ensureBackendHealth } = get();
+
+    if (backendHealthStatus === 'idle') {
+      await ensureBackendHealth();
+    }
+
+    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return;
+
+    try {
+      const data = await fetchComputeInstances();
+      const selectedInstanceId = data.some((instance) => instance.id === get().selectedInstanceId)
+        ? get().selectedInstanceId
+        : (data[0]?.id ?? null);
+
+      set({
+        instances: data,
+        selectedInstanceId,
+        connectionMode: 'live',
+        connectionReason: '',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load instances';
+      set({ connectionMode: 'demo', connectionReason: translateError(message) });
+    }
   },
 
   upsertInstance: (instance) => {
@@ -132,6 +160,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
       image_id: draft.imageId.trim(),
       flavor_id: draft.selectedFlavorId,
       ...(draft.networkId.trim() ? { network_id: draft.networkId.trim() } : {}),
+      ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
     };
 
     setCreationStatus({ state: 'saving', message: '인스턴스 생성 요청을 보내는 중입니다.' });

@@ -83,7 +83,7 @@ async function proxyApi(req, res, requestUrl) {
 
 async function reportBackendHealth(res) {
   try {
-    const upstream = await fetch(new URL('/api/v1/compute/flavors/available', apiTarget));
+    const upstream = await fetch(new URL('/api/v1/compute/flavors?available=true', apiTarget));
     if (!upstream.ok) {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ available: false, error: `upstream status ${upstream.status}` }));

@@ -27,6 +27,7 @@ export function AuthLayout({ headerTitle, headerSubtitle, headerActions, childre
             <div className="auth-card-copy">
               <span className="auth-kicker">Return Cloud Platform</span>
               <strong>{headerTitle}</strong>
+              {headerSubtitle && <small>{headerSubtitle}</small>}
             </div>
             {headerActions && (
               <div className="auth-header-actions">{headerActions}</div>
