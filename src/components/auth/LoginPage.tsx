@@ -7,8 +7,12 @@ export function LoginPage() {
   const { googleLogin, login, getAllUsers } = useStore();
 
   function handleGoogleLogin() {
-    const nextPath = googleLogin();
-    navigate(nextPath, { replace: true });
+    // 1. 기존 데모 로직 주석 처리
+    // const nextPath = googleLogin();
+    // navigate(nextPath, { replace: true });
+
+    // 2. 백엔드 구글 로그인 엔드포인트로 이동 (Vite Proxy가 배포 서버로 전달함)
+    window.location.href = '/api/v1/auth/oauth/google';
   }
 
   function handleUserLogin(userId: string) {
