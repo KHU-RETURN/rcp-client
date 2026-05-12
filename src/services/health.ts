@@ -12,6 +12,6 @@ export async function checkBackendHealth(): Promise<BackendHealthResponse> {
 
   return {
     available: true,
-    target: 'https://return-api.khu-return.com', // 실제 배포된 서버 주소
+    target: import.meta.env.VITE_RCP_API_BASE_URL || 'https://return-api.khu-return.com'
   };
 }
