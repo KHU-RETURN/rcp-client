@@ -3,6 +3,7 @@ import { AuthGuard } from './components/layout/AuthGuard';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignupPage } from './components/auth/SignupPage';
 import { ChangesPage } from './components/auth/ChangesPage';
+import { AuthCallback } from './components/auth/AuthCallback'; 
 import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';
 import { CreatePage } from './components/compute/CreatePage';
@@ -17,6 +18,8 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/changes" element={<ChangesPage />} />
+
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route element={<AuthGuard />}>
           <Route path="/compute" element={<InstancesPage />} />

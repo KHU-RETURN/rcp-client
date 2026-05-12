@@ -15,7 +15,9 @@ function getPersistedAccessToken(): string | null {
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${rcpConfig.apiBaseUrl}${path}`;
+  // const url = `${rcpConfig.apiBaseUrl}${path}`;
+  const url = path;
+  
   const token = getPersistedAccessToken();
   const headers = new Headers(options.headers);
 

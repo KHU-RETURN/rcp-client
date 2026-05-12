@@ -6,17 +6,12 @@ export default defineConfig({
   server: {
     port: 4173,
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8080',
+      // 핵심: 브라우저는 4173에 요청을 보내는 줄 알지만, Vite 서버가 중간에서 낚아챕니다.
+      "/api": {
+        target: "https://return-api.khu-return.com",
         changeOrigin: true,
-      },
-      '/__health': {
-        target: 'http://127.0.0.1:8080',
-        changeOrigin: true,
+        secure: true,
       },
     },
-  },
-  build: {
-    outDir: 'dist',
   },
 });
