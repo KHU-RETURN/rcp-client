@@ -9,7 +9,7 @@ import { createTerminalSlice, type TerminalSlice } from './slices/terminal';
 import { STORAGE_KEYS } from '../constants';
 import { buildSeedInstances } from '../constants/mock-data';
 
-export type AppStore = AuthSlice & ConnectionSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
+type AppStore = AuthSlice & ConnectionSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
 
 export const useStore = create<AppStore>()(
   persist(
