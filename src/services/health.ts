@@ -12,6 +12,6 @@ export async function checkBackendHealth(): Promise<BackendHealthResponse> {
 
   return {
     available: true,
-    target: import.meta.env.VITE_RCP_API_BASE_URL || 'https://return-api.khu-return.com'
+    target: import.meta.env.VITE_RCP_API_BASE_URL || 'https://localhost:8080'
   };
 }

@@ -23,11 +23,8 @@ export function App() {
 
         <Route element={<AuthGuard />}>
           <Route path="/compute" element={<InstancesPage />} />
-          <Route path="/instances" element={<Navigate to="/compute" replace />} />
           <Route path="/compute/create" element={<CreatePage />} />
-          <Route path="/instances/new" element={<Navigate to="/compute/create" replace />} />
           <Route path="/compute/create/result" element={<ResultPage />} />
-          <Route path="/instances/create/result" element={<Navigate to="/compute/create/result" replace />} />
           <Route path="/compute/instances/:id" element={<InstanceDetailPage />} />
           <Route path="/instances/:id" element={<InstanceDetailPage />} />
           <Route path="/compute/instances/:id/terminal" element={<TerminalPage />} />

@@ -7,8 +7,17 @@ function getPersistedAccessToken(): string | null {
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as { state?: { session?: { accessToken?: string; access_token?: string } | null } };
-    return parsed.state?.session?.accessToken ?? parsed.state?.session?.access_token ?? null;
+    const parsed = JSON.parse(raw) as {
+      state?: {
+        session?: {
+          accessToken?: string;
+        } | null;
+      };
+    };
+    return (
+      parsed.state?.session?.accessToken ??
+      null
+    );
   } catch {
     return null;
   }
@@ -28,6 +37,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
+  console.info('[apiRequest] auth token lookup', {
+    path,
+    hasToken: Boolean(token),
+    hasAuthorizationHeader: headers.has('Authorization'),
+  });
 
   const response = await fetch(url, {
     ...options,
