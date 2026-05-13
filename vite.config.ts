@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
       port: 4173,
       proxy: {
         '/api': {
-          target: env.VITE_RCP_API_BASE_URL || 'https://localhost:8080',
+          target: env.VITE_RCP_API_BASE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
       },
