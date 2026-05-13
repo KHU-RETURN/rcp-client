@@ -1,11 +1,5 @@
 import type { InstanceMode } from './compute';
 
-export interface BackendHealthResponse {
-  available: boolean;
-  target?: string;
-  error?: string;
-}
-
 export interface CreateInstancePayload {
   name: string;
   image_id: string;

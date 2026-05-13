@@ -58,15 +58,11 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   result: null,
 
   ensureFlavorData: async () => {
-    const { flavorsStatus, backendHealthStatus, ensureBackendHealth, connectionMode } = get();
+    const { flavorsStatus, connectionMode } = get();
 
     if (flavorsStatus === 'loading' || flavorsStatus === 'ready') return;
 
     set({ flavorsStatus: 'loading' });
-
-    if (backendHealthStatus === 'idle') {
-      await ensureBackendHealth();
-    }
 
     if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') {
       set({ flavors: sortFlavors(demoFlavors), flavorsStatus: 'ready' });
@@ -86,12 +82,6 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   },
 
   ensureInstanceData: async () => {
-    const { backendHealthStatus, ensureBackendHealth } = get();
-
-    if (backendHealthStatus === 'idle') {
-      await ensureBackendHealth();
-    }
-
     if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return;
 
     try {

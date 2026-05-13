@@ -22,14 +22,14 @@ export function CreatePage() {
     handleKeypairRegistration,
     handleCreateInstance,
     getSelectedFlavor,
-    getAppHealth,
+    getConnectionStatus,
   } = useStore();
 
   useEffect(() => {
     void ensureFlavorData();
   }, [ensureFlavorData]);
 
-  const health = getAppHealth();
+  const connectionStatus = getConnectionStatus();
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
   const networkTemplate = networkTemplates.find((t) => t.key === draft.networkTemplate) ?? null;
@@ -102,7 +102,7 @@ export function CreatePage() {
         <SectionRail sections={sections} />
 
         <section className="workspace-main">
-          <section className={`notice-strip create-strip ${health.tone}`}>
+          <section className={`notice-strip create-strip ${connectionStatus.tone}`}>
             <div>
               <strong>Compute / Create</strong>
               <p>
@@ -112,7 +112,7 @@ export function CreatePage() {
               </p>
             </div>
             <ul>
-              <li>{health.label}</li>
+              <li>{connectionStatus.label}</li>
               <li>{draft.imageId ? 'Image ready' : 'Image required'}</li>
               <li>{keypairStatus.response?.name ? 'SSH ready' : 'SSH optional'}</li>
             </ul>
