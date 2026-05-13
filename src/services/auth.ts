@@ -1,4 +1,5 @@
 import type { Session } from '../types';
+import { buildApiUrl } from './api';
 
 type AuthUserPayload = Partial<Session> & {
   user?: Partial<Session>;
@@ -90,7 +91,7 @@ export function describeSession(session: Session | null): Record<string, unknown
 export async function fetchAuthSession(logPrefix: string): Promise<Session> {
   console.info(`${logPrefix} requesting /api/v1/auth/me with credentials=include`);
 
-  const response = await fetch('/api/v1/auth/me', {
+  const response = await fetch(buildApiUrl('/api/v1/auth/me'), {
     credentials: 'include',
   });
 

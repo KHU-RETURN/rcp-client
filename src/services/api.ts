@@ -2,6 +2,10 @@ import { rcpConfig } from '../config';
 import { ApiRequestError } from '../types';
 import { STORAGE_KEYS } from '../constants';
 
+export function buildApiUrl(path: string): string {
+  return `${rcpConfig.apiBaseUrl}${path}`;
+}
+
 function getPersistedAccessToken(): string | null {
   const raw = localStorage.getItem(STORAGE_KEYS.store);
   if (!raw) return null;
@@ -24,7 +28,7 @@ function getPersistedAccessToken(): string | null {
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${rcpConfig.apiBaseUrl}${path}`;
+  const url = buildApiUrl(path);
   
   const token = getPersistedAccessToken();
   const headers = new Headers(options.headers);
