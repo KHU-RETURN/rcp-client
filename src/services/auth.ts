@@ -88,43 +88,18 @@ export function describeSession(session: Session | null): Record<string, unknown
   };
 }
 
-export async function fetchAuthSession(logPrefix: string): Promise<Session> {
-  console.info(`${logPrefix} requesting /api/v1/auth/me with credentials=include`);
-
+export async function fetchAuthSession(): Promise<Session> {
   const response = await fetch(buildApiUrl('/api/v1/auth/me'), {
     credentials: 'include',
   });
 
-  console.info(`${logPrefix} /api/v1/auth/me response`, {
-    ok: response.ok,
-    status: response.status,
-    statusText: response.statusText,
-    redirected: response.redirected,
-    url: response.url,
-  });
-
   if (!response.ok) {
     const body = await response.text().catch(() => '');
-    console.warn(`${logPrefix} /api/v1/auth/me failed`, {
-      status: response.status,
-      body: body.slice(0, 300),
-    });
     throw new Error(`Auth session check failed with ${response.status}`);
   }
 
   const payload = (await response.json()) as AuthUserPayload;
-  console.info(`${logPrefix} /api/v1/auth/me payload shape`, {
-    topLevelKeys: Object.keys(payload),
-    dataKeys: payload.data ? Object.keys(payload.data) : null,
-    userKeys: payload.user ? Object.keys(payload.user) : null,
-    dataUserKeys: payload.data?.user ? Object.keys(payload.data.user) : null,
-    hasDetectedAccessToken: Boolean(findStringValue(payload, ACCESS_TOKEN_KEYS)),
-    hasDetectedRefreshToken: Boolean(findStringValue(payload, REFRESH_TOKEN_KEYS)),
-  });
-
   const session = normalizeAuthSession(payload);
-
-  console.info(`${logPrefix} normalized auth session`, describeSession(session));
 
   return session;
 }

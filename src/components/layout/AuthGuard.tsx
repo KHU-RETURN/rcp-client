@@ -11,22 +11,12 @@ export function AuthGuard() {
   const [isChecking, setIsChecking] = useState(!session);
 
   useEffect(() => {
-    const logPrefix = '[AuthGuard]';
-
-    console.info(`${logPrefix} checking protected route`, {
-      path: location.pathname,
-      hasStoreSession: Boolean(session),
-      isChecking,
-    });
-
     if (session) {
-      console.info(`${logPrefix} store session present; allowing route`, describeSession(session));
       setIsChecking(false);
       return;
     }
 
     if (checkedRef.current) {
-      console.info(`${logPrefix} cookie session check already attempted for this mount`);
       return;
     }
 
@@ -34,16 +24,10 @@ export function AuthGuard() {
 
     async function restoreProtectedRouteSession() {
       try {
-        console.info(`${logPrefix} no store session; trying to restore from backend cookie before redirect`);
-        const restoredSession = await fetchAuthSession(logPrefix);
+        const restoredSession = await fetchAuthSession();
         login(restoredSession);
-        console.info(`${logPrefix} restored session from cookie; allowing protected route`, describeSession(restoredSession));
         setIsChecking(false);
       } catch (error) {
-        console.error(`${logPrefix} could not restore cookie session; redirecting to /login`, {
-          path: location.pathname,
-          error,
-        });
         setPendingRoutePath(location.pathname);
         navigate('/login', { replace: true });
       }
