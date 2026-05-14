@@ -1534,6 +1534,10 @@ h3 {
 }
 
 .terminal-shell {
+  display: flex;
+  flex-direction: column;
+  height: min(760px, calc(100vh - 156px));
+  min-height: 560px;
   border-radius: 22px;
   border: 1px solid rgba(17, 17, 17, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84));
@@ -1542,11 +1546,15 @@ h3 {
 }
 
 .terminal-shell.is-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  min-height: 0;
   border-radius: 0;
   background: #0d1628;
 }
 
 .terminal-shell-head {
+  flex: 0 0 auto;
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -1584,9 +1592,12 @@ h3 {
 }
 
 .terminal-host {
-  min-height: 520px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   background: linear-gradient(180deg, #0d1628 0%, #121c34 100%);
-  padding: 16px;
+  padding: 0;
+  overflow: hidden;
 }
 
 .terminal-shell.is-fullscreen .terminal-shell-head {
@@ -1609,12 +1620,68 @@ h3 {
 }
 
 .terminal-shell.is-fullscreen .terminal-host {
-  min-height: calc(100vh - 88px);
-  padding: 18px;
+  min-height: 0;
+  padding: 0;
 }
 
 .terminal-host .xterm {
-  padding: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+}
+
+.terminal-shell.is-fullscreen .terminal-host .xterm {
+  padding: 18px;
+}
+
+.terminal-host .xterm,
+.terminal-host .xterm-viewport,
+.terminal-host .xterm-screen {
+  overflow: hidden;
+}
+
+.terminal-host .xterm-viewport {
+  inset: 16px !important;
+  width: calc(100% - 32px) !important;
+  height: calc(100% - 32px) !important;
+}
+
+.terminal-shell.is-fullscreen .terminal-host .xterm-viewport {
+  inset: 18px !important;
+  width: calc(100% - 36px) !important;
+  height: calc(100% - 36px) !important;
+}
+
+.terminal-host .xterm-rows {
+  line-height: normal;
+}
+
+.terminal-host .xterm-viewport,
+.terminal-host .xterm-screen {
+  background-color: #0d1628 !important;
+}
+
+.terminal-host .xterm-viewport {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 226, 255, 0.28) transparent;
+}
+
+.terminal-host .xterm-viewport::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.terminal-host .xterm-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-host .xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(214, 226, 255, 0.26);
+  border-radius: 999px;
+}
+
+.terminal-host .xterm-viewport::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .command-list {
