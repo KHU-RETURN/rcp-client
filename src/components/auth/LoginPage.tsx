@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { rcpConfig } from '../../config';
 import { useStore } from '../../store';
 import { AuthLayout } from '../layout/AuthLayout';
 
@@ -11,8 +12,8 @@ export function LoginPage() {
     // const nextPath = googleLogin();
     // navigate(nextPath, { replace: true });
 
-    // 2. 백엔드 구글 로그인 엔드포인트로 이동 (Vite Proxy가 배포 서버로 전달함)
-    window.location.href = '/api/v1/auth/oauth/google';
+    // 2. 백엔드 구글 로그인 엔드포인트로 이동
+    window.location.href = `${rcpConfig.apiBaseUrl}/api/v1/auth/oauth/google`;
   }
 
   function handleUserLogin(userId: string) {

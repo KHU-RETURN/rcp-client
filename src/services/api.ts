@@ -2,21 +2,33 @@ import { rcpConfig } from '../config';
 import { ApiRequestError } from '../types';
 import { STORAGE_KEYS } from '../constants';
 
+export function buildApiUrl(path: string): string {
+  return `${rcpConfig.apiBaseUrl}${path}`;
+}
+
 function getPersistedAccessToken(): string | null {
   const raw = localStorage.getItem(STORAGE_KEYS.store);
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as { state?: { session?: { accessToken?: string; access_token?: string } | null } };
-    return parsed.state?.session?.accessToken ?? parsed.state?.session?.access_token ?? null;
+    const parsed = JSON.parse(raw) as {
+      state?: {
+        session?: {
+          accessToken?: string;
+        } | null;
+      };
+    };
+    return (
+      parsed.state?.session?.accessToken ??
+      null
+    );
   } catch {
     return null;
   }
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  // const url = `${rcpConfig.apiBaseUrl}${path}`;
-  const url = path;
+  const url = buildApiUrl(path);
   
   const token = getPersistedAccessToken();
   const headers = new Headers(options.headers);
@@ -28,6 +40,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
+  console.info('[apiRequest] auth token lookup', {
+    path,
+    hasToken: Boolean(token),
+    hasAuthorizationHeader: headers.has('Authorization'),
+  });
 
   const response = await fetch(url, {
     ...options,

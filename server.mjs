@@ -27,11 +27,6 @@ const server = http.createServer(async (req, res) => {
   try {
     const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
-    if (requestUrl.pathname === '/__health/backend') {
-      await reportBackendHealth(res);
-      return;
-    }
-
     if (requestUrl.pathname.startsWith('/api/')) {
       await proxyApi(req, res, requestUrl);
       return;
@@ -78,23 +73,6 @@ async function proxyApi(req, res, requestUrl) {
   } catch (error) {
     res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ error: `proxy failed: ${error instanceof Error ? error.message : 'unknown error'}` }));
-  }
-}
-
-async function reportBackendHealth(res) {
-  try {
-    const upstream = await fetch(new URL('/api/v1/compute/flavors?available=true', apiTarget));
-    if (!upstream.ok) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ available: false, error: `upstream status ${upstream.status}` }));
-      return;
-    }
-
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ available: true, target: apiTarget.origin }));
-  } catch (error) {
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ available: false, error: error instanceof Error ? error.message : 'unknown error' }));
   }
 }
 

@@ -7,9 +7,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
+      port: 4173,
       proxy: {
         '/api': {
-          target: env.VITE_RCP_API_BASE_URL || 'https://return-api.khu-return.com',
+          target: env.VITE_RCP_API_BASE_URL || 'http://localhost:8080',
           changeOrigin: true,
         },
       },

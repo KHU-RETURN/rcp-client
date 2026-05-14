@@ -19,14 +19,13 @@ export function InstancesPage() {
     setInstanceStatusFilter,
     setSelectedInstanceId,
     ensureSelectedInstance,
-    ensureBackendHealth,
     ensureInstanceData,
   } = useStore();
 
   useEffect(() => {
     ensureSelectedInstance();
-    void ensureBackendHealth().then(() => ensureInstanceData());
-  }, [ensureSelectedInstance, ensureBackendHealth, ensureInstanceData]);
+    void ensureInstanceData();
+  }, [ensureSelectedInstance, ensureInstanceData]);
 
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
 
