@@ -11,8 +11,6 @@ export function AuthCallback() {
   const handledRef = useRef(false);
 
   useEffect(() => {
-    const logPrefix = '[AuthCallback]';
-
     if (handledRef.current) {
       return;
     }
@@ -21,7 +19,7 @@ export function AuthCallback() {
 
     async function completeOAuthCallback() {
       try {
-        const restoredSession = await fetchAuthSession(logPrefix);
+        const restoredSession = await fetchAuthSession();
         const nextPath = login(restoredSession, '/compute');
         navigate(nextPath, { replace: true });
       } catch (error) {
