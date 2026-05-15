@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
 import { InlineBadge } from '../shared/InlineBadge';
-import { ROUTE_NAMES } from '../../constants';
+import { ROUTE_NAMES, imageTemplates, networkTemplates } from '../../constants';
 import { getDisplayInstanceId, getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
 import { humanizeDate } from '../../utils';
 
@@ -21,6 +21,8 @@ export function InstancesPage() {
     ensureSelectedInstance,
     ensureInstanceData,
     deleteInstance,
+    flavors,
+    ensureFlavorData,
   } = useStore();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -47,6 +49,10 @@ export function InstancesPage() {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    void ensureFlavorData();
+  }, [ensureFlavorData]);
 
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
 
@@ -157,12 +163,12 @@ export function InstancesPage() {
             <>
               <dl className="summary-grid large">
                 <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
-                <div><dt>Flavor</dt><dd>{selectedInstance.flavorId}</dd></div>
-                <div><dt>Image</dt><dd>{selectedInstance.imageId}</dd></div>
-                <div><dt>Network</dt><dd>{selectedInstance.networkId || 'Not set'}</dd></div>
+                <div><dt>Flavor</dt><dd>{flavors.find((f) => f.id === selectedInstance.flavorId)?.name ?? selectedInstance.flavorId}</dd></div>
+                <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
+                <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || 'demo-net')}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
                 <div><dt>Mode</dt><dd>{selectedInstance.mode}</dd></div>
-                <div><dt>Created</dt><dd>{humanizeDate(selectedInstance.created)}</dd></div>
+                <div><dt>Created</dt><dd>{selectedInstance.created?.startsWith('0001') ? '—' : humanizeDate(selectedInstance.created)}</dd></div>
               </dl>
               <div className="summary-note">
                 <strong>Note</strong>
