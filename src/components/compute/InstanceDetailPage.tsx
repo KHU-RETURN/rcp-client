@@ -1,16 +1,24 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InlineBadge } from '../shared/InlineBadge';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import { ROUTE_NAMES } from '../../constants';
-import { statusTone, getDisplayInstanceId, humanizeDate } from '../../utils';
+import { getDisplayInstanceId, getTerminalAvailability, humanizeDate, statusTone } from '../../utils';
 
 export function InstanceDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { instances } = useStore();
   const instance = instances.find((i) => i.id === id) ?? null;
+  const [now, setNow] = useState(() => Date.now());
+  const terminalAvailability = getTerminalAvailability(instance, now);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <div className="page page-instances shell-enter">
@@ -65,9 +73,14 @@ export function InstanceDetailPage() {
                   <div className="action-row compact sidebar-actions">
                     <button
                       className="primary-button"
+                      disabled={!terminalAvailability.canOpen}
                       onClick={() => navigate(`/compute/instances/${encodeURIComponent(instance.id)}/terminal`)}
                     >
-                      Open terminal
+                      {terminalAvailability.canOpen
+                        ? 'Open terminal'
+                        : terminalAvailability.waitSeconds > 0
+                          ? `Terminal ready in ${terminalAvailability.waitSeconds}s`
+                          : 'Terminal unavailable'}
                     </button>
                     <button className="ghost-button" onClick={() => navigate('/compute/create')}>
                       Create VM

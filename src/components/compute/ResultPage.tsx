@@ -1,17 +1,36 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { ROUTE_NAMES, imageTemplates, networkTemplates } from '../../constants';
-import { humanizeDate } from '../../utils';
+import { getTerminalAvailability, humanizeDate } from '../../utils';
 import type { CreateInstanceResponse } from '../../types';
 
 export function ResultPage() {
   const navigate = useNavigate();
-  const { result, instances, flavors } = useStore();
+  const { result, instances, flavors, ensureInstanceData } = useStore();
+  const [now, setNow] = useState(() => Date.now());
 
   const inventoryInstance = result?.instanceId
     ? (instances.find((i) => i.id === result.instanceId) ?? null)
     : null;
+  const terminalAvailability = getTerminalAvailability(inventoryInstance, now);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (result?.type !== 'success' || result.mode !== 'live' || terminalAvailability.canOpen) return;
+
+    void ensureInstanceData();
+    const timer = window.setInterval(() => {
+      void ensureInstanceData();
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [ensureInstanceData, result?.mode, result?.type, terminalAvailability.canOpen]);
 
   if (!result) {
     return (
@@ -75,9 +94,21 @@ export function ResultPage() {
             {inventoryInstance && (
               <button
                 className="ghost-button"
+                disabled={!terminalAvailability.canOpen}
+                title={
+                  terminalAvailability.canOpen
+                    ? 'Open terminal'
+                    : terminalAvailability.waitSeconds > 0
+                      ? `Terminal will be available in ${terminalAvailability.waitSeconds}s`
+                      : terminalAvailability.reason
+                }
                 onClick={() => navigate(`/compute/instances/${encodeURIComponent(inventoryInstance.id)}/terminal`)}
               >
-                Open terminal
+                {terminalAvailability.canOpen
+                  ? 'Open terminal'
+                  : terminalAvailability.waitSeconds > 0
+                    ? `Terminal ready in ${terminalAvailability.waitSeconds}s`
+                    : 'Terminal unavailable'}
               </button>
             )}
           </div>

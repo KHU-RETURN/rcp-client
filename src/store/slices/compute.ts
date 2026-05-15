@@ -86,7 +86,18 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return;
 
     try {
-      const data = await fetchComputeInstances();
+      const previousInstances = get().instances;
+      const data = (await fetchComputeInstances()).map((instance) => {
+        const previous = previousInstances.find((item) => item.id === instance.id);
+        const wasActive = String(previous?.status ?? '').toUpperCase() === 'ACTIVE';
+        const isActive = String(instance.status ?? '').toUpperCase() === 'ACTIVE';
+
+        if (previous && !wasActive && isActive) {
+          return { ...instance, updated: new Date().toISOString() };
+        }
+
+        return instance;
+      });
       const selectedInstanceId = data.some((instance) => instance.id === get().selectedInstanceId)
         ? get().selectedInstanceId
         : (data[0]?.id ?? null);

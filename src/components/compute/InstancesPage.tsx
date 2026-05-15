@@ -5,7 +5,7 @@ import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
 import { InlineBadge } from '../shared/InlineBadge';
 import { ROUTE_NAMES } from '../../constants';
-import { statusTone, getDisplayInstanceId, getVisibleInstances } from '../../utils';
+import { getDisplayInstanceId, getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
 import { humanizeDate } from '../../utils';
 
 export function InstancesPage() {
@@ -24,6 +24,7 @@ export function InstancesPage() {
   } = useStore();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   async function handleDeleteInstance(id: string) {
     if (!confirm('정말로 이 인스턴스를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
@@ -42,6 +43,11 @@ export function InstancesPage() {
     void ensureInstanceData();
   }, [ensureSelectedInstance, ensureInstanceData]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
 
   useEffect(() => {
@@ -51,6 +57,7 @@ export function InstancesPage() {
   }, [visible, selectedInstanceId, setSelectedInstanceId]);
 
   const selectedInstance = instances.find((i) => i.id === selectedInstanceId) ?? null;
+  const terminalAvailability = getTerminalAvailability(selectedInstance, now);
   const activeCount = instances.filter((i) => String(i.status).toUpperCase() === 'ACTIVE').length;
   const buildCount = instances.filter((i) => String(i.status).toUpperCase() === 'BUILD').length;
   const errorCount = instances.filter((i) => statusTone(i.status) === 'error').length;
@@ -164,9 +171,14 @@ export function InstancesPage() {
               <div className="action-row compact sidebar-actions">
                 <button
                   className="primary-button"
+                  disabled={!terminalAvailability.canOpen}
                   onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}/terminal`)}
                 >
-                  Open terminal
+                  {terminalAvailability.canOpen
+                    ? 'Open terminal'
+                    : terminalAvailability.waitSeconds > 0
+                      ? `Terminal ready in ${terminalAvailability.waitSeconds}s`
+                      : 'Terminal unavailable'}
                 </button>
                 <button
                   className="ghost-button"

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
@@ -6,19 +6,26 @@ import { TerminalHost } from './TerminalHost';
 import { InlineBadge } from '../shared/InlineBadge';
 import { useFullscreen } from '../../hooks/useFullscreen';
 import { ROUTE_NAMES } from '../../constants';
-import { statusTone, getDisplayInstanceId } from '../../utils';
+import { getDisplayInstanceId, getTerminalAvailability, statusTone } from '../../utils';
 
 export function TerminalPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { instances } = useStore();
   const instance = instances.find((i) => i.id === id) ?? null;
+  const [now, setNow] = useState(() => Date.now());
+  const terminalAvailability = getTerminalAvailability(instance, now);
 
   const shellRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, toggleFullscreen } = useFullscreen(shellRef);
 
   const clearRef = useRef<(() => void) | null>(null);
   const reconnectRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
     <div className="page page-terminal shell-enter">
@@ -51,7 +58,11 @@ export function TerminalPage() {
                 <button className="ghost-button" onClick={() => clearRef.current?.()}>
                   Clear
                 </button>
-                <button className="ghost-button" onClick={() => reconnectRef.current?.()}>
+                <button
+                  className="ghost-button"
+                  disabled={!terminalAvailability.canOpen}
+                  onClick={() => reconnectRef.current?.()}
+                >
                   Reconnect
                 </button>
                 <button className="ghost-button" onClick={() => navigate('/compute')}>
@@ -59,12 +70,20 @@ export function TerminalPage() {
                 </button>
               </div>
             </div>
-            {instance ? (
+            {instance && terminalAvailability.canOpen ? (
               <TerminalHost
                 instance={instance}
                 onClearRef={clearRef}
                 onReconnectRef={reconnectRef}
               />
+            ) : instance ? (
+              <div className="terminal-host terminal-waiting" data-ui="terminal-waiting">
+                <p>
+                  {terminalAvailability.waitSeconds > 0
+                    ? `Terminal will be available in ${terminalAvailability.waitSeconds}s.`
+                    : `${terminalAvailability.reason}.`}
+                </p>
+              </div>
             ) : (
               <p className="muted">선택한 인스턴스를 찾을 수 없습니다.</p>
             )}

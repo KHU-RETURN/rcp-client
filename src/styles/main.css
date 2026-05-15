@@ -1032,13 +1032,14 @@ h3 {
   background: #111111;
 }
 
-.primary-button:disabled {
+.primary-button:disabled,
+.ghost-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .primary-button:not(:disabled):hover,
-.ghost-button:hover {
+.ghost-button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
@@ -1598,6 +1599,15 @@ h3 {
   background: linear-gradient(180deg, #0d1628 0%, #121c34 100%);
   padding: 0;
   overflow: hidden;
+}
+
+.terminal-waiting {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--font-mono);
+  font-size: 0.94rem;
 }
 
 .terminal-shell.is-fullscreen .terminal-shell-head {
