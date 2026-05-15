@@ -13,7 +13,6 @@ export function CreatePage() {
   const {
     draft,
     updateDraft,
-    syncAssistFields,
     flavors,
     keypairStatus,
     creationStatus,
@@ -32,7 +31,11 @@ export function CreatePage() {
   const connectionStatus = getConnectionStatus();
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
-  const networkTemplate = networkTemplates.find((t) => t.key === draft.networkTemplate) ?? null;
+  const networkTemplate = networkTemplates.find((t) => t.key === draft.networkTemplate) ?? networkTemplates[0] ?? null;
+  const resolvedImageId = imageTemplate?.id ?? draft.imageId.trim();
+  const resolvedNetworkId = networkTemplate?.id || draft.networkId.trim() || networkTemplates[0]?.id || '';
+  const selectedImageLabel = imageTemplate?.label ?? '이미지 선택 필요';
+  const selectedNetworkLabel = networkTemplate?.label ?? '네트워크 선택 필요';
 
   const publicKeyPresent = draft.publicKey.trim().length > 0;
   const keyNamePresent = draft.keypairName.trim().length > 0;
@@ -52,8 +55,8 @@ export function CreatePage() {
     },
     'image-network': {
       title: 'Image & network',
-      valid: Boolean(draft.imageId.trim()),
-      error: !draft.imageId.trim(),
+      valid: Boolean(resolvedImageId && resolvedNetworkId),
+      error: !resolvedImageId || !resolvedNetworkId,
     },
     access: {
       title: 'Access',
@@ -69,16 +72,16 @@ export function CreatePage() {
         validateName(draft.name) &&
         Boolean(selectedFlavor) &&
         (selectedFlavor?.max_configurable ?? 0) > 0 &&
-        Boolean(draft.imageId.trim()),
+        Boolean(resolvedImageId && resolvedNetworkId),
       error: false,
     },
   };
 
   const payload = {
     name: draft.name.trim(),
-    image_id: draft.imageId.trim(),
+    image_id: resolvedImageId,
     flavor_id: draft.selectedFlavorId,
-    ...(draft.networkId.trim() ? { network_id: draft.networkId.trim() } : {}),
+    ...(resolvedNetworkId ? { network_id: resolvedNetworkId } : {}),
     ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
   };
 
@@ -93,6 +96,26 @@ export function CreatePage() {
     const f = flavors.find((fl) => fl.id === flavorId);
     if (!f || f.max_configurable === 0) return;
     updateDraft({ selectedFlavorId: flavorId });
+  }
+
+  function handleSelectImage(templateKey: string) {
+    const template = imageTemplates.find((item) => item.key === templateKey);
+    if (!template) return;
+    updateDraft({
+      imageTemplate: template.key,
+      imageAssistEnabled: true,
+      imageId: template.id,
+    });
+  }
+
+  function handleSelectNetwork(templateKey: string) {
+    const template = networkTemplates.find((item) => item.key === templateKey);
+    if (!template) return;
+    updateDraft({
+      networkTemplate: template.key,
+      networkAssistEnabled: true,
+      networkId: template.id,
+    });
   }
 
   return (
@@ -182,99 +205,53 @@ export function CreatePage() {
                 <p className="eyebrow">03 · Image / Network</p>
                 <h2>이미지 · 네트워크</h2>
               </div>
-              <p className="muted">assist 또는 직접 입력으로 설정합니다.</p>
+              <p className="muted">OpenStack ID는 내부 설정값으로 자동 적용합니다.</p>
             </div>
 
             <div className="paired-blocks">
               <section className="line-block">
                 <div className="line-block-head">
                   <div>
-                    <strong>Image assist</strong>
-                    <p className="muted">preset을 고르면 image ID를 채워 줍니다.</p>
+                    <strong>Image</strong>
+                    <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
                   </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      name="imageAssistEnabled"
-                      checked={draft.imageAssistEnabled}
-                      onChange={(e) => syncAssistFields('imageAssistEnabled', null, e.target.checked)}
-                    />
-                    <span>guided</span>
-                  </label>
                 </div>
-                {draft.imageAssistEnabled && (
-                  <label className="field">
-                    <span>Image template</span>
-                    <select
-                      data-ui="image-template"
-                      name="imageTemplate"
-                      value={draft.imageTemplate}
-                      onChange={(e) => syncAssistFields('imageTemplate', e.target.value, false)}
-                    >
-                      {imageTemplates.map((item) => (
-                        <option key={item.key} value={item.key}>{item.label}</option>
-                      ))}
-                    </select>
-                    <small>{imageTemplate?.description ?? ''}</small>
-                  </label>
-                )}
                 <label className="field">
-                  <span>Image ID *</span>
-                  <input
-                    data-ui="image-id"
-                    name="imageId"
-                    type="text"
-                    placeholder="image-uuid"
-                    value={draft.imageId}
-                    onChange={(e) => updateDraft({ imageId: e.target.value })}
-                  />
-                  <small>실운영에서는 유효한 OpenStack image ID가 필요합니다.</small>
+                  <span>Image template *</span>
+                  <select
+                    data-ui="image-template"
+                    name="imageTemplate"
+                    value={draft.imageTemplate}
+                    onChange={(e) => handleSelectImage(e.target.value)}
+                  >
+                    {imageTemplates.map((item) => (
+                      <option key={item.key} value={item.key}>{item.label}</option>
+                    ))}
+                  </select>
+                  <small>{imageTemplate?.description ?? '템플릿 설정을 확인해 주세요.'}</small>
                 </label>
               </section>
 
               <section className="line-block">
                 <div className="line-block-head">
                   <div>
-                    <strong>Network assist</strong>
-                    <p className="muted">network는 선택값입니다. 비우면 payload에서 빠집니다.</p>
+                    <strong>Network</strong>
+                    <p className="muted">OpenStack 생성 요청에는 네트워크 선택이 필요합니다.</p>
                   </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      name="networkAssistEnabled"
-                      checked={draft.networkAssistEnabled}
-                      onChange={(e) => syncAssistFields('networkAssistEnabled', null, e.target.checked)}
-                    />
-                    <span>guided</span>
-                  </label>
                 </div>
-                {draft.networkAssistEnabled && (
-                  <label className="field">
-                    <span>Network template</span>
-                    <select
-                      data-ui="network-template"
-                      name="networkTemplate"
-                      value={draft.networkTemplate}
-                      onChange={(e) => syncAssistFields('networkTemplate', e.target.value, false)}
-                    >
-                      {networkTemplates.map((item) => (
-                        <option key={item.key} value={item.key}>{item.label}</option>
-                      ))}
-                    </select>
-                    <small>{networkTemplate?.description ?? ''}</small>
-                  </label>
-                )}
                 <label className="field">
-                  <span>Network ID</span>
-                  <input
-                    data-ui="network-id"
-                    name="networkId"
-                    type="text"
-                    placeholder="optional network-uuid"
-                    value={draft.networkId}
-                    onChange={(e) => updateDraft({ networkId: e.target.value })}
-                  />
-                  <small>비워두면 optional 값으로 처리됩니다.</small>
+                  <span>Network</span>
+                  <select
+                    data-ui="network-template"
+                    name="networkTemplate"
+                    value={networkTemplate?.key ?? ''}
+                    onChange={(e) => handleSelectNetwork(e.target.value)}
+                  >
+                    {networkTemplates.map((item) => (
+                      <option key={item.key} value={item.key}>{item.label}</option>
+                    ))}
+                  </select>
+                  <small>{networkTemplate?.description ?? '선택한 네트워크를 사용합니다.'}</small>
                 </label>
               </section>
             </div>
@@ -364,8 +341,8 @@ export function CreatePage() {
                         : '-'}
                     </span>
                   </li>
-                  <li><strong>Image</strong><span>{payload.image_id || '-'}</span></li>
-                  <li><strong>Network</strong><span>{payload.network_id ?? 'Not set'}</span></li>
+                  <li><strong>Image</strong><span>{selectedImageLabel}</span></li>
+                  <li><strong>Network</strong><span>{selectedNetworkLabel}</span></li>
                   <li><strong>SSH key</strong><span>{keypairStatus.response?.name ?? 'Optional'}</span></li>
                 </ul>
                 {creationStatus.message && (
@@ -391,7 +368,13 @@ export function CreatePage() {
                 </div>
               </div>
               <pre className="code-block" data-ui="payload-preview">
-                {JSON.stringify(payload, null, 2)}
+                {JSON.stringify({
+                  name: payload.name,
+                  flavor: selectedFlavor?.name ?? '',
+                  image: selectedImageLabel,
+                  network: selectedNetworkLabel,
+                  ssh_key: keypairStatus.response?.name ?? 'Optional',
+                }, null, 2)}
               </pre>
             </div>
           </section>
@@ -408,8 +391,8 @@ export function CreatePage() {
             <div><dt>Flavor</dt><dd>{selectedFlavor?.name ?? 'Not selected'}</dd></div>
             <div><dt>Quota impact</dt><dd>{selectedFlavor ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}` : '-'}</dd></div>
             <div><dt>Max creatable</dt><dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd></div>
-            <div><dt>Image</dt><dd>{draft.imageId || 'Required'}</dd></div>
-            <div><dt>Network</dt><dd>{draft.networkId || 'Optional'}</dd></div>
+            <div><dt>Image</dt><dd>{selectedImageLabel}</dd></div>
+            <div><dt>Network</dt><dd>{selectedNetworkLabel}</dd></div>
             <div><dt>SSH key</dt><dd>{keypairStatus.response?.name ?? 'Not registered'}</dd></div>
           </dl>
           <div className="summary-checks" data-ui="summary-checks">

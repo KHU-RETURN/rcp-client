@@ -6,7 +6,7 @@ import { createDraftSlice, defaultDraft, type DraftSlice } from './slices/draft'
 import { createComputeSlice, type ComputeSlice } from './slices/compute';
 import { createStorageSlice, type StorageSlice } from './slices/storage';
 import { createTerminalSlice, type TerminalSlice } from './slices/terminal';
-import { STORAGE_KEYS } from '../constants';
+import { STORAGE_KEYS, imageTemplates, networkTemplates } from '../constants';
 import { buildSeedInstances } from '../constants/mock-data';
 
 type AppStore = AuthSlice & ConnectionSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
@@ -35,11 +35,22 @@ export const useStore = create<AppStore>()(
       }),
       merge: (persisted, current) => {
         const p = persisted as Partial<AppStore>;
+        const draft = { ...defaultDraft(), ...(p.draft ?? {}) };
+        const imageTemplate = imageTemplates.find((item) => item.key === draft.imageTemplate) ?? imageTemplates[0];
+        const networkTemplate = networkTemplates.find((item) => item.key === draft.networkTemplate) ?? networkTemplates[0];
         return {
           ...current,
           session: p.session ?? null,
           customMockUsers: p.customMockUsers ?? [],
-          draft: { ...defaultDraft(), ...(p.draft ?? {}) },
+          draft: {
+            ...draft,
+            imageTemplate: imageTemplate?.key ?? draft.imageTemplate,
+            imageAssistEnabled: true,
+            networkTemplate: networkTemplate?.key ?? draft.networkTemplate,
+            networkAssistEnabled: true,
+            imageId: imageTemplate?.id ?? draft.imageId,
+            networkId: networkTemplate?.id ?? draft.networkId,
+          },
           result: p.result ?? null,
           instances: (p.instances && p.instances.length > 0) ? p.instances : buildSeedInstances(),
           selectedInstanceId: p.selectedInstanceId ?? null,

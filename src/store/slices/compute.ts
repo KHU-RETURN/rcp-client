@@ -12,7 +12,7 @@ import type { ConnectionSlice } from './connection';
 import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
 import { rcpConfig } from '../../config';
-import { demoFlavors, buildSeedInstances } from '../../constants';
+import { demoFlavors, buildSeedInstances, imageTemplates, networkTemplates } from '../../constants';
 import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
 import { registerKeypair, createInstance, fetchInstances as fetchComputeInstances } from '../../services/compute';
@@ -144,12 +144,17 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
 
   handleCreateInstance: async () => {
     const { draft, connectionMode, session, keypairStatus, instances, upsertInstance, setCreationStatus, setResult } = get();
+    const imageId = imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
+    const networkId = networkTemplates.find((item) => item.key === draft.networkTemplate)?.id
+      || draft.networkId.trim()
+      || networkTemplates[0]?.id
+      || '';
 
     const payload = {
       name: draft.name.trim(),
-      image_id: draft.imageId.trim(),
+      image_id: imageId,
       flavor_id: draft.selectedFlavorId,
-      ...(draft.networkId.trim() ? { network_id: draft.networkId.trim() } : {}),
+      network_id: networkId,
       ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
     };
 
