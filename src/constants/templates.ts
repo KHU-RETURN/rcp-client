@@ -1,9 +1,10 @@
 import type { ImageTemplate, NetworkTemplate, Flavor, StorageBucket } from '../types';
 
 export const imageTemplates: ImageTemplate[] = [
-  { key: 'rcp-ubuntu-2204', label: 'RCP Ubuntu 22.04', id: 'd9f44127-1761-448d-8077-788128f4f0b5', description: 'RCP 생성 검증이 완료된 기본 Ubuntu 이미지' },
-  { key: 'ubuntu-2204', label: 'ubuntu-22.04', id: 'fd71b896-a330-41dc-b07c-486b2653395f', description: 'OpenStack에 등록된 Ubuntu 22.04 이미지' },
-  { key: 'cirros', label: 'cirros', id: '922f6f7a-ec26-4536-99cf-a64f4843a7ca', description: '가벼운 테스트용 이미지' },
+  { key: 'rcp-ubuntu-2204', label: 'RCP Ubuntu 22.04', id: 'd9f44127-1761-448d-8077-788128f4f0b5', description: 'Ubuntu 22.04 이미지' },
+  // { key: 'ubuntu-2204', label: 'ubuntu-22.04', id: 'fd71b896-a330-41dc-b07c-486b2653395f', description: 'Ubuntu 22.04 이미지' },
+  { key: 'cirros', label: 'cirros', id: '922f6f7a-ec26-4536-99cf-a64f4843a7ca', description: '가벼운 테스트용 초경량 리눅스 이미지' },
+  { key: 'rocky-9', label: 'Rocky Linux 9', id: 'b2565d72-0842-473b-837e-42b9fae286ab', description: 'Rocky Linux 9 이미지' },
 ];
 
 export const networkTemplates: NetworkTemplate[] = [

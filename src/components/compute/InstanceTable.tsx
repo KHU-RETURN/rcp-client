@@ -12,6 +12,7 @@ import {
   statusTone,
 } from '../../utils';
 import type { Instance } from '../../types';
+import { imageTemplates } from '../../constants';
 
 export function InstanceTable() {
   const navigate = useNavigate();
@@ -60,9 +61,9 @@ export function InstanceTable() {
         <td>
           <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
         </td>
-        <td>{instance.flavorId}</td>
+        <td>{imageTemplates.find((t) => t.id === instance.imageId)?.label ?? instance.imageId.slice(0, 8)}</td>
         <td>{getInstanceSourceLabel(instance.source)}</td>
-        <td>{humanizeDate(instance.created)}</td>
+        <td>{instance.created?.startsWith('0001') ? '—' : humanizeDate(instance.created)}</td>
         <td>
           <button
             className="ghost-button ghost-button-small"
@@ -93,7 +94,7 @@ export function InstanceTable() {
         <tr>
           <th>Name</th>
           <th>Status</th>
-          <th>Flavor</th>
+          <th>OS</th>
           <th>Source</th>
           <th>Created</th>
           <th>Terminal</th>
