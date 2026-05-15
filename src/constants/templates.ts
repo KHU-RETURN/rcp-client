@@ -1,15 +1,14 @@
 import type { ImageTemplate, NetworkTemplate, Flavor, StorageBucket } from '../types';
 
 export const imageTemplates: ImageTemplate[] = [
-  { key: 'ubuntu-2204', label: 'Ubuntu 22.04 LTS', id: 'img-ubuntu-22-04', description: '일반적인 개발 서버용 Linux 템플릿' },
-  { key: 'rocky-9', label: 'Rocky Linux 9', id: 'img-rocky-linux-9', description: 'RHEL 계열 호환성 검증용 템플릿' },
-  { key: 'debian-12', label: 'Debian 12', id: 'img-debian-12', description: '가볍고 안정적인 범용 템플릿' },
+  { key: 'rcp-ubuntu-2204', label: 'RCP Ubuntu 22.04', id: 'd9f44127-1761-448d-8077-788128f4f0b5', description: 'RCP 생성 검증이 완료된 기본 Ubuntu 이미지' },
+  { key: 'ubuntu-2204', label: 'ubuntu-22.04', id: 'fd71b896-a330-41dc-b07c-486b2653395f', description: 'OpenStack에 등록된 Ubuntu 22.04 이미지' },
+  { key: 'cirros', label: 'cirros', id: '922f6f7a-ec26-4536-99cf-a64f4843a7ca', description: '가벼운 테스트용 이미지' },
 ];
 
 export const networkTemplates: NetworkTemplate[] = [
-  { key: 'public-net', label: 'Public network', id: 'net-public', description: '외부 접속이 필요한 기본 세그먼트' },
-  { key: 'private-net', label: 'Private network', id: 'net-private', description: '내부 서비스용 프라이빗 세그먼트' },
-  { key: 'lab-net', label: 'Lab segment', id: 'net-lab', description: '과제/실험용 분리 네트워크' },
+  { key: 'demo-net', label: 'demo-net', id: '5daf4369-9bd9-4dd8-b9da-f2b73ea7dbdb', description: 'VM 생성 검증이 완료된 기본 네트워크' },
+  { key: 'public1', label: 'public1', id: 'b1d9feee-0039-4f0c-9c3e-39947b11a23b', description: 'OpenStack public1 네트워크' },
 ];
 
 export const demoFlavors: Flavor[] = [
