@@ -205,7 +205,7 @@ export function CreatePage() {
                 <p className="eyebrow">03 · Image / Network</p>
                 <h2>이미지 · 네트워크</h2>
               </div>
-              <p className="muted">OpenStack ID는 내부 설정값으로 자동 적용합니다.</p>
+              <p className="muted">OS Image & Network를 선택합니다.</p>
             </div>
 
             <div className="paired-blocks">
