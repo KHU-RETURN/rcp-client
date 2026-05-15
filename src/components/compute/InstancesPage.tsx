@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
@@ -20,8 +20,23 @@ export function InstancesPage() {
     setSelectedInstanceId,
     ensureSelectedInstance,
     ensureInstanceData,
+    deleteInstance,
   } = useStore();
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleDeleteInstance(id: string) {
+    if (!confirm('정말로 이 인스턴스를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+    try {
+      setDeletingId(id);
+      await deleteInstance(id);
+    } catch {
+      alert('인스턴스 삭제에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
+  
   useEffect(() => {
     ensureSelectedInstance();
     void ensureInstanceData();
@@ -158,6 +173,13 @@ export function InstancesPage() {
                   onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)}
                 >
                   View details
+                </button>
+                <button
+                  className="danger-button"
+                  disabled={deletingId === selectedInstance.id}
+                  onClick={() => handleDeleteInstance(selectedInstance.id)}
+                >
+                  {deletingId === selectedInstance.id ? 'Deleting...' : 'Delete instance'}
                 </button>
               </div>
             </>

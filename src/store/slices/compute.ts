@@ -42,6 +42,7 @@ export interface ComputeSlice {
   handleKeypairRegistration: () => Promise<void>;
   handleCreateInstance: () => Promise<string | null>;
   getSelectedFlavor: () => Flavor | null;
+  deleteInstance: (id: string) => Promise<void>;
 }
 
 type ComputeSliceDeps = ComputeSlice & ConnectionSlice & DraftSlice & AuthSlice;
@@ -183,6 +184,16 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   getSelectedFlavor: () => {
     const { flavors, draft } = get();
     return flavors.find((f) => f.id === draft.selectedFlavorId) ?? null;
+  },
+
+  deleteInstance: async (id) => {
+    await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    set((state) => ({
+      instances: state.instances.filter((i) => i.id !== id),
+      selectedInstanceId: state.selectedInstanceId === id
+        ? (state.instances.find((i) => i.id !== id)?.id ?? null)
+        : state.selectedInstanceId,
+    }));
   },
 });
 
