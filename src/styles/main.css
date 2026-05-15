@@ -1760,3 +1760,25 @@ h3 {
     padding: 10px;
   }
 }
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 18px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-weight: 700;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.danger-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.danger-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
