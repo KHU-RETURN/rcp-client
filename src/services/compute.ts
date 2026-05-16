@@ -84,3 +84,10 @@ export async function fetchInstances(): Promise<Instance[]> {
   const response = await apiRequest<ServerInstanceResponse[]>('/api/v1/compute/instances');
   return response.map(buildInventoryRecordFromServer);
 }
+
+export async function fetchInstanceById(id: string): Promise<Instance> {
+  const response = await apiRequest<ServerInstanceResponse>(
+    `/api/v1/compute/instances/${encodeURIComponent(id)}`,
+  );
+  return buildInventoryRecordFromServer(response);
+}

@@ -12,10 +12,15 @@ import type { ConnectionSlice } from './connection';
 import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
 import { rcpConfig } from '../../config';
-import { demoFlavors, buildSeedInstances, imageTemplates, networkTemplates } from '../../constants';
+import { demoFlavors, imageTemplates } from '../../constants';
 import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
-import { registerKeypair, createInstance, fetchInstances as fetchComputeInstances } from '../../services/compute';
+import {
+  registerKeypair,
+  createInstance,
+  fetchInstances as fetchComputeInstances,
+  fetchInstanceById as fetchComputeInstanceById,
+} from '../../services/compute';
 import { buildInventoryRecord } from '../../services/demo';
 
 export interface ComputeSlice {
@@ -31,6 +36,7 @@ export interface ComputeSlice {
 
   ensureFlavorData: () => Promise<void>;
   ensureInstanceData: () => Promise<void>;
+  ensureInstanceById: (id: string) => Promise<'ok' | 'not-found' | 'error' | 'skipped'>;
   upsertInstance: (instance: Instance) => void;
   setSelectedInstanceId: (id: string | null) => void;
   ensureSelectedInstance: () => void;
@@ -50,7 +56,7 @@ type ComputeSliceDeps = ComputeSlice & ConnectionSlice & DraftSlice & AuthSlice;
 export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (set, get) => ({
   flavors: [],
   flavorsStatus: 'idle',
-  instances: buildSeedInstances(),
+  instances: [],
   selectedInstanceId: null,
   instanceQuery: '',
   instanceStatusFilter: 'all',
@@ -114,6 +120,26 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     }
   },
 
+  ensureInstanceById: async (id) => {
+    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return 'skipped';
+
+    try {
+      const instance = await fetchComputeInstanceById(id);
+      set((state) => {
+        const next = [...state.instances];
+        const index = next.findIndex((i) => i.id === instance.id);
+        if (index >= 0) next[index] = { ...next[index], ...instance };
+        else next.unshift(instance);
+        return { instances: next, connectionMode: 'live', connectionReason: '' };
+      });
+      return 'ok';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load instance';
+      if (/404|not found/i.test(message)) return 'not-found';
+      return 'error';
+    }
+  },
+
   upsertInstance: (instance) => {
     set((state) => {
       const next = [...state.instances];
@@ -157,16 +183,11 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   handleCreateInstance: async () => {
     const { draft, connectionMode, session, keypairStatus, instances, upsertInstance, setCreationStatus, setResult } = get();
     const imageId = imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
-    const networkId = networkTemplates.find((item) => item.key === draft.networkTemplate)?.id
-      || draft.networkId.trim()
-      || networkTemplates[0]?.id
-      || '';
 
     const payload = {
       name: draft.name.trim(),
       image_id: imageId,
       flavor_id: draft.selectedFlavorId,
-      network_id: networkId,
       ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
     };
 

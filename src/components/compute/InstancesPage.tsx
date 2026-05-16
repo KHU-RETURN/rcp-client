@@ -51,6 +51,13 @@ export function InstancesPage() {
   }, []);
 
   useEffect(() => {
+    const hasBuild = instances.some((i) => String(i.status).toUpperCase() === 'BUILD');
+    if (!hasBuild) return;
+    const timer = window.setInterval(() => void ensureInstanceData(), 5000);
+    return () => window.clearInterval(timer);
+  }, [instances, ensureInstanceData]);
+
+  useEffect(() => {
     void ensureFlavorData();
   }, [ensureFlavorData]);
 
@@ -70,7 +77,7 @@ export function InstancesPage() {
 
   function getInstancesHealth() {
     return useStore.getState().connectionMode === 'live'
-      ? '최근 인스턴스'
+      ? '인스턴스 목록'
       : '샘플 · 최근 생성 인스턴스';
   }
 

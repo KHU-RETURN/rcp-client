@@ -1,6 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../layout/AuthLayout';
-import { releaseNotes } from '../../constants';
+import type { ReleaseNote } from '../../types';
+
+const releaseNotes: ReleaseNote[] = [
+  {
+    version: 'v0.1.0',
+    title: '인스턴스 생성 · 웹 콘솔 · OAuth 인증',
+    body: 'RCP 인스턴스 생성 흐름과 인스턴스 웹 콘솔(터미널) 기능이 추가되었고, 경희대 Google 계정 기반 OAuth 인증이 활성화되었습니다.',
+  },
+];
 
 export function ChangesPage() {
   const navigate = useNavigate();
