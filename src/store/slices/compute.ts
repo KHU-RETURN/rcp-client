@@ -12,7 +12,7 @@ import type { ConnectionSlice } from './connection';
 import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
 import { rcpConfig } from '../../config';
-import { demoFlavors, buildSeedInstances, imageTemplates, networkTemplates } from '../../constants';
+import { demoFlavors, imageTemplates, networkTemplates } from '../../constants';
 import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
 import { registerKeypair, createInstance, fetchInstances as fetchComputeInstances } from '../../services/compute';
@@ -50,7 +50,7 @@ type ComputeSliceDeps = ComputeSlice & ConnectionSlice & DraftSlice & AuthSlice;
 export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (set, get) => ({
   flavors: [],
   flavorsStatus: 'idle',
-  instances: buildSeedInstances(),
+  instances: [],
   selectedInstanceId: null,
   instanceQuery: '',
   instanceStatusFilter: 'all',

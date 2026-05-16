@@ -1,4 +1,4 @@
-import type { MockUser, Instance, ReleaseNote } from '../types';
+import type { MockUser, ReleaseNote } from '../types';
 
 export const GOOGLE_PREVIEW_USER: MockUser = {
   id: 'khu-google-user',
@@ -40,35 +40,3 @@ export const releaseNotes: ReleaseNote[] = [
   },
 ];
 
-export function buildSeedInstances(): Instance[] {
-  return [
-    {
-      id: 'mock-lab-web-01',
-      name: 'lab-web-01',
-      status: 'ACTIVE',
-      created: '2026-03-24T09:30:00Z',
-      updated: '2026-03-24T09:34:00Z',
-      flavorId: 'm1.small',
-      imageId: 'RCP Ubuntu 22.04',
-      networkId: 'demo-net',
-      keyName: 'student-key',
-      mode: 'demo',
-      source: 'mock-seed',
-      note: '웹 프로그래밍 실습용 프런트 서버',
-    },
-    {
-      id: 'mock-data-batch-01',
-      name: 'data-batch-01',
-      status: 'BUILD',
-      created: '2026-03-25T08:10:00Z',
-      updated: '2026-03-25T08:10:00Z',
-      flavorId: 'm1.medium',
-      imageId: 'ubuntu-22.04',
-      networkId: 'demo-net',
-      keyName: '',
-      mode: 'demo',
-      source: 'mock-seed',
-      note: '배치 작업 검증 중인 샘플 인스턴스',
-    },
-  ];
-}

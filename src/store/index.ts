@@ -7,7 +7,6 @@ import { createComputeSlice, type ComputeSlice } from './slices/compute';
 import { createStorageSlice, type StorageSlice } from './slices/storage';
 import { createTerminalSlice, type TerminalSlice } from './slices/terminal';
 import { STORAGE_KEYS, imageTemplates, networkTemplates } from '../constants';
-import { buildSeedInstances } from '../constants/mock-data';
 
 type AppStore = AuthSlice & ConnectionSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
 
@@ -52,7 +51,7 @@ export const useStore = create<AppStore>()(
             networkId: networkTemplate?.id ?? draft.networkId,
           },
           result: p.result ?? null,
-          instances: (p.instances && p.instances.length > 0) ? p.instances : buildSeedInstances(),
+          instances: p.instances ?? [],
           selectedInstanceId: p.selectedInstanceId ?? null,
           selectedBucketId: p.selectedBucketId ?? current.selectedBucketId,
         };
