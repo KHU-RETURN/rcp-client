@@ -51,6 +51,13 @@ export function InstancesPage() {
   }, []);
 
   useEffect(() => {
+    const hasBuild = instances.some((i) => String(i.status).toUpperCase() === 'BUILD');
+    if (!hasBuild) return;
+    const timer = window.setInterval(() => void ensureInstanceData(), 5000);
+    return () => window.clearInterval(timer);
+  }, [instances, ensureInstanceData]);
+
+  useEffect(() => {
     void ensureFlavorData();
   }, [ensureFlavorData]);
 
