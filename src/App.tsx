@@ -3,9 +3,10 @@ import { AuthGuard } from './components/layout/AuthGuard';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignupPage } from './components/auth/SignupPage';
 import { ChangesPage } from './components/auth/ChangesPage';
-import { AuthCallback } from './components/auth/AuthCallback'; 
+import { AuthCallback } from './components/auth/AuthCallback';
 import { SshAuthPage } from './components/auth/SshAuthPage';
 import { SshCompletePage } from './components/auth/SshCompletePage';
+import { LandingPage } from './components/landing/LandingPage';
 import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';
 import { CreatePage } from './components/compute/CreatePage';
@@ -26,11 +27,8 @@ export function App() {
 
         <Route element={<AuthGuard />}>
           <Route path="/compute" element={<InstancesPage />} />
-          <Route path="/instances" element={<Navigate to="/compute" replace />} />
           <Route path="/compute/create" element={<CreatePage />} />
-          <Route path="/instances/new" element={<Navigate to="/compute/create" replace />} />
           <Route path="/compute/create/result" element={<ResultPage />} />
-          <Route path="/instances/create/result" element={<Navigate to="/compute/create/result" replace />} />
           <Route path="/compute/instances/:id" element={<InstanceDetailPage />} />
           <Route path="/instances/:id" element={<InstanceDetailPage />} />
           <Route path="/compute/instances/:id/terminal" element={<TerminalPage />} />
@@ -38,7 +36,7 @@ export function App() {
           <Route path="/storage" element={<StoragePage />} />
         </Route>
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

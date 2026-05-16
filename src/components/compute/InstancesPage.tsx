@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
 import { InlineBadge } from '../shared/InlineBadge';
-import { ROUTE_NAMES } from '../../constants';
-import { statusTone, getDisplayInstanceId, getVisibleInstances } from '../../utils';
+import { ROUTE_NAMES, imageTemplates, networkTemplates } from '../../constants';
+import { getDisplayInstanceId, getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
 import { humanizeDate } from '../../utils';
 
 export function InstancesPage() {
@@ -19,14 +19,47 @@ export function InstancesPage() {
     setInstanceStatusFilter,
     setSelectedInstanceId,
     ensureSelectedInstance,
-    ensureBackendHealth,
     ensureInstanceData,
+    deleteInstance,
+    flavors,
+    ensureFlavorData,
   } = useStore();
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  async function handleDeleteInstance(id: string) {
+    if (!confirm('정말로 이 인스턴스를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+    try {
+      setDeletingId(id);
+      await deleteInstance(id);
+    } catch {
+      alert('인스턴스 삭제에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
+  
   useEffect(() => {
     ensureSelectedInstance();
-    void ensureBackendHealth().then(() => ensureInstanceData());
-  }, [ensureSelectedInstance, ensureBackendHealth, ensureInstanceData]);
+    void ensureInstanceData();
+  }, [ensureSelectedInstance, ensureInstanceData]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const hasBuild = instances.some((i) => String(i.status).toUpperCase() === 'BUILD');
+    if (!hasBuild) return;
+    const timer = window.setInterval(() => void ensureInstanceData(), 5000);
+    return () => window.clearInterval(timer);
+  }, [instances, ensureInstanceData]);
+
+  useEffect(() => {
+    void ensureFlavorData();
+  }, [ensureFlavorData]);
 
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
 
@@ -37,13 +70,14 @@ export function InstancesPage() {
   }, [visible, selectedInstanceId, setSelectedInstanceId]);
 
   const selectedInstance = instances.find((i) => i.id === selectedInstanceId) ?? null;
+  const terminalAvailability = getTerminalAvailability(selectedInstance, now);
   const activeCount = instances.filter((i) => String(i.status).toUpperCase() === 'ACTIVE').length;
   const buildCount = instances.filter((i) => String(i.status).toUpperCase() === 'BUILD').length;
   const errorCount = instances.filter((i) => statusTone(i.status) === 'error').length;
 
   function getInstancesHealth() {
     return useStore.getState().connectionMode === 'live'
-      ? '최근 인스턴스'
+      ? '인스턴스 목록'
       : '샘플 · 최근 생성 인스턴스';
   }
 
@@ -136,12 +170,19 @@ export function InstancesPage() {
             <>
               <dl className="summary-grid large">
                 <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
-                <div><dt>Flavor</dt><dd>{selectedInstance.flavorId}</dd></div>
-                <div><dt>Image</dt><dd>{selectedInstance.imageId}</dd></div>
-                <div><dt>Network</dt><dd>{selectedInstance.networkId || 'Not set'}</dd></div>
+                <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
+                <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
+                <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || 'demo-net')}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
                 <div><dt>Mode</dt><dd>{selectedInstance.mode}</dd></div>
-                <div><dt>Created</dt><dd>{humanizeDate(selectedInstance.created)}</dd></div>
+                <div>
+                  <dt>Created</dt>
+                  <dd>
+                    {selectedInstance.created && !selectedInstance.created.startsWith('0001') 
+                      ? humanizeDate(selectedInstance.created) 
+                      : '—'}
+                  </dd>
+                </div>
               </dl>
               <div className="summary-note">
                 <strong>Note</strong>
@@ -150,15 +191,27 @@ export function InstancesPage() {
               <div className="action-row compact sidebar-actions">
                 <button
                   className="primary-button"
+                  disabled={!terminalAvailability.canOpen}
                   onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}/terminal`)}
                 >
-                  Open terminal
+                  {terminalAvailability.canOpen
+                    ? 'Open terminal'
+                    : terminalAvailability.waitSeconds > 0
+                      ? `Terminal ready in ${terminalAvailability.waitSeconds}s`
+                      : 'Terminal unavailable'}
                 </button>
                 <button
                   className="ghost-button"
                   onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)}
                 >
                   View details
+                </button>
+                <button
+                  className="danger-button"
+                  disabled={deletingId === selectedInstance.id}
+                  onClick={() => handleDeleteInstance(selectedInstance.id)}
+                >
+                  {deletingId === selectedInstance.id ? 'Deleting...' : 'Delete instance'}
                 </button>
               </div>
             </>

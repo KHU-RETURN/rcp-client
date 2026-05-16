@@ -4,16 +4,50 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { SectionRail } from './SectionRail';
 import { FlavorTable } from './FlavorTable';
-import { ROUTE_NAMES, imageTemplates, networkTemplates, SECTION_ORDER } from '../../constants';
+import { ROUTE_NAMES, imageTemplates, SECTION_ORDER } from '../../constants';
 import { validateName, validatePublicKey, formatRam } from '../../utils';
 import type { SectionStates } from '../../types';
+
+function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'cirros' | 'default' {
+  if (key.includes('ubuntu')) return 'ubuntu';
+  if (key.includes('rocky')) return 'rocky';
+  if (key.includes('cirros')) return 'cirros';
+  return 'default';
+}
+
+function ImageMarkIcon({ variant }: { variant: ReturnType<typeof imageMarkVariant> }) {
+  if (variant === 'ubuntu') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+        <circle cx="5.4" cy="12" r="2.3" />
+        <circle cx="15" cy="6.7" r="2.3" />
+        <circle cx="15" cy="17.3" r="2.3" />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+  if (variant === 'rocky') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+        <path d="M3.5 18.5 L9 9.5 L12.5 14 L16.5 7.5 L20.5 18.5 Z" />
+      </svg>
+    );
+  }
+  if (variant === 'cirros') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+        <path d="M7.2 17.8h9.6a3.6 3.6 0 0 0 .55-7.16 5.1 5.1 0 0 0-9.7-1.04A4 4 0 0 0 7.2 17.8z" />
+      </svg>
+    );
+  }
+  return <span className="image-card-mark-fallback">?</span>;
+}
 
 export function CreatePage() {
   const navigate = useNavigate();
   const {
     draft,
     updateDraft,
-    syncAssistFields,
     flavors,
     keypairStatus,
     creationStatus,
@@ -22,17 +56,18 @@ export function CreatePage() {
     handleKeypairRegistration,
     handleCreateInstance,
     getSelectedFlavor,
-    getAppHealth,
+    getConnectionStatus,
   } = useStore();
 
   useEffect(() => {
     void ensureFlavorData();
   }, [ensureFlavorData]);
 
-  const health = getAppHealth();
+  const connectionStatus = getConnectionStatus();
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
-  const networkTemplate = networkTemplates.find((t) => t.key === draft.networkTemplate) ?? null;
+  const resolvedImageId = imageTemplate?.id ?? draft.imageId.trim();
+  const selectedImageLabel = imageTemplate?.label ?? '이미지 선택 필요';
 
   const publicKeyPresent = draft.publicKey.trim().length > 0;
   const keyNamePresent = draft.keypairName.trim().length > 0;
@@ -51,9 +86,9 @@ export function CreatePage() {
       error: Boolean(selectedFlavor && selectedFlavor.max_configurable === 0),
     },
     'image-network': {
-      title: 'Image & network',
-      valid: Boolean(draft.imageId.trim()),
-      error: !draft.imageId.trim(),
+      title: 'Image',
+      valid: Boolean(resolvedImageId),
+      error: !resolvedImageId,
     },
     access: {
       title: 'Access',
@@ -69,16 +104,15 @@ export function CreatePage() {
         validateName(draft.name) &&
         Boolean(selectedFlavor) &&
         (selectedFlavor?.max_configurable ?? 0) > 0 &&
-        Boolean(draft.imageId.trim()),
+        Boolean(resolvedImageId),
       error: false,
     },
   };
 
   const payload = {
     name: draft.name.trim(),
-    image_id: draft.imageId.trim(),
+    image_id: resolvedImageId,
     flavor_id: draft.selectedFlavorId,
-    ...(draft.networkId.trim() ? { network_id: draft.networkId.trim() } : {}),
     ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
   };
 
@@ -95,6 +129,16 @@ export function CreatePage() {
     updateDraft({ selectedFlavorId: flavorId });
   }
 
+  function handleSelectImage(templateKey: string) {
+    const template = imageTemplates.find((item) => item.key === templateKey);
+    if (!template) return;
+    updateDraft({
+      imageTemplate: template.key,
+      imageAssistEnabled: true,
+      imageId: template.id,
+    });
+  }
+
   return (
     <div className="page page-create shell-enter">
       <Topbar active={ROUTE_NAMES.create} />
@@ -102,7 +146,7 @@ export function CreatePage() {
         <SectionRail sections={sections} />
 
         <section className="workspace-main">
-          <section className={`notice-strip create-strip ${health.tone}`}>
+          <section className={`notice-strip create-strip ${connectionStatus.tone}`}>
             <div>
               <strong>Compute / Create</strong>
               <p>
@@ -112,7 +156,7 @@ export function CreatePage() {
               </p>
             </div>
             <ul>
-              <li>{health.label}</li>
+              <li>{connectionStatus.label}</li>
               <li>{draft.imageId ? 'Image ready' : 'Image required'}</li>
               <li>{keypairStatus.response?.name ? 'SSH ready' : 'SSH optional'}</li>
             </ul>
@@ -175,108 +219,40 @@ export function CreatePage() {
             </div>
           </section>
 
-          {/* Image & Network */}
+          {/* Image */}
           <section className="editor-section" id="image-network">
             <div className="section-head">
               <div>
-                <p className="eyebrow">03 · Image / Network</p>
-                <h2>이미지 · 네트워크</h2>
+                <p className="eyebrow">03 · Image</p>
+                <h2>이미지</h2>
               </div>
-              <p className="muted">assist 또는 직접 입력으로 설정합니다.</p>
+              <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
             </div>
 
-            <div className="paired-blocks">
-              <section className="line-block">
-                <div className="line-block-head">
-                  <div>
-                    <strong>Image assist</strong>
-                    <p className="muted">preset을 고르면 image ID를 채워 줍니다.</p>
-                  </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      name="imageAssistEnabled"
-                      checked={draft.imageAssistEnabled}
-                      onChange={(e) => syncAssistFields('imageAssistEnabled', null, e.target.checked)}
-                    />
-                    <span>guided</span>
-                  </label>
-                </div>
-                {draft.imageAssistEnabled && (
-                  <label className="field">
-                    <span>Image template</span>
-                    <select
-                      data-ui="image-template"
-                      name="imageTemplate"
-                      value={draft.imageTemplate}
-                      onChange={(e) => syncAssistFields('imageTemplate', e.target.value, false)}
-                    >
-                      {imageTemplates.map((item) => (
-                        <option key={item.key} value={item.key}>{item.label}</option>
-                      ))}
-                    </select>
-                    <small>{imageTemplate?.description ?? ''}</small>
-                  </label>
-                )}
-                <label className="field">
-                  <span>Image ID *</span>
-                  <input
-                    data-ui="image-id"
-                    name="imageId"
-                    type="text"
-                    placeholder="image-uuid"
-                    value={draft.imageId}
-                    onChange={(e) => updateDraft({ imageId: e.target.value })}
-                  />
-                  <small>실운영에서는 유효한 OpenStack image ID가 필요합니다.</small>
-                </label>
-              </section>
-
-              <section className="line-block">
-                <div className="line-block-head">
-                  <div>
-                    <strong>Network assist</strong>
-                    <p className="muted">network는 선택값입니다. 비우면 payload에서 빠집니다.</p>
-                  </div>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      name="networkAssistEnabled"
-                      checked={draft.networkAssistEnabled}
-                      onChange={(e) => syncAssistFields('networkAssistEnabled', null, e.target.checked)}
-                    />
-                    <span>guided</span>
-                  </label>
-                </div>
-                {draft.networkAssistEnabled && (
-                  <label className="field">
-                    <span>Network template</span>
-                    <select
-                      data-ui="network-template"
-                      name="networkTemplate"
-                      value={draft.networkTemplate}
-                      onChange={(e) => syncAssistFields('networkTemplate', e.target.value, false)}
-                    >
-                      {networkTemplates.map((item) => (
-                        <option key={item.key} value={item.key}>{item.label}</option>
-                      ))}
-                    </select>
-                    <small>{networkTemplate?.description ?? ''}</small>
-                  </label>
-                )}
-                <label className="field">
-                  <span>Network ID</span>
-                  <input
-                    data-ui="network-id"
-                    name="networkId"
-                    type="text"
-                    placeholder="optional network-uuid"
-                    value={draft.networkId}
-                    onChange={(e) => updateDraft({ networkId: e.target.value })}
-                  />
-                  <small>비워두면 optional 값으로 처리됩니다.</small>
-                </label>
-              </section>
+            <div className="image-grid" data-ui="image-template" role="radiogroup" aria-label="Image template">
+              {imageTemplates.map((item) => {
+                const selected = draft.imageTemplate === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className={`image-card${selected ? ' is-selected' : ''}`}
+                    onClick={() => handleSelectImage(item.key)}
+                    data-key={item.key}
+                  >
+                    <span className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`} aria-hidden>
+                      <ImageMarkIcon variant={imageMarkVariant(item.key)} />
+                    </span>
+                    <span className="image-card-body">
+                      <strong>{item.label}</strong>
+                      <small className="muted">{item.description}</small>
+                    </span>
+                    <span className="image-card-check" aria-hidden>{selected ? '✓' : ''}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -364,8 +340,7 @@ export function CreatePage() {
                         : '-'}
                     </span>
                   </li>
-                  <li><strong>Image</strong><span>{payload.image_id || '-'}</span></li>
-                  <li><strong>Network</strong><span>{payload.network_id ?? 'Not set'}</span></li>
+                  <li><strong>Image</strong><span>{selectedImageLabel}</span></li>
                   <li><strong>SSH key</strong><span>{keypairStatus.response?.name ?? 'Optional'}</span></li>
                 </ul>
                 {creationStatus.message && (
@@ -391,7 +366,12 @@ export function CreatePage() {
                 </div>
               </div>
               <pre className="code-block" data-ui="payload-preview">
-                {JSON.stringify(payload, null, 2)}
+                {JSON.stringify({
+                  name: payload.name,
+                  flavor: selectedFlavor?.name ?? '',
+                  image: selectedImageLabel,
+                  ssh_key: keypairStatus.response?.name ?? 'Optional',
+                }, null, 2)}
               </pre>
             </div>
           </section>
@@ -408,8 +388,7 @@ export function CreatePage() {
             <div><dt>Flavor</dt><dd>{selectedFlavor?.name ?? 'Not selected'}</dd></div>
             <div><dt>Quota impact</dt><dd>{selectedFlavor ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}` : '-'}</dd></div>
             <div><dt>Max creatable</dt><dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd></div>
-            <div><dt>Image</dt><dd>{draft.imageId || 'Required'}</dd></div>
-            <div><dt>Network</dt><dd>{draft.networkId || 'Optional'}</dd></div>
+            <div><dt>Image</dt><dd>{selectedImageLabel}</dd></div>
             <div><dt>SSH key</dt><dd>{keypairStatus.response?.name ?? 'Not registered'}</dd></div>
           </dl>
           <div className="summary-checks" data-ui="summary-checks">

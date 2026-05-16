@@ -1,12 +1,7 @@
-import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
-import { ROUTE_NAMES, storageBuckets } from '../../constants';
-import { humanizeDate } from '../../utils';
+import { ROUTE_NAMES } from '../../constants';
 
 export function StoragePage() {
-  const { selectedBucketId, setSelectedBucketId } = useStore();
-  const selectedBucket = storageBuckets.find((b) => b.id === selectedBucketId) ?? storageBuckets[0] ?? null;
-
   return (
     <div className="page page-instances shell-enter">
       <Topbar active={ROUTE_NAMES.storage} />
@@ -34,20 +29,11 @@ export function StoragePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {storageBuckets.map((bucket) => (
-                    <tr
-                      key={bucket.id}
-                      className={bucket.id === selectedBucketId ? 'selected' : ''}
-                      onClick={() => setSelectedBucketId(bucket.id)}
-                    >
-                      <td><strong>{bucket.name}</strong></td>
-                      <td>{bucket.class}</td>
-                      <td>{bucket.region}</td>
-                      <td>{bucket.objects.toLocaleString('en-US')}</td>
-                      <td>{bucket.size}</td>
-                      <td>{humanizeDate(bucket.updated)}</td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <td colSpan={6} className="muted" style={{ textAlign: 'center', padding: '24px' }}>
+                      표시할 버킷이 없습니다.
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -58,26 +44,10 @@ export function StoragePage() {
           <div className="summary-headline summary-headline-compact">
             <div>
               <p className="eyebrow">Bucket details</p>
-              <h2>{selectedBucket?.name ?? 'No selection'}</h2>
+              <h2>No selection</h2>
             </div>
           </div>
-          {selectedBucket ? (
-            <>
-              <dl className="summary-grid large">
-                <div><dt>Class</dt><dd>{selectedBucket.class}</dd></div>
-                <div><dt>Region</dt><dd>{selectedBucket.region}</dd></div>
-                <div><dt>Objects</dt><dd>{selectedBucket.objects.toLocaleString('en-US')}</dd></div>
-                <div><dt>Size</dt><dd>{selectedBucket.size}</dd></div>
-                <div><dt>Updated</dt><dd>{humanizeDate(selectedBucket.updated)}</dd></div>
-              </dl>
-              <div className="summary-note">
-                <strong>Note</strong>
-                <p>{selectedBucket.note}</p>
-              </div>
-            </>
-          ) : (
-            <p className="muted">표시할 버킷이 없습니다.</p>
-          )}
+          <p className="muted">표시할 버킷이 없습니다.</p>
         </aside>
       </main>
     </div>

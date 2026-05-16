@@ -18,7 +18,6 @@ export type {
 } from './compute';
 export type { StorageBucket } from './storage';
 export type {
-  BackendHealthResponse,
   CreateInstancePayload,
   CreateKeypairPayload,
   CreateInstanceResponse,
@@ -26,7 +25,7 @@ export type {
   CreationResult,
 } from './api';
 export { ApiRequestError } from './api';
-export type { ConnectionMode, DemoMode, BackendHealthStatus, FlavorsStatus, RcpConfig } from './config';
+export type { ConnectionMode, DemoMode, FlavorsStatus, RcpConfig } from './config';
 export type { TerminalRuntime, TerminalModules } from './terminal';
 export type { ReleaseNote } from './release';
 export type { ImageTemplate, NetworkTemplate } from './templates';

@@ -12,10 +12,15 @@ import type { ConnectionSlice } from './connection';
 import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
 import { rcpConfig } from '../../config';
-import { demoFlavors, buildSeedInstances } from '../../constants';
+import { demoFlavors, imageTemplates } from '../../constants';
 import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
-import { registerKeypair, createInstance, fetchInstances as fetchComputeInstances } from '../../services/compute';
+import {
+  registerKeypair,
+  createInstance,
+  fetchInstances as fetchComputeInstances,
+  fetchInstanceById as fetchComputeInstanceById,
+} from '../../services/compute';
 import { buildInventoryRecord } from '../../services/demo';
 
 export interface ComputeSlice {
@@ -31,6 +36,7 @@ export interface ComputeSlice {
 
   ensureFlavorData: () => Promise<void>;
   ensureInstanceData: () => Promise<void>;
+  ensureInstanceById: (id: string) => Promise<'ok' | 'not-found' | 'error' | 'skipped'>;
   upsertInstance: (instance: Instance) => void;
   setSelectedInstanceId: (id: string | null) => void;
   ensureSelectedInstance: () => void;
@@ -42,6 +48,7 @@ export interface ComputeSlice {
   handleKeypairRegistration: () => Promise<void>;
   handleCreateInstance: () => Promise<string | null>;
   getSelectedFlavor: () => Flavor | null;
+  deleteInstance: (id: string) => Promise<void>;
 }
 
 type ComputeSliceDeps = ComputeSlice & ConnectionSlice & DraftSlice & AuthSlice;
@@ -49,7 +56,7 @@ type ComputeSliceDeps = ComputeSlice & ConnectionSlice & DraftSlice & AuthSlice;
 export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (set, get) => ({
   flavors: [],
   flavorsStatus: 'idle',
-  instances: buildSeedInstances(),
+  instances: [],
   selectedInstanceId: null,
   instanceQuery: '',
   instanceStatusFilter: 'all',
@@ -58,15 +65,11 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   result: null,
 
   ensureFlavorData: async () => {
-    const { flavorsStatus, backendHealthStatus, ensureBackendHealth, connectionMode } = get();
+    const { flavorsStatus, connectionMode } = get();
 
     if (flavorsStatus === 'loading' || flavorsStatus === 'ready') return;
 
     set({ flavorsStatus: 'loading' });
-
-    if (backendHealthStatus === 'idle') {
-      await ensureBackendHealth();
-    }
 
     if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') {
       set({ flavors: sortFlavors(demoFlavors), flavorsStatus: 'ready' });
@@ -86,16 +89,21 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   },
 
   ensureInstanceData: async () => {
-    const { backendHealthStatus, ensureBackendHealth } = get();
-
-    if (backendHealthStatus === 'idle') {
-      await ensureBackendHealth();
-    }
-
     if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return;
 
     try {
-      const data = await fetchComputeInstances();
+      const previousInstances = get().instances;
+      const data = (await fetchComputeInstances()).map((instance) => {
+        const previous = previousInstances.find((item) => item.id === instance.id);
+        const wasActive = String(previous?.status ?? '').toUpperCase() === 'ACTIVE';
+        const isActive = String(instance.status ?? '').toUpperCase() === 'ACTIVE';
+
+        if (previous && !wasActive && isActive) {
+          return { ...instance, updated: new Date().toISOString() };
+        }
+
+        return instance;
+      });
       const selectedInstanceId = data.some((instance) => instance.id === get().selectedInstanceId)
         ? get().selectedInstanceId
         : (data[0]?.id ?? null);
@@ -109,6 +117,26 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load instances';
       set({ connectionMode: 'demo', connectionReason: translateError(message) });
+    }
+  },
+
+  ensureInstanceById: async (id) => {
+    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return 'skipped';
+
+    try {
+      const instance = await fetchComputeInstanceById(id);
+      set((state) => {
+        const next = [...state.instances];
+        const index = next.findIndex((i) => i.id === instance.id);
+        if (index >= 0) next[index] = { ...next[index], ...instance };
+        else next.unshift(instance);
+        return { instances: next, connectionMode: 'live', connectionReason: '' };
+      });
+      return 'ok';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load instance';
+      if (/404|not found/i.test(message)) return 'not-found';
+      return 'error';
     }
   },
 
@@ -154,12 +182,12 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
 
   handleCreateInstance: async () => {
     const { draft, connectionMode, session, keypairStatus, instances, upsertInstance, setCreationStatus, setResult } = get();
+    const imageId = imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
 
     const payload = {
       name: draft.name.trim(),
-      image_id: draft.imageId.trim(),
+      image_id: imageId,
       flavor_id: draft.selectedFlavorId,
-      ...(draft.networkId.trim() ? { network_id: draft.networkId.trim() } : {}),
       ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
     };
 
@@ -188,6 +216,16 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   getSelectedFlavor: () => {
     const { flavors, draft } = get();
     return flavors.find((f) => f.id === draft.selectedFlavorId) ?? null;
+  },
+
+  deleteInstance: async (id) => {
+    await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    set((state) => ({
+      instances: state.instances.filter((i) => i.id !== id),
+      selectedInstanceId: state.selectedInstanceId === id
+        ? (state.instances.find((i) => i.id !== id)?.id ?? null)
+        : state.selectedInstanceId,
+    }));
   },
 });
 

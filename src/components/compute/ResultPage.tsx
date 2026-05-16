@@ -1,17 +1,36 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
-import { ROUTE_NAMES } from '../../constants';
-import { humanizeDate } from '../../utils';
+import { ROUTE_NAMES, imageTemplates, networkTemplates } from '../../constants';
+import { getTerminalAvailability, humanizeDate } from '../../utils';
 import type { CreateInstanceResponse } from '../../types';
 
 export function ResultPage() {
   const navigate = useNavigate();
-  const { result, instances } = useStore();
+  const { result, instances, flavors, ensureInstanceData } = useStore();
+  const [now, setNow] = useState(() => Date.now());
 
   const inventoryInstance = result?.instanceId
     ? (instances.find((i) => i.id === result.instanceId) ?? null)
     : null;
+  const terminalAvailability = getTerminalAvailability(inventoryInstance, now);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (result?.type !== 'success' || result.mode !== 'live' || terminalAvailability.canOpen) return;
+
+    void ensureInstanceData();
+    const timer = window.setInterval(() => {
+      void ensureInstanceData();
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [ensureInstanceData, result?.mode, result?.type, terminalAvailability.canOpen]);
 
   if (!result) {
     return (
@@ -34,6 +53,22 @@ export function ResultPage() {
   }
 
   const response: Partial<CreateInstanceResponse> = result.response ?? {};
+  const imageLabel = imageTemplates.find((item) => item.id === result.request?.image_id)?.label ?? '선택한 이미지';
+  const networkLabel = result.request?.network_id
+    ? (networkTemplates.find((item) => item.id === result.request?.network_id)?.label ?? '선택한 네트워크')
+    : 'Not set';
+  const flavorLabel = flavors.find((item) => item.id === result.request?.flavor_id)?.name
+    ?? response.flavor?.name
+    ?? response.flavor?.id
+    ?? result.request?.flavor_id
+    ?? '';
+  const requestPreview = {
+    name: result.request?.name ?? '',
+    flavor: flavorLabel,
+    image: imageLabel,
+    network: networkLabel,
+    ssh_key: result.request?.key_name ?? 'Optional',
+  };
 
   return (
     <div className="page page-result shell-enter">
@@ -59,9 +94,21 @@ export function ResultPage() {
             {inventoryInstance && (
               <button
                 className="ghost-button"
+                disabled={!terminalAvailability.canOpen}
+                title={
+                  terminalAvailability.canOpen
+                    ? 'Open terminal'
+                    : terminalAvailability.waitSeconds > 0
+                      ? `Terminal will be available in ${terminalAvailability.waitSeconds}s`
+                      : terminalAvailability.reason
+                }
                 onClick={() => navigate(`/compute/instances/${encodeURIComponent(inventoryInstance.id)}/terminal`)}
               >
-                Open terminal
+                {terminalAvailability.canOpen
+                  ? 'Open terminal'
+                  : terminalAvailability.waitSeconds > 0
+                    ? `Terminal ready in ${terminalAvailability.waitSeconds}s`
+                    : 'Terminal unavailable'}
               </button>
             )}
           </div>
@@ -75,13 +122,13 @@ export function ResultPage() {
               <div><dt>Name</dt><dd>{response.name ?? result.request?.name ?? '-'}</dd></div>
               <div><dt>Status</dt><dd>{response.status ?? (result.type === 'success' ? 'BUILD' : '-')}</dd></div>
               <div><dt>Created</dt><dd>{humanizeDate(response.created)}</dd></div>
-              <div><dt>Flavor</dt><dd>{response.flavor?.id ?? result.request?.flavor_id ?? '-'}</dd></div>
-              <div><dt>Network</dt><dd>{result.request?.network_id ?? 'Not set'}</dd></div>
+              <div><dt>Flavor</dt><dd>{flavorLabel || '-'}</dd></div>
+              <div><dt>Network</dt><dd>{networkLabel}</dd></div>
             </dl>
           </article>
           <article className="result-pane">
             <p className="eyebrow">Payload</p>
-            <pre className="code-block">{JSON.stringify(result.request ?? {}, null, 2)}</pre>
+            <pre className="code-block">{JSON.stringify(requestPreview, null, 2)}</pre>
           </article>
           <article className="result-pane">
             <p className="eyebrow">Response</p>

@@ -9,5 +9,6 @@ export {
   translateError,
   getInstanceSourceLabel,
   getDisplayInstanceId,
+  getTerminalAvailability,
   getVisibleInstances,
 } from './helpers';

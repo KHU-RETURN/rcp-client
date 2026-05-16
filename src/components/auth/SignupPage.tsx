@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
+import { rcpConfig } from '../../config';
 import { AuthLayout } from '../layout/AuthLayout';
 import { normalizeHandle } from '../../utils';
 import type { MockUser } from '../../types';
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { googleLogin, signupForm, updateSignupForm, authMessage, setAuthMessage, createMockUser, getAllUsers } = useStore();
+  const { signupForm, updateSignupForm, authMessage, setAuthMessage, createMockUser, getAllUsers } = useStore();
 
   function handleGoogleLogin() {
-    const nextPath = googleLogin();
-    navigate(nextPath, { replace: true });
+    window.location.href = `${rcpConfig.apiBaseUrl}/api/v1/auth/oauth/google`;
   }
 
   function getRolePresetMeta() {

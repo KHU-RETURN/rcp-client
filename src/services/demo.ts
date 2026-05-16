@@ -79,7 +79,8 @@ export function buildInventoryRecord(
 export function buildInventoryRecordFromServer(response: ServerInstanceResponse): Instance {
   const created = response.created ?? new Date().toISOString();
   const flavorId = response.flavor?.id ?? response.flavor_id ?? response.flavor?.name ?? '';
-
+  const flavorName = response.flavor?.name;
+  
   return {
     id: response.id,
     name: response.name,
@@ -87,6 +88,7 @@ export function buildInventoryRecordFromServer(response: ServerInstanceResponse)
     created,
     updated: response.updated ?? created,
     flavorId,
+    flavorName,
     imageId: response.image_id ?? response.image ?? '',
     networkId: '',
     keyName: response.key_name ?? '',

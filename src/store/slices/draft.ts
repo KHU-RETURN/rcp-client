@@ -18,8 +18,8 @@ export const defaultDraft = (): Draft => ({
   imageAssistEnabled: true,
   imageId: imageTemplates[0]?.id ?? '',
   networkTemplate: networkTemplates[0]?.key ?? '',
-  networkAssistEnabled: false,
-  networkId: '',
+  networkAssistEnabled: true,
+  networkId: networkTemplates[0]?.id ?? '',
   keypairName: '',
   publicKey: '',
 });

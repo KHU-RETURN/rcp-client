@@ -17,6 +17,7 @@ export interface Instance {
   created: string;
   updated: string;
   flavorId: string;
+  flavorName: string | undefined;
   imageId: string;
   networkId: string;
   keyName: string;

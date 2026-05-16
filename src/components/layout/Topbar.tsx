@@ -10,8 +10,8 @@ interface TopbarProps {
 
 export function Topbar({ active }: TopbarProps) {
   const navigate = useNavigate();
-  const { session, logout, getAppHealth } = useStore();
-  const health = getAppHealth();
+  const { session, logout, getConnectionStatus } = useStore();
+  const connectionStatus = getConnectionStatus();
 
   const computeActive =
     active === ROUTE_NAMES.instances ||
@@ -49,7 +49,7 @@ export function Topbar({ active }: TopbarProps) {
         </button>
       </nav>
       <div className="topbar-tools">
-        <StatusPill tone={health.tone} label={health.label} />
+        <StatusPill tone={connectionStatus.tone} label={connectionStatus.label} />
         <span className="operator-label">{session?.name ?? ''}</span>
         <button className="ghost-button" onClick={handleLogout}>
           Sign out

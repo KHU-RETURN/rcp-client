@@ -1,5 +1,7 @@
 import type { Flavor, Instance, StatusTone, InstanceSource } from '../types';
 
+const TERMINAL_ACTIVE_GRACE_MS = 30_000;
+
 export function normalizeHandle(value: string): string {
   return value
     .trim()
@@ -57,6 +59,36 @@ export function getInstanceSourceLabel(source: InstanceSource): string {
 
 export function getDisplayInstanceId(id: string): string {
   return String(id).replace(/^mock-/, '');
+}
+
+export function getTerminalAvailability(
+  instance: Instance | null | undefined,
+  now = Date.now(),
+): { canOpen: boolean; waitSeconds: number; reason: string } {
+  if (!instance) {
+    return { canOpen: false, waitSeconds: 0, reason: 'No instance selected' };
+  }
+
+  const status = String(instance.status ?? '').toUpperCase();
+  if (status !== 'ACTIVE') {
+    return { canOpen: false, waitSeconds: 0, reason: `Instance is ${instance.status || 'not ready'}` };
+  }
+
+  const activeAt = Date.parse(instance.updated || instance.created);
+  if (!Number.isFinite(activeAt)) {
+    return { canOpen: true, waitSeconds: 0, reason: 'Ready' };
+  }
+
+  const remainingMs = TERMINAL_ACTIVE_GRACE_MS - (now - activeAt);
+  if (remainingMs <= 0) {
+    return { canOpen: true, waitSeconds: 0, reason: 'Ready' };
+  }
+
+  return {
+    canOpen: false,
+    waitSeconds: Math.ceil(remainingMs / 1000),
+    reason: 'Finalizing console',
+  };
 }
 
 export function getVisibleInstances(
