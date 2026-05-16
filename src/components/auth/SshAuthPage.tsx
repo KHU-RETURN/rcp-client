@@ -33,7 +33,7 @@ export function SshAuthPage() {
 
   function handleGoogleLogin() {
     const state = `ssh:${encodeURIComponent(nonce)}`;
-    window.location.href = `${rcpConfig.apiBaseUrl}/auth/oauth/google?state=${state}`;
+    window.location.href = `${rcpConfig.apiBaseUrl}/api/v1/auth/oauth/google?state=${state}`;
   }
 
   const sessionPreview = nonce.slice(0, 8);
