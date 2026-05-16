@@ -170,7 +170,7 @@ export function InstancesPage() {
             <>
               <dl className="summary-grid large">
                 <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
-                <div><dt>Flavor</dt><dd>{flavors.find((f) => f.id === selectedInstance.flavorId)?.name ?? selectedInstance.flavorId}</dd></div>
+                <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
                 <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
                 <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || 'demo-net')}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
