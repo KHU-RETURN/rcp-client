@@ -70,7 +70,7 @@ export function InstancesPage() {
 
   function getInstancesHealth() {
     return useStore.getState().connectionMode === 'live'
-      ? '최근 인스턴스'
+      ? '인스턴스 목록'
       : '샘플 · 최근 생성 인스턴스';
   }
 
