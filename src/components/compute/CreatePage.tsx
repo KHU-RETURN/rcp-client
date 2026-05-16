@@ -8,6 +8,20 @@ import { ROUTE_NAMES, imageTemplates, networkTemplates, SECTION_ORDER } from '..
 import { validateName, validatePublicKey, formatRam } from '../../utils';
 import type { SectionStates } from '../../types';
 
+function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'cirros' | 'default' {
+  if (key.includes('ubuntu')) return 'ubuntu';
+  if (key.includes('rocky')) return 'rocky';
+  if (key.includes('cirros')) return 'cirros';
+  return 'default';
+}
+
+function imageMarkLabel(key: string): string {
+  if (key.includes('ubuntu')) return 'U';
+  if (key.includes('rocky')) return 'R';
+  if (key.includes('cirros')) return 'c';
+  return key.slice(0, 1).toUpperCase();
+}
+
 export function CreatePage() {
   const navigate = useNavigate();
   const {
@@ -193,32 +207,33 @@ export function CreatePage() {
                 <p className="eyebrow">03 · Image</p>
                 <h2>이미지</h2>
               </div>
-              <p className="muted">OS Image를 선택합니다.</p>
+              <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
             </div>
 
-            <div className="paired-blocks">
-              <section className="line-block">
-                <div className="line-block-head">
-                  <div>
-                    <strong>Image</strong>
-                    <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
-                  </div>
-                </div>
-                <label className="field">
-                  <span>Image template *</span>
-                  <select
-                    data-ui="image-template"
-                    name="imageTemplate"
-                    value={draft.imageTemplate}
-                    onChange={(e) => handleSelectImage(e.target.value)}
+            <div className="image-grid" data-ui="image-template" role="radiogroup" aria-label="Image template">
+              {imageTemplates.map((item) => {
+                const selected = draft.imageTemplate === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className={`image-card${selected ? ' is-selected' : ''}`}
+                    onClick={() => handleSelectImage(item.key)}
+                    data-key={item.key}
                   >
-                    {imageTemplates.map((item) => (
-                      <option key={item.key} value={item.key}>{item.label}</option>
-                    ))}
-                  </select>
-                  <small>{imageTemplate?.description ?? '템플릿 설정을 확인해 주세요.'}</small>
-                </label>
-              </section>
+                    <span className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`} aria-hidden>
+                      {imageMarkLabel(item.key)}
+                    </span>
+                    <span className="image-card-body">
+                      <strong>{item.label}</strong>
+                      <small className="muted">{item.description}</small>
+                    </span>
+                    <span className="image-card-check" aria-hidden>{selected ? '✓' : ''}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
