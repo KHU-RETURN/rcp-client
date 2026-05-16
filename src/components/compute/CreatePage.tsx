@@ -15,11 +15,32 @@ function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'cirros' | 'default
   return 'default';
 }
 
-function imageMarkLabel(key: string): string {
-  if (key.includes('ubuntu')) return 'U';
-  if (key.includes('rocky')) return 'R';
-  if (key.includes('cirros')) return 'c';
-  return key.slice(0, 1).toUpperCase();
+function ImageMarkIcon({ variant }: { variant: ReturnType<typeof imageMarkVariant> }) {
+  if (variant === 'ubuntu') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+        <circle cx="5.4" cy="12" r="2.3" />
+        <circle cx="15" cy="6.7" r="2.3" />
+        <circle cx="15" cy="17.3" r="2.3" />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+  if (variant === 'rocky') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+        <path d="M3.5 18.5 L9 9.5 L12.5 14 L16.5 7.5 L20.5 18.5 Z" />
+      </svg>
+    );
+  }
+  if (variant === 'cirros') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+        <path d="M7.2 17.8h9.6a3.6 3.6 0 0 0 .55-7.16 5.1 5.1 0 0 0-9.7-1.04A4 4 0 0 0 7.2 17.8z" />
+      </svg>
+    );
+  }
+  return <span className="image-card-mark-fallback">?</span>;
 }
 
 export function CreatePage() {
@@ -224,7 +245,7 @@ export function CreatePage() {
                     data-key={item.key}
                   >
                     <span className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`} aria-hidden>
-                      {imageMarkLabel(item.key)}
+                      <ImageMarkIcon variant={imageMarkVariant(item.key)} />
                     </span>
                     <span className="image-card-body">
                       <strong>{item.label}</strong>
