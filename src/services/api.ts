@@ -40,11 +40,6 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  console.info('[apiRequest] auth token lookup', {
-    path,
-    hasToken: Boolean(token),
-    hasAuthorizationHeader: headers.has('Authorization'),
-  });
 
   const response = await fetch(url, {
     ...options,

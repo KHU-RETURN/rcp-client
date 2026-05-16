@@ -11,16 +11,7 @@ export function AuthCallback() {
   const handledRef = useRef(false);
 
   useEffect(() => {
-    const logPrefix = '[AuthCallback]';
-
-    console.info(`${logPrefix} mounted on OAuth callback route`, {
-      path: window.location.pathname,
-      search: window.location.search,
-      hasStoreSession: Boolean(session),
-    });
-
     if (handledRef.current) {
-      console.info(`${logPrefix} ignored duplicate effect run`);
       return;
     }
 
@@ -28,15 +19,10 @@ export function AuthCallback() {
 
     async function completeOAuthCallback() {
       try {
-        console.info(`${logPrefix} validating backend cookie session after OAuth redirect`, {
-          replacingExistingStoreSession: Boolean(session),
-        });
-        const restoredSession = await fetchAuthSession(logPrefix);
+        const restoredSession = await fetchAuthSession();
         const nextPath = login(restoredSession, '/compute');
-        console.info(`${logPrefix} session stored; navigating`, { nextPath });
         navigate(nextPath, { replace: true });
       } catch (error) {
-        console.error(`${logPrefix} OAuth callback verification failed; redirecting to /login`, error);
         navigate('/login', { replace: true });
       }
     }
