@@ -4,6 +4,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { SignupPage } from './components/auth/SignupPage';
 import { ChangesPage } from './components/auth/ChangesPage';
 import { AuthCallback } from './components/auth/AuthCallback'; 
+import { LandingPage } from './components/landing/LandingPage';
 import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';
 import { CreatePage } from './components/compute/CreatePage';
@@ -32,7 +33,7 @@ export function App() {
           <Route path="/storage" element={<StoragePage />} />
         </Route>
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
