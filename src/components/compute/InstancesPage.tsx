@@ -175,7 +175,14 @@ export function InstancesPage() {
                 <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || 'demo-net')}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
                 <div><dt>Mode</dt><dd>{selectedInstance.mode}</dd></div>
-                <div><dt>Created</dt><dd>{selectedInstance.created?.startsWith('0001') ? '—' : humanizeDate(selectedInstance.created)}</dd></div>
+                <div>
+                  <dt>Created</dt>
+                  <dd>
+                    {selectedInstance.created && !selectedInstance.created.startsWith('0001') 
+                      ? humanizeDate(selectedInstance.created) 
+                      : '—'}
+                  </dd>
+                </div>
               </dl>
               <div className="summary-note">
                 <strong>Note</strong>
