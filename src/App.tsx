@@ -21,6 +21,9 @@ export function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/changes" element={<ChangesPage />} />
 
+        <Route path="/ssh-auth" element={<SshAuthPage />} />
+        <Route path="/ssh/complete" element={<SshCompletePage />} />
+
         <Route element={<AuthGuard />}>
           <Route path="/compute" element={<InstancesPage />} />
           <Route path="/instances" element={<Navigate to="/compute" replace />} />
