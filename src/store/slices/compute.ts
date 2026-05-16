@@ -15,7 +15,12 @@ import { rcpConfig } from '../../config';
 import { demoFlavors, imageTemplates, networkTemplates } from '../../constants';
 import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
-import { registerKeypair, createInstance, fetchInstances as fetchComputeInstances } from '../../services/compute';
+import {
+  registerKeypair,
+  createInstance,
+  fetchInstances as fetchComputeInstances,
+  fetchInstanceById as fetchComputeInstanceById,
+} from '../../services/compute';
 import { buildInventoryRecord } from '../../services/demo';
 
 export interface ComputeSlice {
@@ -31,6 +36,7 @@ export interface ComputeSlice {
 
   ensureFlavorData: () => Promise<void>;
   ensureInstanceData: () => Promise<void>;
+  ensureInstanceById: (id: string) => Promise<'ok' | 'not-found' | 'error' | 'skipped'>;
   upsertInstance: (instance: Instance) => void;
   setSelectedInstanceId: (id: string | null) => void;
   ensureSelectedInstance: () => void;
@@ -111,6 +117,26 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load instances';
       set({ connectionMode: 'demo', connectionReason: translateError(message) });
+    }
+  },
+
+  ensureInstanceById: async (id) => {
+    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return 'skipped';
+
+    try {
+      const instance = await fetchComputeInstanceById(id);
+      set((state) => {
+        const next = [...state.instances];
+        const index = next.findIndex((i) => i.id === instance.id);
+        if (index >= 0) next[index] = { ...next[index], ...instance };
+        else next.unshift(instance);
+        return { instances: next, connectionMode: 'live', connectionReason: '' };
+      });
+      return 'ok';
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load instance';
+      if (/404|not found/i.test(message)) return 'not-found';
+      return 'error';
     }
   },
 
