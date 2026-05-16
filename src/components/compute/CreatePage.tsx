@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { SectionRail } from './SectionRail';
 import { FlavorTable } from './FlavorTable';
-import { ROUTE_NAMES, imageTemplates, networkTemplates, SECTION_ORDER } from '../../constants';
+import { ROUTE_NAMES, imageTemplates, SECTION_ORDER } from '../../constants';
 import { validateName, validatePublicKey, formatRam } from '../../utils';
 import type { SectionStates } from '../../types';
 
@@ -67,7 +67,6 @@ export function CreatePage() {
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
   const resolvedImageId = imageTemplate?.id ?? draft.imageId.trim();
-  const resolvedNetworkId = networkTemplates[0]?.id ?? '';
   const selectedImageLabel = imageTemplate?.label ?? '이미지 선택 필요';
 
   const publicKeyPresent = draft.publicKey.trim().length > 0;
@@ -114,7 +113,6 @@ export function CreatePage() {
     name: draft.name.trim(),
     image_id: resolvedImageId,
     flavor_id: draft.selectedFlavorId,
-    ...(resolvedNetworkId ? { network_id: resolvedNetworkId } : {}),
     ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
   };
 
