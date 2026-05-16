@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../layout/AuthLayout';
-import { releaseNotes } from '../../constants';
 
 export function ChangesPage() {
   const navigate = useNavigate();
@@ -24,16 +23,8 @@ export function ChangesPage() {
           <p className="muted">최근 반영된 변경 사항입니다.</p>
         </div>
 
-        <div className="release-list">
-          {releaseNotes.map((note) => (
-            <article key={note.version} className="release-item">
-              <div className="release-head">
-                <span className="release-version">{note.version}</span>
-                <strong>{note.title}</strong>
-              </div>
-              <p>{note.body}</p>
-            </article>
-          ))}
+        <div className="auth-empty-inline">
+          <span>표시할 변경 내역이 없습니다.</span>
         </div>
       </div>
     </AuthLayout>

@@ -5,14 +5,9 @@ import { AuthLayout } from '../layout/AuthLayout';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { googleLogin, login, getAllUsers } = useStore();
+  const { login, getAllUsers } = useStore();
 
   function handleGoogleLogin() {
-    // 1. 기존 데모 로직 주석 처리
-    // const nextPath = googleLogin();
-    // navigate(nextPath, { replace: true });
-
-    // 2. 백엔드 구글 로그인 엔드포인트로 이동
     window.location.href = `${rcpConfig.apiBaseUrl}/api/v1/auth/oauth/google`;
   }
 
@@ -23,9 +18,7 @@ export function LoginPage() {
     navigate(nextPath, { replace: true });
   }
 
-  const allUsers = getAllUsers();
-  const builtInUsers = allUsers.slice(0, 2);
-  const customUsers = allUsers.slice(2);
+  const customUsers = getAllUsers();
 
   const headerActions = (
     <>
@@ -62,22 +55,6 @@ export function LoginPage() {
           </span>
           <span>Google로 계속하기</span>
         </button>
-
-        <div className="roster-group">
-          <div className="roster roster-tight">
-            {builtInUsers.map((user) => (
-              <button
-                key={user.id}
-                className="auth-account"
-                onClick={() => handleUserLogin(user.id)}
-                data-ui={`login-${user.id}`}
-              >
-                <strong>{user.name}</strong>
-                <small>{user.subtitle}</small>
-              </button>
-            ))}
-          </div>
-        </div>
 
         <div className="roster-group">
           <div className="group-label-row">

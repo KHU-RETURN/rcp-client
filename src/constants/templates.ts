@@ -1,4 +1,4 @@
-import type { ImageTemplate, NetworkTemplate, Flavor, StorageBucket } from '../types';
+import type { ImageTemplate, NetworkTemplate, Flavor } from '../types';
 
 export const imageTemplates: ImageTemplate[] = [
   { key: 'rcp-ubuntu-2204', label: 'Ubuntu 22.04', id: 'd9f44127-1761-448d-8077-788128f4f0b5', description: '웹·앱 서버, 개발 환경, ML 등 범용 워크로드에 추천' },
@@ -19,25 +19,3 @@ export const demoFlavors: Flavor[] = [
   { id: 'c1.large', name: 'c1.large', vcpus: 8, ram: 8192, disk: 60, max_configurable: 0 },
 ];
 
-export const storageBuckets: StorageBucket[] = [
-  {
-    id: 'media-assets',
-    name: 'media-assets',
-    class: 'Standard',
-    region: 'KR-Seoul',
-    objects: 1842,
-    size: '48.2 GB',
-    updated: '2026-03-29T08:20:00Z',
-    note: '서비스 업로드 파일과 이미지 자산',
-  },
-  {
-    id: 'instance-backups',
-    name: 'instance-backups',
-    class: 'Archive',
-    region: 'KR-Seoul',
-    objects: 96,
-    size: '312.4 GB',
-    updated: '2026-03-28T22:10:00Z',
-    note: '정기 백업과 장기 보관 파일',
-  },
-];

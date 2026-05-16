@@ -1,6 +1,5 @@
 import type { StateCreator } from 'zustand';
 import type { Session, MockUser, SignupForm, AuthMessage } from '../../types';
-import { GOOGLE_PREVIEW_USER, mockUsers } from '../../constants';
 
 export interface AuthSlice {
   session: Session | null;
@@ -11,7 +10,6 @@ export interface AuthSlice {
 
   login: (user: Session, nextPath?: string) => string;
   logout: () => void;
-  googleLogin: (nextPath?: string) => string;
   createMockUser: (user: MockUser) => void;
   updateSignupForm: (updates: Partial<SignupForm>) => void;
   resetSignupForm: () => void;
@@ -48,16 +46,6 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set,
     set({ session: null, pendingRoutePath: null, authMessage: null });
   },
 
-  googleLogin: (nextPath) => {
-    const pending = get().pendingRoutePath;
-    set({
-      session: GOOGLE_PREVIEW_USER,
-      authMessage: null,
-      pendingRoutePath: null,
-    });
-    return nextPath ?? pending ?? '/compute';
-  },
-
   createMockUser: (user) => {
     set((state) => ({
       customMockUsers: [...state.customMockUsers, user],
@@ -88,6 +76,6 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set,
   },
 
   getAllUsers: () => {
-    return [...mockUsers, ...get().customMockUsers];
+    return get().customMockUsers;
   },
 });
