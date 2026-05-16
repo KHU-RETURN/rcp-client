@@ -31,11 +31,9 @@ export function CreatePage() {
   const connectionStatus = getConnectionStatus();
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
-  const networkTemplate = networkTemplates.find((t) => t.key === draft.networkTemplate) ?? networkTemplates[0] ?? null;
   const resolvedImageId = imageTemplate?.id ?? draft.imageId.trim();
-  const resolvedNetworkId = networkTemplate?.id || draft.networkId.trim() || networkTemplates[0]?.id || '';
+  const resolvedNetworkId = networkTemplates[0]?.id ?? '';
   const selectedImageLabel = imageTemplate?.label ?? '이미지 선택 필요';
-  const selectedNetworkLabel = networkTemplate?.label ?? '네트워크 선택 필요';
 
   const publicKeyPresent = draft.publicKey.trim().length > 0;
   const keyNamePresent = draft.keypairName.trim().length > 0;
@@ -54,9 +52,9 @@ export function CreatePage() {
       error: Boolean(selectedFlavor && selectedFlavor.max_configurable === 0),
     },
     'image-network': {
-      title: 'Image & network',
-      valid: Boolean(resolvedImageId && resolvedNetworkId),
-      error: !resolvedImageId || !resolvedNetworkId,
+      title: 'Image',
+      valid: Boolean(resolvedImageId),
+      error: !resolvedImageId,
     },
     access: {
       title: 'Access',
@@ -72,7 +70,7 @@ export function CreatePage() {
         validateName(draft.name) &&
         Boolean(selectedFlavor) &&
         (selectedFlavor?.max_configurable ?? 0) > 0 &&
-        Boolean(resolvedImageId && resolvedNetworkId),
+        Boolean(resolvedImageId),
       error: false,
     },
   };
@@ -105,16 +103,6 @@ export function CreatePage() {
       imageTemplate: template.key,
       imageAssistEnabled: true,
       imageId: template.id,
-    });
-  }
-
-  function handleSelectNetwork(templateKey: string) {
-    const template = networkTemplates.find((item) => item.key === templateKey);
-    if (!template) return;
-    updateDraft({
-      networkTemplate: template.key,
-      networkAssistEnabled: true,
-      networkId: template.id,
     });
   }
 
@@ -198,14 +186,14 @@ export function CreatePage() {
             </div>
           </section>
 
-          {/* Image & Network */}
+          {/* Image */}
           <section className="editor-section" id="image-network">
             <div className="section-head">
               <div>
-                <p className="eyebrow">03 · Image / Network</p>
-                <h2>이미지 · 네트워크</h2>
+                <p className="eyebrow">03 · Image</p>
+                <h2>이미지</h2>
               </div>
-              <p className="muted">OS Image & Network를 선택합니다.</p>
+              <p className="muted">OS Image를 선택합니다.</p>
             </div>
 
             <div className="paired-blocks">
@@ -229,29 +217,6 @@ export function CreatePage() {
                     ))}
                   </select>
                   <small>{imageTemplate?.description ?? '템플릿 설정을 확인해 주세요.'}</small>
-                </label>
-              </section>
-
-              <section className="line-block">
-                <div className="line-block-head">
-                  <div>
-                    <strong>Network</strong>
-                    <p className="muted">OpenStack 생성 요청에는 네트워크 선택이 필요합니다.</p>
-                  </div>
-                </div>
-                <label className="field">
-                  <span>Network</span>
-                  <select
-                    data-ui="network-template"
-                    name="networkTemplate"
-                    value={networkTemplate?.key ?? ''}
-                    onChange={(e) => handleSelectNetwork(e.target.value)}
-                  >
-                    {networkTemplates.map((item) => (
-                      <option key={item.key} value={item.key}>{item.label}</option>
-                    ))}
-                  </select>
-                  <small>{networkTemplate?.description ?? '선택한 네트워크를 사용합니다.'}</small>
                 </label>
               </section>
             </div>
@@ -342,7 +307,6 @@ export function CreatePage() {
                     </span>
                   </li>
                   <li><strong>Image</strong><span>{selectedImageLabel}</span></li>
-                  <li><strong>Network</strong><span>{selectedNetworkLabel}</span></li>
                   <li><strong>SSH key</strong><span>{keypairStatus.response?.name ?? 'Optional'}</span></li>
                 </ul>
                 {creationStatus.message && (
@@ -372,7 +336,6 @@ export function CreatePage() {
                   name: payload.name,
                   flavor: selectedFlavor?.name ?? '',
                   image: selectedImageLabel,
-                  network: selectedNetworkLabel,
                   ssh_key: keypairStatus.response?.name ?? 'Optional',
                 }, null, 2)}
               </pre>
@@ -392,7 +355,6 @@ export function CreatePage() {
             <div><dt>Quota impact</dt><dd>{selectedFlavor ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}` : '-'}</dd></div>
             <div><dt>Max creatable</dt><dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd></div>
             <div><dt>Image</dt><dd>{selectedImageLabel}</dd></div>
-            <div><dt>Network</dt><dd>{selectedNetworkLabel}</dd></div>
             <div><dt>SSH key</dt><dd>{keypairStatus.response?.name ?? 'Not registered'}</dd></div>
           </dl>
           <div className="summary-checks" data-ui="summary-checks">
