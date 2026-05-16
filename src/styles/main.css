@@ -910,15 +910,25 @@ h3 {
 }
 
 .auth-login-box {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-login-main {
   display: grid;
   gap: 22px;
   align-content: start;
 }
 
+.auth-note,
+.oauth-button {
+  width: 100%;
+}
 .auth-note {
   display: grid;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 32px 32px;
   border-radius: 16px;
   background: rgba(17, 17, 17, 0.04);
   border: 1px solid rgba(17, 17, 17, 0.08);
@@ -1042,7 +1052,7 @@ h3 {
   justify-content: center;
   gap: 12px;
   min-height: 56px;
-  padding: 0 18px;
+  padding: 32px 32px;
   border-radius: 18px;
   border: 1px solid rgba(17, 17, 17, 0.12);
   background: #ffffff;
@@ -1070,6 +1080,100 @@ h3 {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+.auth-footer {
+  margin-top: auto;
+  padding-top: 50px;
+  border-top: 1px solid var(--line);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(107, 114, 128, 0.86);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+@media (max-width: 760px) {
+  .auth-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .auth-legal-links {
+    justify-content: flex-start;
+  }
+}
+
+.auth-help {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-help-line {
+  margin-top: -8px;
+  margin-bottom: 36px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.auth-help a,
+
+.auth-help-line a {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-help-line a:hover {
+  text-decoration: underline;
+}
+
+.auth-legal-links {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.auth-legal-links a {
+  color: rgba(17, 17, 17, 0.62);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-help a:hover,
+.auth-legal-links a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.auth-divider {
+  width: min(220px, 100%);
+  height: 1px;
+  background: var(--line);
+}
+
+.auth-legal {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-legal strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.auth-legal-links {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .release-list {
