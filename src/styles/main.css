@@ -766,7 +766,7 @@ h3 {
   min-height: 560px;
   padding: 22px;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto 1fr;
   gap: 18px;
 }
 
@@ -917,8 +917,9 @@ h3 {
 
 .auth-login-main {
   display: grid;
-  gap: 22px;
-  align-content: start;
+  gap: 28px;
+  align-content: center;
+  flex: 1;
 }
 
 .auth-note,
@@ -1052,7 +1053,7 @@ h3 {
   justify-content: center;
   gap: 12px;
   min-height: 56px;
-  padding: 40px 32px;
+  padding: 26px 32px;
   border-radius: 18px;
   border: 1px solid rgba(17, 17, 17, 0.12);
   background: #ffffff;
@@ -1084,7 +1085,7 @@ h3 {
 
 .auth-footer {
   margin-top: auto;
-  padding-top: 50px;
+  padding-top: 30px;
   border-top: 1px solid var(--line);
 
   display: flex;

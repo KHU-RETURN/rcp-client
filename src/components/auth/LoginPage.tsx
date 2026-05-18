@@ -43,7 +43,7 @@ export function LoginPage() {
         </main>
 
         <footer className="auth-footer">
-          <span>© 2025 Return</span>
+          <span>© 2026 Return</span>
 
           <nav className="auth-legal-links" aria-label="Legal links">
             <a href="/privacy">개인정보처리방침</a>
