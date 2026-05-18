@@ -13,6 +13,19 @@ export function formatCpuUsage(nanoseconds: number | null | undefined): string {
   return `${minutes}m ${rem}s`;
 }
 
+export function formatBytes(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  if (value < 1024) return `${value} B`;
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let size = value / 1024;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  return `${size >= 10 || Number.isInteger(size) ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
+}
+
 export function humanizeDate(value: string | null | undefined): string {
   if (!value) return '-';
   const date = new Date(value);
