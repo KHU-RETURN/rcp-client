@@ -102,9 +102,8 @@ export function InstanceDetailPage() {
                     <div><dt>ID</dt><dd>{getDisplayInstanceId(instance.id)}</dd></div>
                     <div><dt>Flavor</dt><dd>{instance.flavorId}</dd></div>
                     <div><dt>Image</dt><dd>{instance.imageId}</dd></div>
-                    <div><dt>Network</dt><dd>{instance.networkId || 'demo-net'}</dd></div>
+                    <div><dt>Network</dt><dd>{instance.networkId || '—'}</dd></div>
                     <div><dt>SSH key</dt><dd>{instance.keyName || 'Not registered'}</dd></div>
-                    <div><dt>Mode</dt><dd>{instance.mode}</dd></div>
                     <div><dt>Created</dt><dd>{humanizeDate(instance.created)}</dd></div>
                     <div><dt>Updated</dt><dd>{humanizeDate(instance.updated)}</dd></div>
                   </dl>

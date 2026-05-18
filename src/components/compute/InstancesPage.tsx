@@ -75,12 +75,6 @@ export function InstancesPage() {
   const buildCount = instances.filter((i) => String(i.status).toUpperCase() === 'BUILD').length;
   const errorCount = instances.filter((i) => statusTone(i.status) === 'error').length;
 
-  function getInstancesHealth() {
-    return useStore.getState().connectionMode === 'live'
-      ? '인스턴스 목록'
-      : '샘플 · 최근 생성 인스턴스';
-  }
-
   return (
     <div className="page page-instances shell-enter">
       <Topbar active={ROUTE_NAMES.instances} />
@@ -91,7 +85,7 @@ export function InstancesPage() {
               <div>
                 <p className="eyebrow">Compute</p>
                 <h2>Instances</h2>
-                <p className="muted section-support">{getInstancesHealth()}</p>
+                <p className="muted section-support">인스턴스 목록</p>
               </div>
               <div className="section-head-meta">
                 <div className="section-stats" aria-label="Inventory summary">
@@ -172,9 +166,8 @@ export function InstancesPage() {
                 <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
                 <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
                 <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
-                <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || 'demo-net')}</dd></div>
+                <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || '—')}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
-                <div><dt>Mode</dt><dd>{selectedInstance.mode}</dd></div>
                 <div>
                   <dt>Created</dt>
                   <dd>

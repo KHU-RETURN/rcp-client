@@ -7,7 +7,6 @@ export {
   getRecommendation,
   sortFlavors,
   translateError,
-  getInstanceSourceLabel,
   getDisplayInstanceId,
   getTerminalAvailability,
   getVisibleInstances,

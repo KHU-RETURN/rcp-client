@@ -1,5 +1,3 @@
-import type { InstanceMode } from './compute';
-
 export interface CreateInstancePayload {
   name: string;
   image_id: string;
@@ -61,7 +59,6 @@ export interface ServerInstanceResponse {
 
 export interface CreationResult {
   type: 'success' | 'error';
-  mode: InstanceMode;
   request: CreateInstancePayload;
   response?: CreateInstanceResponse;
   error?: string;

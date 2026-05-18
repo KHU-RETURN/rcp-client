@@ -22,7 +22,7 @@ export function ResultPage() {
   }, []);
 
   useEffect(() => {
-    if (result?.type !== 'success' || result.mode !== 'live' || terminalAvailability.canOpen) return;
+    if (result?.type !== 'success' || terminalAvailability.canOpen) return;
 
     void ensureInstanceData();
     const timer = window.setInterval(() => {
@@ -30,7 +30,7 @@ export function ResultPage() {
     }, 5000);
 
     return () => window.clearInterval(timer);
-  }, [ensureInstanceData, result?.mode, result?.type, terminalAvailability.canOpen]);
+  }, [ensureInstanceData, result?.type, terminalAvailability.canOpen]);
 
   if (!result) {
     return (
@@ -79,9 +79,7 @@ export function ResultPage() {
           <h1>{result.type === 'success' ? '생성 요청이 접수되었습니다' : '생성 요청을 완료하지 못했습니다'}</h1>
           <p className="lead minor">
             {result.type === 'success'
-              ? result.mode === 'demo'
-                ? '데모 모드에서 응답을 시뮬레이션했습니다.'
-                : '백엔드 응답을 기준으로 receipt를 구성했습니다.'
+              ? '백엔드 응답을 기준으로 receipt를 구성했습니다.'
               : (result.error ?? '알 수 없는 오류가 발생했습니다.')}
           </p>
           <div className="action-row">

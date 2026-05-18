@@ -5,7 +5,6 @@ import { InlineBadge } from '../shared/InlineBadge';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import {
   getDisplayInstanceId,
-  getInstanceSourceLabel,
   getTerminalAvailability,
   getVisibleInstances,
   humanizeDate,
@@ -62,7 +61,6 @@ export function InstanceTable() {
           <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
         </td>
         <td>{imageTemplates.find((t) => t.id === instance.imageId)?.label ?? instance.imageId.slice(0, 8)}</td>
-        <td>{getInstanceSourceLabel(instance.source)}</td>
         <td>{instance.created?.startsWith('0001') ? '—' : humanizeDate(instance.created)}</td>
         <td>
           <button
@@ -95,7 +93,6 @@ export function InstanceTable() {
           <th>Name</th>
           <th>Status</th>
           <th>OS</th>
-          <th>Source</th>
           <th>Created</th>
           <th>Terminal</th>
         </tr>

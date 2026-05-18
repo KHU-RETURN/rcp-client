@@ -1,20 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createAuthSlice, type AuthSlice } from './slices/auth';
-import { createConnectionSlice, type ConnectionSlice } from './slices/connection';
 import { createDraftSlice, defaultDraft, type DraftSlice } from './slices/draft';
 import { createComputeSlice, type ComputeSlice } from './slices/compute';
 import { createStorageSlice, type StorageSlice } from './slices/storage';
 import { createTerminalSlice, type TerminalSlice } from './slices/terminal';
 import { STORAGE_KEYS, imageTemplates, networkTemplates } from '../constants';
 
-type AppStore = AuthSlice & ConnectionSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
+type AppStore = AuthSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
 
 export const useStore = create<AppStore>()(
   persist(
     (...args) => ({
       ...createAuthSlice(...args),
-      ...createConnectionSlice(...args),
       ...createDraftSlice(...args),
       ...createComputeSlice(...args),
       ...createStorageSlice(...args),

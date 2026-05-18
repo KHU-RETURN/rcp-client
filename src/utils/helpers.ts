@@ -1,4 +1,4 @@
-import type { Flavor, Instance, StatusTone, InstanceSource } from '../types';
+import type { Flavor, Instance, StatusTone } from '../types';
 
 const TERMINAL_ACTIVE_GRACE_MS = 30_000;
 
@@ -48,13 +48,6 @@ export function translateError(message: string | undefined | null): string {
   if (lower.includes('failed to connect to cloud')) return '클라우드 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.';
   if (lower.includes('proxy failed') || lower.includes('failed to fetch')) return '백엔드에 연결하지 못했습니다.';
   return message;
-}
-
-export function getInstanceSourceLabel(source: InstanceSource): string {
-  if (source === 'mock-seed') return 'Default';
-  if (source === 'mock-created') return 'New';
-  if (source === 'local-live') return 'Created';
-  return source;
 }
 
 export function getDisplayInstanceId(id: string): string {

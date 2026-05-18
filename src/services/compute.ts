@@ -1,6 +1,5 @@
 import { apiRequest } from './api';
-import { createDemoInstance, createDemoKeypair, buildInventoryRecord, buildInventoryRecordFromServer } from './demo';
-import { validatePublicKey, translateError, wait } from '../utils';
+import { validatePublicKey, translateError } from '../utils';
 import type {
   CreateInstancePayload,
   CreateKeypairPayload,
@@ -12,10 +11,53 @@ import type {
   ServerInstanceResponse,
 } from '../types';
 
-export async function registerKeypair(
-  payload: CreateKeypairPayload,
-  isDemo: boolean,
-): Promise<KeypairStatus> {
+function buildInventoryRecord(
+  payload: CreateInstancePayload,
+  response: CreateInstanceResponse,
+  keypairName: string,
+  description: string,
+): Instance {
+  const now = new Date().toISOString();
+  const flavorId = response.flavor?.id ?? response.flavor_id ?? payload.flavor_id;
+  const imageId = response.image_id ?? payload.image_id;
+  const created = response.created ?? now;
+
+  return {
+    id: response.id || `local-${Math.random().toString(36).slice(2, 10)}`,
+    name: response.name || payload.name,
+    status: response.status || 'BUILD',
+    created,
+    updated: response.updated ?? created,
+    flavorId,
+    flavorName: undefined,
+    imageId,
+    networkId: payload.network_id ?? '',
+    keyName: response.key_name ?? keypairName,
+    note: description,
+  };
+}
+
+function buildInventoryRecordFromServer(response: ServerInstanceResponse): Instance {
+  const created = response.created ?? new Date().toISOString();
+  const flavorId = response.flavor?.id ?? response.flavor_id ?? response.flavor?.name ?? '';
+  const flavorName = response.flavor?.name;
+
+  return {
+    id: response.id,
+    name: response.name,
+    status: response.status,
+    created,
+    updated: response.updated ?? created,
+    flavorId,
+    flavorName,
+    imageId: response.image_id ?? response.image ?? '',
+    networkId: '',
+    keyName: response.key_name ?? '',
+    note: '',
+  };
+}
+
+export async function registerKeypair(payload: CreateKeypairPayload): Promise<KeypairStatus> {
   const { name, public_key: publicKey } = payload;
 
   if (name.length < 2) {
@@ -24,15 +66,6 @@ export async function registerKeypair(
 
   if (!validatePublicKey(publicKey)) {
     return { state: 'error', message: 'OpenSSH 형식의 공개키를 입력해 주세요.', response: null };
-  }
-
-  if (isDemo) {
-    await wait(240);
-    return {
-      state: 'demo',
-      message: '데모 모드에서 등록을 시뮬레이션했습니다. 실제 백엔드에는 저장되지 않았습니다.',
-      response: createDemoKeypair(payload),
-    };
   }
 
   try {
@@ -49,33 +82,29 @@ export async function registerKeypair(
 
 export async function createInstance(
   payload: CreateInstancePayload,
-  isDemo: boolean,
-  userId: string,
   keypairName: string,
   description: string,
-): Promise<CreationResult> {
-  if (isDemo) {
-    await wait(420);
-    const response = createDemoInstance(payload, userId, keypairName);
-    const record = buildInventoryRecord(payload, response, 'demo', keypairName, description);
-    return { type: 'success', mode: 'demo', request: payload, response, instanceId: record.id };
-  }
-
+): Promise<{ result: CreationResult; record: Instance | null }> {
   try {
     const response = await apiRequest<CreateInstanceResponse>('/api/v1/compute/instances', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    const record = buildInventoryRecord(payload, response, 'live', keypairName, description);
-    return { type: 'success', mode: 'live', request: payload, response, instanceId: record.id };
+    const record = buildInventoryRecord(payload, response, keypairName, description);
+    return {
+      result: { type: 'success', request: payload, response, instanceId: record.id },
+      record,
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return {
-      type: 'error',
-      mode: 'live',
-      request: payload,
-      error: translateError(message),
-      instanceId: null,
+      result: {
+        type: 'error',
+        request: payload,
+        error: translateError(message),
+        instanceId: null,
+      },
+      record: null,
     };
   }
 }

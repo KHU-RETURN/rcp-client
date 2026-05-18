@@ -7,9 +7,6 @@ export interface Flavor {
   max_configurable: number;
 }
 
-export type InstanceSource = 'mock-seed' | 'mock-created' | 'local-live';
-export type InstanceMode = 'demo' | 'live';
-
 export interface Instance {
   id: string;
   name: string;
@@ -21,8 +18,6 @@ export interface Instance {
   imageId: string;
   networkId: string;
   keyName: string;
-  mode: InstanceMode;
-  source: InstanceSource;
   note: string;
 }
 
@@ -46,7 +41,7 @@ export interface KeypairResponse {
   public_key: string;
 }
 
-export type KeypairState = 'idle' | 'saving' | 'saved' | 'demo' | 'error';
+export type KeypairState = 'idle' | 'saving' | 'saved' | 'error';
 
 export interface KeypairStatus {
   state: KeypairState;
