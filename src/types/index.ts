@@ -20,7 +20,6 @@ export type {
   CreateKeypairPayload,
   CreateInstanceResponse,
   ServerInstanceResponse,
-  CreationResult,
 } from './api';
 export { ApiRequestError } from './api';
 export type { FlavorsStatus, RcpConfig } from './config';

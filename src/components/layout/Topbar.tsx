@@ -15,7 +15,6 @@ export function Topbar({ active }: TopbarProps) {
     active === ROUTE_NAMES.instances ||
     active === ROUTE_NAMES.create ||
     active === ROUTE_NAMES.detail ||
-    active === ROUTE_NAMES.result ||
     active === ROUTE_NAMES.terminal;
 
   function handleLogout() {

@@ -25,7 +25,6 @@ export const useStore = create<AppStore>()(
         session: state.session,
         customMockUsers: state.customMockUsers,
         draft: state.draft,
-        result: state.result,
         instances: state.instances,
         selectedInstanceId: state.selectedInstanceId,
         selectedBucketId: state.selectedBucketId,
@@ -48,7 +47,6 @@ export const useStore = create<AppStore>()(
             imageId: imageTemplate?.id ?? draft.imageId,
             networkId: networkTemplate?.id ?? draft.networkId,
           },
-          result: p.result ?? null,
           instances: p.instances ?? [],
           selectedInstanceId: p.selectedInstanceId ?? null,
           selectedBucketId: p.selectedBucketId ?? current.selectedBucketId,
@@ -67,7 +65,6 @@ function migrateFromLegacyStorage(): void {
 
   const session = localStorage.getItem(STORAGE_KEYS.session);
   const draft = localStorage.getItem(STORAGE_KEYS.draft);
-  const result = localStorage.getItem(STORAGE_KEYS.result);
   const instances = localStorage.getItem(STORAGE_KEYS.instances);
   const selectedInstanceId = localStorage.getItem(STORAGE_KEYS.selectedInstanceId);
   const authUsers = localStorage.getItem(STORAGE_KEYS.authUsers);
@@ -80,7 +77,6 @@ function migrateFromLegacyStorage(): void {
         session: session ? (JSON.parse(session) as unknown) : null,
         customMockUsers: authUsers ? (JSON.parse(authUsers) as unknown) : [],
         draft: draft ? (JSON.parse(draft) as unknown) : {},
-        result: result ? (JSON.parse(result) as unknown) : null,
         instances: instances ? (JSON.parse(instances) as unknown) : [],
         selectedInstanceId: selectedInstanceId ? (JSON.parse(selectedInstanceId) as unknown) : null,
       },

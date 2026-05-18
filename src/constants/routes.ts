@@ -6,7 +6,6 @@ export const ROUTE_NAMES = {
   storage: 'storage',
   create: 'create',
   detail: 'detail',
-  result: 'result',
   terminal: 'terminal',
 } as const;
 

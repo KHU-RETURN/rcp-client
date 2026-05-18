@@ -6,7 +6,6 @@ import type {
   CreationStatus,
   FlavorsStatus,
   InstanceStatusFilter,
-  CreationResult,
 } from '../../types';
 import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
@@ -31,7 +30,6 @@ export interface ComputeSlice {
   instanceStatusFilter: InstanceStatusFilter;
   keypairStatus: KeypairStatus;
   creationStatus: CreationStatus;
-  result: CreationResult | null;
 
   ensureFlavorData: () => Promise<void>;
   ensureInstanceData: () => Promise<void>;
@@ -43,7 +41,6 @@ export interface ComputeSlice {
   setInstanceStatusFilter: (filter: InstanceStatusFilter) => void;
   setKeypairStatus: (status: KeypairStatus) => void;
   setCreationStatus: (status: CreationStatus) => void;
-  setResult: (result: CreationResult | null) => void;
   handleKeypairRegistration: () => Promise<void>;
   handleCreateInstance: () => Promise<string | null>;
   getSelectedFlavor: () => Flavor | null;
@@ -63,7 +60,6 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   instanceStatusFilter: 'all',
   keypairStatus: { state: 'idle', message: '', response: null },
   creationStatus: { state: 'idle', message: '' },
-  result: null,
 
   ensureFlavorData: async () => {
     const { flavorsStatus } = get();
@@ -156,7 +152,6 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   setInstanceStatusFilter: (filter) => set({ instanceStatusFilter: filter }),
   setKeypairStatus: (status) => set({ keypairStatus: status }),
   setCreationStatus: (status) => set({ creationStatus: status }),
-  setResult: (result) => set({ result }),
 
   handleKeypairRegistration: async () => {
     const { draft, setKeypairStatus } = get();
@@ -170,7 +165,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   },
 
   handleCreateInstance: async () => {
-    const { draft, keypairStatus, upsertInstance, setCreationStatus, setResult } = get();
+    const { draft, keypairStatus, upsertInstance, setCreationStatus } = get();
     const imageId = imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
 
     const payload = {
@@ -183,18 +178,16 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     setCreationStatus({ state: 'saving', message: '인스턴스 생성 요청을 보내는 중입니다.' });
 
     const keypairName = keypairStatus.response?.name ?? '';
-    const { result, record } = await createInstance(payload, keypairName, draft.description.trim());
+    const { record, error } = await createInstance(payload, keypairName, draft.description.trim());
 
-    if (result.type === 'success' && record) {
+    if (record) {
       upsertInstance(record);
-      setResult({ ...result, instanceId: record.id });
       setCreationStatus({ state: 'idle', message: '' });
-      return '/compute/create/result';
+      return '/compute';
     }
 
-    setResult(result);
-    setCreationStatus({ state: 'error', message: result.error ?? '생성 요청을 완료하지 못했습니다.' });
-    return '/compute/create/result';
+    setCreationStatus({ state: 'error', message: error ?? '생성 요청을 완료하지 못했습니다.' });
+    return null;
   },
 
   getSelectedFlavor: () => {

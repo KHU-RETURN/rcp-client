@@ -57,14 +57,6 @@ export interface ServerInstanceResponse {
   updated?: string;
 }
 
-export interface CreationResult {
-  type: 'success' | 'error';
-  request: CreateInstancePayload;
-  response?: CreateInstanceResponse;
-  error?: string;
-  instanceId: string | null;
-}
-
 export class ApiRequestError extends Error {
   status: number;
   body: Record<string, unknown> | null;

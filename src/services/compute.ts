@@ -6,7 +6,6 @@ import type {
   CreateInstanceResponse,
   KeypairResponse,
   KeypairStatus,
-  CreationResult,
   Instance,
   ServerInstanceResponse,
 } from '../types';
@@ -84,28 +83,17 @@ export async function createInstance(
   payload: CreateInstancePayload,
   keypairName: string,
   description: string,
-): Promise<{ result: CreationResult; record: Instance | null }> {
+): Promise<{ record: Instance | null; error?: string }> {
   try {
     const response = await apiRequest<CreateInstanceResponse>('/api/v1/compute/instances', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
     const record = buildInventoryRecord(payload, response, keypairName, description);
-    return {
-      result: { type: 'success', request: payload, response, instanceId: record.id },
-      record,
-    };
+    return { record };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      result: {
-        type: 'error',
-        request: payload,
-        error: translateError(message),
-        instanceId: null,
-      },
-      record: null,
-    };
+    return { record: null, error: translateError(message) };
   }
 }
 
