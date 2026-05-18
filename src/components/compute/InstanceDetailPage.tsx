@@ -40,7 +40,7 @@ function getMemoryUsageLabel(instance: Instance): string {
 export function InstanceDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { instances, ensureInstanceById, ensureInstanceData } = useStore();
+  const { instances, ensureInstanceById } = useStore();
   const instance = instances.find((i) => i.id === id) ?? null;
   const [now, setNow] = useState(() => Date.now());
   const [loadState, setLoadState] = useState<LoadState>(instance ? 'ready' : 'loading');
@@ -52,10 +52,6 @@ export function InstanceDetailPage() {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    void ensureInstanceData();
-  }, [ensureInstanceData]);
 
   useEffect(() => {
     if (!id) return;
