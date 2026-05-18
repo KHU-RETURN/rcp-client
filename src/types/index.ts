@@ -14,7 +14,17 @@ export type {
   InstanceStatusFilter,
   StatusTone,
 } from './compute';
-export type { StorageBucket } from './storage';
+export type {
+  StorageContainer,
+  StorageObject,
+  CreateContainerPayload,
+  CreateContainerResponse,
+  UploadObjectResponse,
+  StorageContainersStatus,
+  StorageObjectsStatus,
+  StorageActionState,
+  StorageActionStatus,
+} from './storage';
 export type {
   CreateInstancePayload,
   CreateKeypairPayload,
