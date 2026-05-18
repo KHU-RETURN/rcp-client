@@ -1,4 +1,4 @@
-export type { Session, MockUser, SignupForm, AuthMessage } from './auth';
+export type { Session, AuthMessage } from './auth';
 export type {
   Flavor,
   Instance,

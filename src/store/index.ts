@@ -23,7 +23,6 @@ export const useStore = create<AppStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state): Partial<AppStore> => ({
         session: state.session,
-        customMockUsers: state.customMockUsers,
         draft: state.draft,
         instances: state.instances,
         selectedInstanceId: state.selectedInstanceId,
@@ -37,7 +36,6 @@ export const useStore = create<AppStore>()(
         return {
           ...current,
           session: p.session ?? null,
-          customMockUsers: p.customMockUsers ?? [],
           draft: {
             ...draft,
             imageTemplate: imageTemplate?.key ?? draft.imageTemplate,
@@ -67,7 +65,6 @@ function migrateFromLegacyStorage(): void {
   const draft = localStorage.getItem(STORAGE_KEYS.draft);
   const instances = localStorage.getItem(STORAGE_KEYS.instances);
   const selectedInstanceId = localStorage.getItem(STORAGE_KEYS.selectedInstanceId);
-  const authUsers = localStorage.getItem(STORAGE_KEYS.authUsers);
 
   if (!session && !draft && !instances) return;
 
@@ -75,7 +72,6 @@ function migrateFromLegacyStorage(): void {
     const migrated = {
       state: {
         session: session ? (JSON.parse(session) as unknown) : null,
-        customMockUsers: authUsers ? (JSON.parse(authUsers) as unknown) : [],
         draft: draft ? (JSON.parse(draft) as unknown) : {},
         instances: instances ? (JSON.parse(instances) as unknown) : [],
         selectedInstanceId: selectedInstanceId ? (JSON.parse(selectedInstanceId) as unknown) : null,

@@ -1,34 +1,19 @@
 import type { StateCreator } from 'zustand';
-import type { Session, MockUser, SignupForm, AuthMessage } from '../../types';
+import type { Session, AuthMessage } from '../../types';
 
 export interface AuthSlice {
   session: Session | null;
-  customMockUsers: MockUser[];
-  signupForm: SignupForm;
   authMessage: AuthMessage | null;
   pendingRoutePath: string | null;
 
   login: (user: Session, nextPath?: string) => string;
   logout: () => void;
-  createMockUser: (user: MockUser) => void;
-  updateSignupForm: (updates: Partial<SignupForm>) => void;
-  resetSignupForm: () => void;
   setAuthMessage: (message: AuthMessage | null) => void;
   setPendingRoutePath: (path: string | null) => void;
-  getAllUsers: () => MockUser[];
 }
-
-const defaultSignupForm = (): SignupForm => ({
-  name: '',
-  handle: '',
-  rolePreset: 'student',
-  subtitle: '',
-});
 
 export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set, get) => ({
   session: null,
-  customMockUsers: [],
-  signupForm: defaultSignupForm(),
   authMessage: null,
   pendingRoutePath: null,
 
@@ -46,36 +31,11 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set,
     set({ session: null, pendingRoutePath: null, authMessage: null });
   },
 
-  createMockUser: (user) => {
-    set((state) => ({
-      customMockUsers: [...state.customMockUsers, user],
-      signupForm: defaultSignupForm(),
-      session: user,
-      authMessage: null,
-      pendingRoutePath: null,
-    }));
-  },
-
-  updateSignupForm: (updates) => {
-    set((state) => ({
-      signupForm: { ...state.signupForm, ...updates },
-      authMessage: null,
-    }));
-  },
-
-  resetSignupForm: () => {
-    set({ signupForm: defaultSignupForm() });
-  },
-
   setAuthMessage: (message) => {
     set({ authMessage: message });
   },
 
   setPendingRoutePath: (path) => {
     set({ pendingRoutePath: path });
-  },
-
-  getAllUsers: () => {
-    return get().customMockUsers;
   },
 });

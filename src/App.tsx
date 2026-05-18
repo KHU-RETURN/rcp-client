@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthGuard } from './components/layout/AuthGuard';
 import { LoginPage } from './components/auth/LoginPage';
-import { SignupPage } from './components/auth/SignupPage';
 import { ChangesPage } from './components/auth/ChangesPage';
 import { AuthCallback } from './components/auth/AuthCallback'; 
 import { LandingPage } from './components/landing/LandingPage';
@@ -16,7 +15,6 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
         <Route path="/changes" element={<ChangesPage />} />
 
         <Route path="/auth/callback" element={<AuthCallback />} />
