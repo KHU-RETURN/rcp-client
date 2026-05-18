@@ -1,9 +1,7 @@
-export type { Session, MockUser, SignupForm, AuthMessage } from './auth';
+export type { Session, AuthMessage } from './auth';
 export type {
   Flavor,
   Instance,
-  InstanceSource,
-  InstanceMode,
   Draft,
   KeypairResponse,
   KeypairStatus,
@@ -22,10 +20,9 @@ export type {
   CreateKeypairPayload,
   CreateInstanceResponse,
   ServerInstanceResponse,
-  CreationResult,
 } from './api';
 export { ApiRequestError } from './api';
-export type { ConnectionMode, DemoMode, FlavorsStatus, RcpConfig } from './config';
+export type { FlavorsStatus, RcpConfig } from './config';
 export type { TerminalRuntime, TerminalModules } from './terminal';
 export type { ReleaseNote } from './release';
 export type { ImageTemplate, NetworkTemplate } from './templates';

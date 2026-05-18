@@ -1,4 +1,4 @@
-export { formatRam, humanizeDate } from './format';
+export { formatRam, humanizeDate, formatCpuUsage } from './format';
 export { validateName, validatePublicKey } from './validation';
 export {
   normalizeHandle,
@@ -7,7 +7,6 @@ export {
   getRecommendation,
   sortFlavors,
   translateError,
-  getInstanceSourceLabel,
   getDisplayInstanceId,
   getTerminalAvailability,
   getVisibleInstances,

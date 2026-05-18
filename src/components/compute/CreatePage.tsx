@@ -51,19 +51,16 @@ export function CreatePage() {
     flavors,
     keypairStatus,
     creationStatus,
-    connectionMode,
     ensureFlavorData,
     handleKeypairRegistration,
     handleCreateInstance,
     getSelectedFlavor,
-    getConnectionStatus,
   } = useStore();
 
   useEffect(() => {
     void ensureFlavorData();
   }, [ensureFlavorData]);
 
-  const connectionStatus = getConnectionStatus();
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
   const resolvedImageId = imageTemplate?.id ?? draft.imageId.trim();
@@ -94,7 +91,6 @@ export function CreatePage() {
       title: 'Access',
       valid:
         keypairStatus.state === 'saved' ||
-        keypairStatus.state === 'demo' ||
         (!keyNamePresent && !publicKeyPresent),
       error: Boolean((keyNamePresent && !keyNameValid) || (publicKeyPresent && !publicKeyValid)),
     },
@@ -146,7 +142,7 @@ export function CreatePage() {
         <SectionRail sections={sections} />
 
         <section className="workspace-main">
-          <section className={`notice-strip create-strip ${connectionStatus.tone}`}>
+          <section className="notice-strip create-strip">
             <div>
               <strong>Compute / Create</strong>
               <p>
@@ -156,7 +152,6 @@ export function CreatePage() {
               </p>
             </div>
             <ul>
-              <li>{connectionStatus.label}</li>
               <li>{draft.imageId ? 'Image ready' : 'Image required'}</li>
               <li>{keypairStatus.response?.name ? 'SSH ready' : 'SSH optional'}</li>
             </ul>
@@ -384,7 +379,6 @@ export function CreatePage() {
             <h2 data-ui="summary-name">{draft.name || 'Untitled VM'}</h2>
           </div>
           <dl className="summary-grid">
-            <div><dt>Mode</dt><dd>{connectionMode === 'live' ? 'Live API' : 'Demo fallback'}</dd></div>
             <div><dt>Flavor</dt><dd>{selectedFlavor?.name ?? 'Not selected'}</dd></div>
             <div><dt>Quota impact</dt><dd>{selectedFlavor ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}` : '-'}</dd></div>
             <div><dt>Max creatable</dt><dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd></div>

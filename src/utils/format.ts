@@ -4,6 +4,15 @@ export function formatRam(value: number | null | undefined): string {
   return Number.isInteger(gb) ? `${gb} GB` : `${gb.toFixed(1)} GB`;
 }
 
+export function formatCpuUsage(nanoseconds: number | null | undefined): string {
+  if (!nanoseconds) return '—';
+  const seconds = nanoseconds / 1e9;
+  if (seconds < 60) return `${seconds.toFixed(2)}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rem = Math.round(seconds % 60);
+  return `${minutes}m ${rem}s`;
+}
+
 export function humanizeDate(value: string | null | undefined): string {
   if (!value) return '-';
   const date = new Date(value);

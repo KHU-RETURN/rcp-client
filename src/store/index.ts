@@ -1,20 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createAuthSlice, type AuthSlice } from './slices/auth';
-import { createConnectionSlice, type ConnectionSlice } from './slices/connection';
 import { createDraftSlice, defaultDraft, type DraftSlice } from './slices/draft';
 import { createComputeSlice, type ComputeSlice } from './slices/compute';
 import { createStorageSlice, type StorageSlice } from './slices/storage';
 import { createTerminalSlice, type TerminalSlice } from './slices/terminal';
 import { STORAGE_KEYS, imageTemplates, networkTemplates } from '../constants';
 
-type AppStore = AuthSlice & ConnectionSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
+type AppStore = AuthSlice & DraftSlice & ComputeSlice & StorageSlice & TerminalSlice;
 
 export const useStore = create<AppStore>()(
   persist(
     (...args) => ({
       ...createAuthSlice(...args),
-      ...createConnectionSlice(...args),
       ...createDraftSlice(...args),
       ...createComputeSlice(...args),
       ...createStorageSlice(...args),
@@ -25,9 +23,7 @@ export const useStore = create<AppStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state): Partial<AppStore> => ({
         session: state.session,
-        customMockUsers: state.customMockUsers,
         draft: state.draft,
-        result: state.result,
         instances: state.instances,
         selectedInstanceId: state.selectedInstanceId,
         selectedBucketId: state.selectedBucketId,
@@ -40,7 +36,6 @@ export const useStore = create<AppStore>()(
         return {
           ...current,
           session: p.session ?? null,
-          customMockUsers: p.customMockUsers ?? [],
           draft: {
             ...draft,
             imageTemplate: imageTemplate?.key ?? draft.imageTemplate,
@@ -50,7 +45,6 @@ export const useStore = create<AppStore>()(
             imageId: imageTemplate?.id ?? draft.imageId,
             networkId: networkTemplate?.id ?? draft.networkId,
           },
-          result: p.result ?? null,
           instances: p.instances ?? [],
           selectedInstanceId: p.selectedInstanceId ?? null,
           selectedBucketId: p.selectedBucketId ?? current.selectedBucketId,
@@ -69,10 +63,8 @@ function migrateFromLegacyStorage(): void {
 
   const session = localStorage.getItem(STORAGE_KEYS.session);
   const draft = localStorage.getItem(STORAGE_KEYS.draft);
-  const result = localStorage.getItem(STORAGE_KEYS.result);
   const instances = localStorage.getItem(STORAGE_KEYS.instances);
   const selectedInstanceId = localStorage.getItem(STORAGE_KEYS.selectedInstanceId);
-  const authUsers = localStorage.getItem(STORAGE_KEYS.authUsers);
 
   if (!session && !draft && !instances) return;
 
@@ -80,9 +72,7 @@ function migrateFromLegacyStorage(): void {
     const migrated = {
       state: {
         session: session ? (JSON.parse(session) as unknown) : null,
-        customMockUsers: authUsers ? (JSON.parse(authUsers) as unknown) : [],
         draft: draft ? (JSON.parse(draft) as unknown) : {},
-        result: result ? (JSON.parse(result) as unknown) : null,
         instances: instances ? (JSON.parse(instances) as unknown) : [],
         selectedInstanceId: selectedInstanceId ? (JSON.parse(selectedInstanceId) as unknown) : null,
       },

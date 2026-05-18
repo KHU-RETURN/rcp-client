@@ -1,5 +1,3 @@
-import type { InstanceMode } from './compute';
-
 export interface CreateInstancePayload {
   name: string;
   image_id: string;
@@ -57,15 +55,6 @@ export interface ServerInstanceResponse {
   usage?: { cpu_usage: number; memory_usage: number };
   created?: string;
   updated?: string;
-}
-
-export interface CreationResult {
-  type: 'success' | 'error';
-  mode: InstanceMode;
-  request: CreateInstancePayload;
-  response?: CreateInstanceResponse;
-  error?: string;
-  instanceId: string | null;
 }
 
 export class ApiRequestError extends Error {
