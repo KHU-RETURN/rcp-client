@@ -21,8 +21,6 @@ export function InstancesPage() {
     ensureSelectedInstance,
     ensureInstanceData,
     deleteInstance,
-    flavors,
-    ensureFlavorData,
   } = useStore();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -56,10 +54,6 @@ export function InstancesPage() {
     const timer = window.setInterval(() => void ensureInstanceData(), 5000);
     return () => window.clearInterval(timer);
   }, [instances, ensureInstanceData]);
-
-  useEffect(() => {
-    void ensureFlavorData();
-  }, [ensureFlavorData]);
 
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
 
