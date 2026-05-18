@@ -15,9 +15,15 @@ export interface Instance {
   updated: string;
   flavorId: string;
   flavorName: string | undefined;
+  vcpus: number | undefined;
+  ram: number | undefined;
+  disk: number | undefined;
   imageId: string;
   networkId: string;
   keyName: string;
+  fixedIp: string;
+  cpuUsage: number | undefined;
+  memoryUsage: number | undefined;
   note: string;
 }
 

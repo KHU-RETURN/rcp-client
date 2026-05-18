@@ -29,9 +29,15 @@ function buildInventoryRecord(
     updated: response.updated ?? created,
     flavorId,
     flavorName: undefined,
+    vcpus: undefined,
+    ram: undefined,
+    disk: undefined,
     imageId,
     networkId: payload.network_id ?? '',
     keyName: response.key_name ?? keypairName,
+    fixedIp: '',
+    cpuUsage: undefined,
+    memoryUsage: undefined,
     note: description,
   };
 }
@@ -49,9 +55,15 @@ function buildInventoryRecordFromServer(response: ServerInstanceResponse): Insta
     updated: response.updated ?? created,
     flavorId,
     flavorName,
+    vcpus: response.flavor?.vcpus,
+    ram: response.flavor?.ram,
+    disk: response.flavor?.disk,
     imageId: response.image_id ?? response.image ?? '',
     networkId: '',
     keyName: response.key_name ?? '',
+    fixedIp: response.fixed_ip ?? '',
+    cpuUsage: response.usage?.cpu_usage,
+    memoryUsage: response.usage?.memory_usage,
     note: '',
   };
 }

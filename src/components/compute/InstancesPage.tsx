@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
 import { InlineBadge } from '../shared/InlineBadge';
-import { ROUTE_NAMES, imageTemplates, networkTemplates } from '../../constants';
+import { ROUTE_NAMES, imageTemplates } from '../../constants';
 import { getDisplayInstanceId, getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
 import { humanizeDate } from '../../utils';
 
@@ -166,7 +166,6 @@ export function InstancesPage() {
                 <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
                 <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
                 <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
-                <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || '—')}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
                 <div>
                   <dt>Created</dt>
