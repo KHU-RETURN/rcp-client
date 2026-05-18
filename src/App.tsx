@@ -8,6 +8,7 @@ import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';
 import { CreatePage } from './components/compute/CreatePage';
 import { StoragePage } from './components/storage/StoragePage';
+import { StorageContainerPage } from './components/storage/StorageContainerPage';
 import { TerminalPage } from './components/terminal/TerminalPage';
 
 export function App() {
@@ -28,6 +29,7 @@ export function App() {
           <Route path="/compute/instances/:id/terminal" element={<TerminalPage />} />
           <Route path="/instances/:id/terminal" element={<TerminalPage />} />
           <Route path="/storage" element={<StoragePage />} />
+          <Route path="/storage/:name" element={<StorageContainerPage />} />
         </Route>
 
         <Route path="/" element={<LandingPage />} />

@@ -2082,6 +2082,25 @@ h3 {
   border-top: 1px solid rgba(17, 17, 17, 0.06);
 }
 
+.inline-create-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 12px 0 16px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+  margin-bottom: 12px;
+}
+
+.inline-create-form .field {
+  flex: 1 1 240px;
+}
+
+.inline-create-form .form-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .inventory-search {
   min-width: 320px;
 }
