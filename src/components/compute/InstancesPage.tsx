@@ -162,16 +162,19 @@ export function InstancesPage() {
           </div>
           {selectedInstance ? (
             <>
-              <dl className="summary-grid large">
-                <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
+              <dl className="summary-grid summary-grid-stack">
+                <div>
+                  <dt>ID</dt>
+                  <dd className="summary-id">{getDisplayInstanceId(selectedInstance.id)}</dd>
+                </div>
                 <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
                 <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
                 <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
                 <div>
                   <dt>Created</dt>
                   <dd>
-                    {selectedInstance.created && !selectedInstance.created.startsWith('0001') 
-                      ? humanizeDate(selectedInstance.created) 
+                    {selectedInstance.created && !selectedInstance.created.startsWith('0001')
+                      ? humanizeDate(selectedInstance.created)
                       : '—'}
                   </dd>
                 </div>
