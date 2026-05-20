@@ -49,19 +49,19 @@ src/
   main.tsx               # React mount + global CSS
   config.ts              # runtime config (reads VITE_API_BASE_URL)
   components/
-    auth/                # LoginPage, SignupPage, ChangesPage, AuthCallback
+    auth/                # LoginPage, AuthCallback, ChangesPage
     layout/              # AuthLayout, AuthGuard, Topbar
     landing/             # LandingPage (marketing, scroll-driven)
-    compute/             # CreatePage, InstancesPage, InstanceDetailPage, FlavorTable, InstanceTable, ResultPage, SectionRail
-    storage/             # StoragePage
+    compute/             # CreatePage, InstancesPage, InstanceDetailPage, FlavorTable, InstanceTable, SectionRail
+    storage/             # StoragePage, StorageContainerPage
     terminal/            # TerminalPage, TerminalHost
-    shared/              # EmptyBlock, InlineBadge, StatusPill
-  constants/             # brand assets, routes, templates, terminal theme
+    shared/              # EmptyBlock, InlineBadge
+  constants/             # brand, routes, templates, terminal-theme, storage-keys
   hooks/                 # useFullscreen, useTerminal
-  services/              # api, auth, compute, demo (HTTP layer)
+  services/              # api, auth, compute, storage (HTTP layer)
   store/
     index.ts             # zustand store assembly
-    slices/              # auth, compute, connection, draft, storage, terminal
+    slices/              # auth, compute, draft, storage, terminal
   types/                 # api, auth, compute, config, release, storage, templates, terminal
   utils/                 # format, helpers, validation
   styles/main.css        # the single CSS file — all tokens, all components
