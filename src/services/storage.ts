@@ -70,8 +70,7 @@ export async function downloadObject(name: string, key: string): Promise<Blob> {
 }
 
 export async function deleteObject(name: string, key: string): Promise<void> {
-  await apiRequest<void>(
-    `${BASE}/${encodeContainer(name)}/objects/${encodeObjectKey(key)}`,
-    { method: 'DELETE' },
-  );
+  await apiRequest<void>(`${BASE}/${encodeContainer(name)}/objects/${encodeObjectKey(key)}`, {
+    method: 'DELETE',
+  });
 }

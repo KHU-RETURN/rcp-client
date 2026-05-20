@@ -31,8 +31,11 @@ export const useStore = create<AppStore>()(
       merge: (persisted, current) => {
         const p = persisted as Partial<AppStore>;
         const draft = { ...defaultDraft(), ...(p.draft ?? {}) };
-        const imageTemplate = imageTemplates.find((item) => item.key === draft.imageTemplate) ?? imageTemplates[0];
-        const networkTemplate = networkTemplates.find((item) => item.key === draft.networkTemplate) ?? networkTemplates[0];
+        const imageTemplate =
+          imageTemplates.find((item) => item.key === draft.imageTemplate) ?? imageTemplates[0];
+        const networkTemplate =
+          networkTemplates.find((item) => item.key === draft.networkTemplate) ??
+          networkTemplates[0];
         return {
           ...current,
           session: p.session ?? null,

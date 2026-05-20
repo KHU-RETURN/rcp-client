@@ -15,7 +15,13 @@ import { imageTemplates } from '../../constants';
 
 export function InstanceTable() {
   const navigate = useNavigate();
-  const { instances, selectedInstanceId, instanceQuery, instanceStatusFilter, setSelectedInstanceId } = useStore();
+  const {
+    instances,
+    selectedInstanceId,
+    instanceQuery,
+    instanceStatusFilter,
+    setSelectedInstanceId,
+  } = useStore();
   const [now, setNow] = useState(() => Date.now());
 
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
@@ -60,7 +66,10 @@ export function InstanceTable() {
         <td>
           <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
         </td>
-        <td>{imageTemplates.find((t) => t.id === instance.imageId)?.label ?? instance.imageId.slice(0, 8)}</td>
+        <td>
+          {imageTemplates.find((t) => t.id === instance.imageId)?.label ??
+            instance.imageId.slice(0, 8)}
+        </td>
         <td>{instance.created?.startsWith('0001') ? '—' : humanizeDate(instance.created)}</td>
         <td>
           <button
@@ -97,9 +106,7 @@ export function InstanceTable() {
           <th>Terminal</th>
         </tr>
       </thead>
-      <tbody>
-        {visible.map(renderRow)}
-      </tbody>
+      <tbody>{visible.map(renderRow)}</tbody>
     </table>
   );
 }

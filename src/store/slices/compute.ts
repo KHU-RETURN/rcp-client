@@ -49,7 +49,10 @@ export interface ComputeSlice {
 
 type ComputeSliceDeps = ComputeSlice & DraftSlice & AuthSlice;
 
-export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (set, get) => ({
+export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (
+  set,
+  get,
+) => ({
   flavors: [],
   flavorsStatus: 'idle',
   flavorsError: '',
@@ -166,7 +169,8 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
 
   handleCreateInstance: async () => {
     const { draft, keypairStatus, upsertInstance, setCreationStatus } = get();
-    const imageId = imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
+    const imageId =
+      imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
 
     const payload = {
       name: draft.name.trim(),
@@ -199,9 +203,10 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}`, { method: 'DELETE' });
     set((state) => ({
       instances: state.instances.filter((i) => i.id !== id),
-      selectedInstanceId: state.selectedInstanceId === id
-        ? (state.instances.find((i) => i.id !== id)?.id ?? null)
-        : state.selectedInstanceId,
+      selectedInstanceId:
+        state.selectedInstanceId === id
+          ? (state.instances.find((i) => i.id !== id)?.id ?? null)
+          : state.selectedInstanceId,
     }));
   },
 });

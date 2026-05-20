@@ -89,9 +89,7 @@ export function CreatePage() {
     },
     access: {
       title: 'Access',
-      valid:
-        keypairStatus.state === 'saved' ||
-        (!keyNamePresent && !publicKeyPresent),
+      valid: keypairStatus.state === 'saved' || (!keyNamePresent && !publicKeyPresent),
       error: Boolean((keyNamePresent && !keyNameValid) || (publicKeyPresent && !publicKeyValid)),
     },
     review: {
@@ -224,7 +222,12 @@ export function CreatePage() {
               <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
             </div>
 
-            <div className="image-grid" data-ui="image-template" role="radiogroup" aria-label="Image template">
+            <div
+              className="image-grid"
+              data-ui="image-template"
+              role="radiogroup"
+              aria-label="Image template"
+            >
               {imageTemplates.map((item) => {
                 const selected = draft.imageTemplate === item.key;
                 return (
@@ -237,14 +240,19 @@ export function CreatePage() {
                     onClick={() => handleSelectImage(item.key)}
                     data-key={item.key}
                   >
-                    <span className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`} aria-hidden>
+                    <span
+                      className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`}
+                      aria-hidden
+                    >
                       <ImageMarkIcon variant={imageMarkVariant(item.key)} />
                     </span>
                     <span className="image-card-body">
                       <strong>{item.label}</strong>
                       <small className="muted">{item.description}</small>
                     </span>
-                    <span className="image-card-check" aria-hidden>{selected ? '✓' : ''}</span>
+                    <span className="image-card-check" aria-hidden>
+                      {selected ? '✓' : ''}
+                    </span>
                   </button>
                 );
               })}
@@ -325,8 +333,14 @@ export function CreatePage() {
             <div className="review-layout">
               <div className="review-copy">
                 <ul className="review-rows">
-                  <li><strong>Name</strong><span>{payload.name || '-'}</span></li>
-                  <li><strong>Flavor</strong><span>{selectedFlavor?.name ?? '-'}</span></li>
+                  <li>
+                    <strong>Name</strong>
+                    <span>{payload.name || '-'}</span>
+                  </li>
+                  <li>
+                    <strong>Flavor</strong>
+                    <span>{selectedFlavor?.name ?? '-'}</span>
+                  </li>
                   <li>
                     <strong>Resources</strong>
                     <span>
@@ -335,8 +349,14 @@ export function CreatePage() {
                         : '-'}
                     </span>
                   </li>
-                  <li><strong>Image</strong><span>{selectedImageLabel}</span></li>
-                  <li><strong>SSH key</strong><span>{keypairStatus.response?.name ?? 'Optional'}</span></li>
+                  <li>
+                    <strong>Image</strong>
+                    <span>{selectedImageLabel}</span>
+                  </li>
+                  <li>
+                    <strong>SSH key</strong>
+                    <span>{keypairStatus.response?.name ?? 'Optional'}</span>
+                  </li>
                 </ul>
                 {creationStatus.message && (
                   <p className={`inline-status ${creationStatus.state}`} aria-live="polite">
@@ -354,19 +374,25 @@ export function CreatePage() {
                   </button>
                   <button
                     className="ghost-button"
-                    onClick={() => document.getElementById('basic')?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() =>
+                      document.getElementById('basic')?.scrollIntoView({ behavior: 'smooth' })
+                    }
                   >
                     Back to edit
                   </button>
                 </div>
               </div>
               <pre className="code-block" data-ui="payload-preview">
-                {JSON.stringify({
-                  name: payload.name,
-                  flavor: selectedFlavor?.name ?? '',
-                  image: selectedImageLabel,
-                  ssh_key: keypairStatus.response?.name ?? 'Optional',
-                }, null, 2)}
+                {JSON.stringify(
+                  {
+                    name: payload.name,
+                    flavor: selectedFlavor?.name ?? '',
+                    image: selectedImageLabel,
+                    ssh_key: keypairStatus.response?.name ?? 'Optional',
+                  },
+                  null,
+                  2,
+                )}
               </pre>
             </div>
           </section>
@@ -379,17 +405,39 @@ export function CreatePage() {
             <h2 data-ui="summary-name">{draft.name || 'Untitled VM'}</h2>
           </div>
           <dl className="summary-grid">
-            <div><dt>Flavor</dt><dd>{selectedFlavor?.name ?? 'Not selected'}</dd></div>
-            <div><dt>Quota impact</dt><dd>{selectedFlavor ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}` : '-'}</dd></div>
-            <div><dt>Max creatable</dt><dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd></div>
-            <div><dt>Image</dt><dd>{selectedImageLabel}</dd></div>
-            <div><dt>SSH key</dt><dd>{keypairStatus.response?.name ?? 'Not registered'}</dd></div>
+            <div>
+              <dt>Flavor</dt>
+              <dd>{selectedFlavor?.name ?? 'Not selected'}</dd>
+            </div>
+            <div>
+              <dt>Quota impact</dt>
+              <dd>
+                {selectedFlavor
+                  ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}`
+                  : '-'}
+              </dd>
+            </div>
+            <div>
+              <dt>Max creatable</dt>
+              <dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd>
+            </div>
+            <div>
+              <dt>Image</dt>
+              <dd>{selectedImageLabel}</dd>
+            </div>
+            <div>
+              <dt>SSH key</dt>
+              <dd>{keypairStatus.response?.name ?? 'Not registered'}</dd>
+            </div>
           </dl>
           <div className="summary-checks" data-ui="summary-checks">
             {SECTION_ORDER.map((key) => {
               const section = sections[key];
               return (
-                <div key={key} className={`check-row ${section.error ? 'error' : section.valid ? 'valid' : 'pending'}`}>
+                <div
+                  key={key}
+                  className={`check-row ${section.error ? 'error' : section.valid ? 'valid' : 'pending'}`}
+                >
                   <span>{section.title}</span>
                   <strong>{section.error ? 'Fix' : section.valid ? 'Ready' : 'Pending'}</strong>
                 </div>

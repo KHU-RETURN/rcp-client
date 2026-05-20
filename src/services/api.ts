@@ -18,10 +18,7 @@ export function getPersistedAccessToken(): string | null {
         } | null;
       };
     };
-    return (
-      parsed.state?.session?.accessToken ??
-      null
-    );
+    return parsed.state?.session?.accessToken ?? null;
   } catch {
     return null;
   }

@@ -132,12 +132,7 @@ export function StorageContainerPage() {
                 </p>
               </div>
               <div className="action-row compact">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  hidden
-                  onChange={handleFileChange}
-                />
+                <input ref={fileInputRef} type="file" hidden onChange={handleFileChange} />
                 <button
                   className="primary-button"
                   disabled={notFound || objectUpload.state === 'saving'}
@@ -176,11 +171,15 @@ export function StorageContainerPage() {
                 </div>
 
                 {objectsError && (
-                  <p className="form-error" style={{ marginBottom: '12px' }}>{objectsError}</p>
+                  <p className="form-error" style={{ marginBottom: '12px' }}>
+                    {objectsError}
+                  </p>
                 )}
 
                 {objectUpload.state === 'error' && (
-                  <p className="form-error" style={{ marginBottom: '12px' }}>{objectUpload.message}</p>
+                  <p className="form-error" style={{ marginBottom: '12px' }}>
+                    {objectUpload.message}
+                  </p>
                 )}
 
                 <div className="table-frame">
@@ -197,14 +196,22 @@ export function StorageContainerPage() {
                     <tbody>
                       {isLoading && (
                         <tr>
-                          <td colSpan={5} className="muted" style={{ textAlign: 'center', padding: '24px' }}>
+                          <td
+                            colSpan={5}
+                            className="muted"
+                            style={{ textAlign: 'center', padding: '24px' }}
+                          >
                             불러오는 중...
                           </td>
                         </tr>
                       )}
                       {!isLoading && visible.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="muted" style={{ textAlign: 'center', padding: '24px' }}>
+                          <td
+                            colSpan={5}
+                            className="muted"
+                            style={{ textAlign: 'center', padding: '24px' }}
+                          >
                             {objects.length === 0
                               ? '아직 객체가 없습니다. Upload file 로 첫 파일을 올려 보세요.'
                               : '검색 결과가 없습니다.'}
@@ -214,12 +221,17 @@ export function StorageContainerPage() {
                       {!isLoading &&
                         visible.map((obj) => (
                           <tr key={obj.name}>
-                            <td><strong>{obj.name}</strong></td>
+                            <td>
+                              <strong>{obj.name}</strong>
+                            </td>
                             <td className="muted">{obj.content_type || '—'}</td>
                             <td>{formatBytes(obj.size_bytes)}</td>
                             <td>{humanizeDate(obj.last_modified)}</td>
                             <td style={{ textAlign: 'right' }}>
-                              <div className="action-row compact" style={{ justifyContent: 'flex-end' }}>
+                              <div
+                                className="action-row compact"
+                                style={{ justifyContent: 'flex-end' }}
+                              >
                                 <button
                                   className="ghost-button"
                                   disabled={downloadingKey === obj.name}

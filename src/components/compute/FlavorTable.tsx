@@ -14,7 +14,9 @@ export function FlavorTable({ selectedFlavorId, onSelectFlavor }: FlavorTablePro
   if (flavorsStatus === 'loading') {
     return (
       <div className="skeleton-band" aria-hidden="true">
-        <div /><div /><div />
+        <div />
+        <div />
+        <div />
       </div>
     );
   }

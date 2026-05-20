@@ -31,7 +31,15 @@ export function AuthCallback() {
   }, [login, navigate, session]);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        color: 'white',
+      }}
+    >
       <p>인증 정보를 처리 중입니다...</p>
     </div>
   );

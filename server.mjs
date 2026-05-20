@@ -35,7 +35,9 @@ const server = http.createServer(async (req, res) => {
     await serveStatic(res, requestUrl.pathname);
   } catch (error) {
     res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'internal server error' }));
+    res.end(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'internal server error' }),
+    );
   }
 });
 
@@ -72,7 +74,11 @@ async function proxyApi(req, res, requestUrl) {
     res.end(Buffer.from(arrayBuffer));
   } catch (error) {
     res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ error: `proxy failed: ${error instanceof Error ? error.message : 'unknown error'}` }));
+    res.end(
+      JSON.stringify({
+        error: `proxy failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+      }),
+    );
   }
 }
 

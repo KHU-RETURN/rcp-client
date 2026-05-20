@@ -108,9 +108,7 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
       const status = error instanceof ApiRequestError ? error.status : undefined;
       const raw = error instanceof Error ? error.message : 'Unknown error';
       const message =
-        status === 409
-          ? '같은 이름의 컨테이너가 이미 있습니다.'
-          : translateError(raw);
+        status === 409 ? '같은 이름의 컨테이너가 이미 있습니다.' : translateError(raw);
       set({ containerCreation: { state: 'error', message } });
       return { ok: false, error: message };
     }

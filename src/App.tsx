@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthGuard } from './components/layout/AuthGuard';
 import { LoginPage } from './components/auth/LoginPage';
 import { ChangesPage } from './components/auth/ChangesPage';
-import { AuthCallback } from './components/auth/AuthCallback'; 
+import { AuthCallback } from './components/auth/AuthCallback';
 import { LandingPage } from './components/landing/LandingPage';
 import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';

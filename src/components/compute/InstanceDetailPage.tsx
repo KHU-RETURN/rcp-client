@@ -66,7 +66,9 @@ export function InstanceDetailPage() {
       else setLoadState('ready');
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id, ensureInstanceById]);
 
   useEffect(() => {
@@ -110,7 +112,9 @@ export function InstanceDetailPage() {
               <div>
                 <p className="eyebrow">Compute</p>
                 <h2>Instance details</h2>
-                <p className="muted section-support">선택한 인스턴스의 속성과 접근 정보를 확인합니다.</p>
+                <p className="muted section-support">
+                  선택한 인스턴스의 속성과 접근 정보를 확인합니다.
+                </p>
               </div>
               <div className="action-row compact">
                 <button
@@ -148,18 +152,15 @@ export function InstanceDetailPage() {
                     </div>
                   </div>
                   <div className="instance-head-actions">
-                    <button
-                      type="button"
-                      className="ghost-button"
-                      disabled
-                      title="Coming soon"
-                    >
+                    <button type="button" className="ghost-button" disabled title="Coming soon">
                       Edit
                     </button>
                     <button
                       className="primary-button instance-cta"
                       disabled={!terminalAvailability.canOpen}
-                      onClick={() => navigate(`/compute/instances/${encodeURIComponent(instance.id)}/terminal`)}
+                      onClick={() =>
+                        navigate(`/compute/instances/${encodeURIComponent(instance.id)}/terminal`)
+                      }
                     >
                       {terminalAvailability.canOpen
                         ? 'Open terminal'
@@ -245,7 +246,6 @@ export function InstanceDetailPage() {
                 description="잠시 후 Refresh 버튼으로 다시 시도해 주세요."
               />
             )}
-
           </section>
         </section>
 
@@ -260,7 +260,9 @@ export function InstanceDetailPage() {
                     <button
                       type="button"
                       className="instance-sibling-card"
-                      onClick={() => navigate(`/compute/instances/${encodeURIComponent(sibling.id)}`)}
+                      onClick={() =>
+                        navigate(`/compute/instances/${encodeURIComponent(sibling.id)}`)
+                      }
                     >
                       <InlineBadge tone={statusTone(sibling.status)} label={sibling.status} />
                       <span className="instance-sibling-name">{sibling.name}</span>

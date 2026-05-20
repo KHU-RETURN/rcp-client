@@ -32,10 +32,7 @@ export function TerminalPage() {
       <Topbar active={ROUTE_NAMES.terminal} />
       <main className={`workspace workspace-terminal ${isFullscreen ? 'terminal-fullscreen' : ''}`}>
         <section className="workspace-main terminal-main">
-          <div
-            ref={shellRef}
-            className={`terminal-shell ${isFullscreen ? 'is-fullscreen' : ''}`}
-          >
+          <div ref={shellRef} className={`terminal-shell ${isFullscreen ? 'is-fullscreen' : ''}`}>
             <div className="terminal-shell-head">
               <div className="terminal-heading">
                 <div className="terminal-breadcrumb">
@@ -98,16 +95,28 @@ export function TerminalPage() {
           {instance ? (
             <>
               <dl className="summary-grid large">
-                <div><dt>ID</dt><dd>{getDisplayInstanceId(instance.id)}</dd></div>
+                <div>
+                  <dt>ID</dt>
+                  <dd>{getDisplayInstanceId(instance.id)}</dd>
+                </div>
                 <div>
                   <dt>Status</dt>
                   <dd>
                     <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
                   </dd>
                 </div>
-                <div><dt>Flavor</dt><dd>{instance.flavorId}</dd></div>
-                <div><dt>Network</dt><dd>{instance.networkId || 'Not set'}</dd></div>
-                <div><dt>SSH key</dt><dd>{instance.keyName || 'Not set'}</dd></div>
+                <div>
+                  <dt>Flavor</dt>
+                  <dd>{instance.flavorId}</dd>
+                </div>
+                <div>
+                  <dt>Network</dt>
+                  <dd>{instance.networkId || 'Not set'}</dd>
+                </div>
+                <div>
+                  <dt>SSH key</dt>
+                  <dd>{instance.keyName || 'Not set'}</dd>
+                </div>
               </dl>
               <div className="summary-note">
                 <strong>Access</strong>
@@ -116,10 +125,18 @@ export function TerminalPage() {
               <div className="command-list">
                 <strong>Commands</strong>
                 <ul>
-                  <li><code>help</code></li>
-                  <li><code>cat instance.txt</code></li>
-                  <li><code>ip addr</code></li>
-                  <li><code>uptime</code></li>
+                  <li>
+                    <code>help</code>
+                  </li>
+                  <li>
+                    <code>cat instance.txt</code>
+                  </li>
+                  <li>
+                    <code>ip addr</code>
+                  </li>
+                  <li>
+                    <code>uptime</code>
+                  </li>
                 </ul>
               </div>
             </>
