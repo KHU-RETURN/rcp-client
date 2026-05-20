@@ -6,7 +6,7 @@ export function buildApiUrl(path: string): string {
   return `${rcpConfig.apiBaseUrl}${path}`;
 }
 
-function getPersistedAccessToken(): string | null {
+export function getPersistedAccessToken(): string | null {
   const raw = localStorage.getItem(STORAGE_KEYS.store);
   if (!raw) return null;
 
@@ -27,24 +27,32 @@ function getPersistedAccessToken(): string | null {
   }
 }
 
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = buildApiUrl(path);
-  
+export function buildAuthHeaders(init?: HeadersInit): Headers {
+  const headers = new Headers(init);
   const token = getPersistedAccessToken();
-  const headers = new Headers(options.headers);
-
-  if (!headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
+  }
+  return headers;
+}
+
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = buildApiUrl(path);
+  const headers = buildAuthHeaders(options.headers);
+
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (!isFormData && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
 
   let body: Record<string, unknown> | null = null;
   const contentType = response.headers.get('content-type') ?? '';
@@ -63,4 +71,29 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   }
 
   return body as T;
+}
+
+export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const url = buildApiUrl(path);
+  const headers = buildAuthHeaders(options.headers);
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    let message = `Request failed with ${response.status}`;
+    const contentType = response.headers.get('content-type') ?? '';
+    if (contentType.includes('application/json')) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (body?.error) message = body.error;
+    } else {
+      const text = await response.text().catch(() => '');
+      if (text) message = text;
+    }
+    throw new ApiRequestError(message, response.status, null);
+  }
+
+  return response;
 }

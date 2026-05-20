@@ -26,7 +26,7 @@ export const useStore = create<AppStore>()(
         draft: state.draft,
         instances: state.instances,
         selectedInstanceId: state.selectedInstanceId,
-        selectedBucketId: state.selectedBucketId,
+        selectedContainerName: state.selectedContainerName,
       }),
       merge: (persisted, current) => {
         const p = persisted as Partial<AppStore>;
@@ -47,7 +47,7 @@ export const useStore = create<AppStore>()(
           },
           instances: p.instances ?? [],
           selectedInstanceId: p.selectedInstanceId ?? null,
-          selectedBucketId: p.selectedBucketId ?? current.selectedBucketId,
+          selectedContainerName: p.selectedContainerName ?? current.selectedContainerName,
         };
       },
     },
