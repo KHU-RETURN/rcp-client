@@ -11,10 +11,6 @@ export function normalizeHandle(value: string): string {
     .slice(0, 24);
 }
 
-export function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export function statusTone(status: string | null | undefined): StatusTone {
   const upper = String(status ?? '').toUpperCase();
   if (upper === 'ACTIVE') return 'valid';

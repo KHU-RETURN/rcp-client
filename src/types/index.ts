@@ -33,6 +33,6 @@ export type {
 } from './api';
 export { ApiRequestError } from './api';
 export type { FlavorsStatus, RcpConfig } from './config';
-export type { TerminalRuntime, TerminalModules } from './terminal';
+export type { TerminalRuntime } from './terminal';
 export type { ReleaseNote } from './release';
 export type { ImageTemplate, NetworkTemplate } from './templates';
