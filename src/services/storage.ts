@@ -51,11 +51,13 @@ export async function fetchObjects(name: string): Promise<StorageObject[]> {
 export async function uploadObject(
   name: string,
   file: File,
+  key?: string,
 ): Promise<UploadObjectResponse> {
   const fd = new FormData();
   fd.append('file', file);
+  const objectKey = key ?? file.name;
   return apiRequest<UploadObjectResponse>(
-    `${BASE}/${encodeContainer(name)}/objects`,
+    `${BASE}/${encodeContainer(name)}/objects/${encodeObjectKey(objectKey)}`,
     { method: 'POST', body: fd },
   );
 }
