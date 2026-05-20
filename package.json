@@ -10,7 +10,12 @@
     "postbuild": "node scripts/create-spa-fallback.mjs",
     "preview": "vite preview",
     "serve": "node server.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "lint": "biome lint",
+    "check": "biome check",
+    "check:fix": "biome check --write"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.11.0",
@@ -21,6 +26,7 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.15",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
