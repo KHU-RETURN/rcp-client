@@ -5,7 +5,12 @@ import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
 import { InlineBadge } from '../shared/InlineBadge';
 import { ROUTE_NAMES, imageTemplates } from '../../constants';
-import { getDisplayInstanceId, getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
+import {
+  getDisplayInstanceId,
+  getTerminalAvailability,
+  getVisibleInstances,
+  statusTone,
+} from '../../utils';
 import { humanizeDate } from '../../utils';
 
 export function InstancesPage() {
@@ -37,7 +42,7 @@ export function InstancesPage() {
       setDeletingId(null);
     }
   }
-  
+
   useEffect(() => {
     ensureSelectedInstance();
     void ensureInstanceData();
@@ -82,7 +87,7 @@ export function InstancesPage() {
                 <p className="muted section-support">인스턴스 목록</p>
               </div>
               <div className="section-head-meta">
-                <div className="section-stats" aria-label="Inventory summary">
+                <div className="section-stats" role="group" aria-label="Inventory summary">
                   <div className="mini-stat">
                     <span>Visible</span>
                     <strong>{visible.length}</strong>
@@ -114,7 +119,7 @@ export function InstancesPage() {
                 />
               </label>
               <div className="toolbar-side">
-                <div className="filter-row" aria-label="Instance status filters">
+                <div className="filter-row" role="group" aria-label="Instance status filters">
                   <button
                     className={`filter-chip ${instanceStatusFilter === 'all' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('all')}
@@ -151,7 +156,10 @@ export function InstancesPage() {
               <h2>{selectedInstance?.name ?? 'No selection'}</h2>
             </div>
             {selectedInstance && (
-              <InlineBadge tone={statusTone(selectedInstance.status)} label={selectedInstance.status} />
+              <InlineBadge
+                tone={statusTone(selectedInstance.status)}
+                label={selectedInstance.status}
+              />
             )}
           </div>
           {selectedInstance ? (
@@ -161,9 +169,21 @@ export function InstancesPage() {
                   <dt>ID</dt>
                   <dd className="summary-id">{getDisplayInstanceId(selectedInstance.id)}</dd>
                 </div>
-                <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
-                <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
-                <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
+                <div>
+                  <dt>Flavor</dt>
+                  <dd>{selectedInstance.flavorName}</dd>
+                </div>
+                <div>
+                  <dt>OS</dt>
+                  <dd>
+                    {imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ??
+                      selectedInstance.imageId.slice(0, 8)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>SSH key</dt>
+                  <dd>{selectedInstance.keyName || 'Not registered'}</dd>
+                </div>
                 <div>
                   <dt>Created</dt>
                   <dd>
@@ -181,7 +201,11 @@ export function InstancesPage() {
                 <button
                   className="primary-button"
                   disabled={!terminalAvailability.canOpen}
-                  onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}/terminal`)}
+                  onClick={() =>
+                    navigate(
+                      `/compute/instances/${encodeURIComponent(selectedInstance.id)}/terminal`,
+                    )
+                  }
                 >
                   {terminalAvailability.canOpen
                     ? 'Open terminal'
@@ -191,7 +215,9 @@ export function InstancesPage() {
                 </button>
                 <button
                   className="ghost-button"
-                  onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)}
+                  onClick={() =>
+                    navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)
+                  }
                 >
                   View details
                 </button>

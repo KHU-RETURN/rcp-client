@@ -92,7 +92,7 @@ export function StoragePage() {
                 <p className="muted section-support">컨테이너 단위로 파일을 보관합니다.</p>
               </div>
               <div className="section-head-meta">
-                <div className="section-stats" aria-label="Storage summary">
+                <div className="section-stats" role="group" aria-label="Storage summary">
                   <div className="mini-stat">
                     <span>Visible</span>
                     <strong>{visible.length}</strong>
@@ -149,7 +149,9 @@ export function StoragePage() {
             </div>
 
             {containersError && (
-              <p className="form-error" style={{ marginBottom: '12px' }}>{containersError}</p>
+              <p className="form-error" style={{ marginBottom: '12px' }}>
+                {containersError}
+              </p>
             )}
 
             <div className="table-frame">
@@ -164,14 +166,22 @@ export function StoragePage() {
                 <tbody>
                   {isLoading && (
                     <tr>
-                      <td colSpan={3} className="muted" style={{ textAlign: 'center', padding: '24px' }}>
+                      <td
+                        colSpan={3}
+                        className="muted"
+                        style={{ textAlign: 'center', padding: '24px' }}
+                      >
                         불러오는 중...
                       </td>
                     </tr>
                   )}
                   {!isLoading && visible.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="muted" style={{ textAlign: 'center', padding: '24px' }}>
+                      <td
+                        colSpan={3}
+                        className="muted"
+                        style={{ textAlign: 'center', padding: '24px' }}
+                      >
                         {containers.length === 0
                           ? '아직 컨테이너가 없습니다. 우측 상단의 New container 로 만들어 보세요.'
                           : '검색 결과가 없습니다.'}

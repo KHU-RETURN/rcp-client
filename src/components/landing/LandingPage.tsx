@@ -92,24 +92,35 @@ export function LandingPage() {
       { threshold: 0.18 },
     );
 
-    targets.forEach((target) => observer.observe(target));
+    targets.forEach((target) => {
+      observer.observe(target);
+    });
     return () => observer.disconnect();
   }, []);
 
   function scrollToStory() {
-    document.getElementById('landing-story')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document
+      .getElementById('landing-story')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
     <div className="page landing-page">
       <header className="landing-nav">
-        <button className="landing-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <button
+          className="landing-brand"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
           <img src="/assets/return-black.svg" alt="" />
           <span>Return Cloud Platform</span>
         </button>
         <nav aria-label="Landing navigation">
           <button onClick={scrollToStory}>Features</button>
-          <button onClick={() => document.getElementById('landing-flavors')?.scrollIntoView({ behavior: 'smooth' })}>
+          <button
+            onClick={() =>
+              document.getElementById('landing-flavors')?.scrollIntoView({ behavior: 'smooth' })
+            }
+          >
             Options
           </button>
           <button onClick={() => navigate('/login')}>Login</button>
@@ -134,7 +145,11 @@ export function LandingPage() {
               <h1>AWS 대신, RETURN.</h1>
             </div>
 
-            <button className="landing-scroll" onClick={scrollToStory} aria-label="Scroll to features">
+            <button
+              className="landing-scroll"
+              onClick={scrollToStory}
+              aria-label="Scroll to features"
+            >
               <span className="landing-scroll-track">
                 <span className="landing-scroll-arrow" />
               </span>
