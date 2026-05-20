@@ -1,182 +1,160 @@
 # AGENTS.md
 
-This file is the single source of truth for AI coding agents (Codex, Claude Code, Cursor, Gemini CLI, etc.) working on this repo. Keep it accurate. When in doubt, read the file before reading the code.
+Single source of truth for AI coding agents (Codex, Claude Code, Cursor, Gemini CLI, ...). When in doubt, read the file before reading the code.
 
-## Project overview
+## Project
 
-**Return Cloud Platform (RCP)** — a self-service VM provisioning console for an internal university research group (경희대학교 Return). Users sign in with their `@khu.ac.kr` Google account, pick a flavor + OS image, and get an OpenStack-backed VM with browser terminal access.
+**Return Cloud Platform (RCP)** — VM provisioning console for 경희대학교 Return. `@khu.ac.kr` 로그인 → 플레이버 + OS 이미지 선택 → OpenStack VM + 브라우저 터미널.
 
-- **Type:** React SPA, deployed as static assets with a small Node fallback server for SPA routing.
-- **Audience:** Bilingual (Korean primary for explanatory copy, English for UI controls). Do not flip this split.
-- **Backend:** External REST API (URL from `VITE_API_BASE_URL` env var). This repo does not contain the backend.
-- **Visual identity:** Documented in `DESIGN.md`. Read it before any UI change.
+- React SPA, GitHub Pages 정적 배포 + `server.mjs` SPA fallback.
+- Backend는 별도 저장소. `VITE_API_BASE_URL` 환경변수가 백엔드 주소.
+- 설명 카피는 한국어, UI 컨트롤은 영어. 이 분배는 뒤집지 말 것.
 
-## Tech stack
+## Stack
 
-- **Framework:** React 18.3 + TypeScript 5.6 (strict).
-- **Build:** Vite 6.
-- **Routing:** `react-router-dom` v6.
-- **State:** `zustand` v5. Store is sliced under `src/store/slices/`.
-- **Terminal:** `@xterm/xterm` v6 + `@xterm/addon-fit`.
-- **Styling:** Single `src/styles/main.css` (~2500 lines). No CSS framework, no preprocessor, no CSS-in-JS. Custom properties at `:root` are the design tokens.
-- **Server (production):** `server.mjs` (Node, no framework). Serves `dist/` with SPA fallback.
-- **Package manager:** `npm` (see `package-lock.json`). Do not switch to pnpm/yarn without coordination.
+| 영역 | 사용 |
+|---|---|
+| Framework | React 18.3 + TypeScript 5.6 (strict) |
+| Build | Vite 6 |
+| Router | `react-router-dom` v6 |
+| State | `zustand` v5 (slice 분리: `src/store/slices/`) |
+| Terminal | `@xterm/xterm` v6 + `@xterm/addon-fit` |
+| Styling | 단일 `src/styles/main.css`, CSS 변수 토큰 (`:root`) |
+| Formatter / linter | Biome 2 (`biome.json`) — 자세한 사용법 [LINTING.md](./LINTING.md) |
+| Server (prod) | `server.mjs` (Node, frameworkless) |
+| Package manager | `npm` (`package-lock.json` 동봉) |
 
-## Setup commands
+CSS 프레임워크 / preprocessor / CSS-in-JS / 새 폰트 / 컬러 브랜드 도입 금지.
+
+## Commands
 
 ```bash
-npm install              # install deps
-npm run dev              # vite dev server (default :5173)
-npm run typecheck        # tsc --noEmit — run this before declaring work done
-npm run build            # production build → dist/ + postbuild SPA fallback
-npm run preview          # vite preview against built output
-npm run serve            # node server.mjs (production-style serve)
+npm install
+npm run dev              # vite :5173
+npm run typecheck        # tsc --noEmit
+npm run check            # biome lint + format check (read-only)
+npm run check:fix        # biome auto-fix (커밋 직전 권장)
+npm run build            # dist/ + postbuild SPA fallback
+npm run preview          # vite preview
+npm run serve            # node server.mjs
 ```
-
-There is **no `test` script and no `lint` script**. Verification is manual + typecheck. See "Verification" below.
 
 ## Environment
 
-- Required: a `.env` file at repo root containing `VITE_API_BASE_URL=...`. Without it, auth and API calls 404 against the dev server.
-- The `.env` is gitignored — do not commit it. Reference values are owned by the team lead.
-- Deploy target: GitHub Pages (`CNAME` present). SPA fallback handled by `scripts/create-spa-fallback.mjs` at postbuild.
+- `.env` (gitignored) 에 `VITE_API_BASE_URL=...` 필수. 없으면 API 가 404.
+- Deploy: GitHub Pages. SPA fallback 은 `scripts/create-spa-fallback.mjs` 가 postbuild 로 생성.
 
-## Project structure
+## Project layout
 
 ```
 src/
-  App.tsx                # router root
-  main.tsx               # React mount + global CSS
-  config.ts              # runtime config (reads VITE_API_BASE_URL)
+  App.tsx                router root
+  main.tsx               React mount + global CSS
+  config.ts              reads VITE_API_BASE_URL
   components/
-    auth/                # LoginPage, AuthCallback, ChangesPage
-    layout/              # AuthLayout, AuthGuard, Topbar
-    landing/             # LandingPage (marketing, scroll-driven)
-    compute/             # CreatePage, InstancesPage, InstanceDetailPage, FlavorTable, InstanceTable, SectionRail
-    storage/             # StoragePage, StorageContainerPage
-    terminal/            # TerminalPage, TerminalHost
-    shared/              # EmptyBlock, InlineBadge
-  constants/             # brand, routes, templates, terminal-theme, storage-keys
-  hooks/                 # useFullscreen, useTerminal
-  services/              # api, auth, compute, storage (HTTP layer)
-  store/
-    index.ts             # zustand store assembly
-    slices/              # auth, compute, draft, storage, terminal
-  types/                 # api, auth, compute, config, release, storage, templates, terminal
-  utils/                 # format, helpers, validation
-  styles/main.css        # the single CSS file — all tokens, all components
-public/                  # static assets (logos)
-scripts/                 # build-side scripts
-server.mjs               # prod static server with SPA fallback
-DESIGN.md                # design system (read before any UI work)
+    auth/                LoginPage, AuthCallback, ChangesPage
+    layout/              AuthLayout, AuthGuard, Topbar
+    landing/             LandingPage
+    compute/             CreatePage, InstancesPage, InstanceDetailPage, FlavorTable, InstanceTable, SectionRail
+    storage/             StoragePage, StorageContainerPage
+    terminal/            TerminalPage, TerminalHost
+    shared/              EmptyBlock, InlineBadge
+  constants/             brand, routes, templates, terminal-theme, storage-keys
+  hooks/                 useFullscreen, useTerminal
+  services/              api, auth, compute, storage
+  store/                 index.ts + slices/(auth, compute, draft, storage, terminal)
+  types/                 api, auth, compute, config, release, storage, templates, terminal
+  utils/                 format, helpers, validation
+  styles/main.css        all tokens + all component styles
 ```
 
-**Where to put new code:**
-- New page → `src/components/<domain>/<PageName>.tsx`. Register the route in `App.tsx`.
-- New state → add a slice in `src/store/slices/<name>.ts`, wire it into `src/store/index.ts`.
-- New API call → `src/services/<domain>.ts`, typed by something in `src/types/`.
-- New util → `src/utils/<name>.ts`, re-export from `src/utils/index.ts`.
-- New shared component → `src/components/shared/<Name>.tsx`.
-- New constant → `src/constants/<name>.ts`, re-export from `src/constants/index.ts`.
+**새 코드 배치**:
+- 페이지 → `src/components/<domain>/<PageName>.tsx`, 라우트는 `App.tsx`.
+- 상태 → `src/store/slices/<name>.ts` + `store/index.ts` 조립.
+- API → `src/services/<domain>.ts` + 타입은 `src/types/`.
+- 유틸 / 상수 / 공용 컴포넌트 → 해당 폴더 + barrel (`index.ts`) re-export.
 
 ## Code style
 
-- **TypeScript:** strict mode is on. Don't widen with `any`; prefer `unknown` + narrowing, or define a real type in `src/types/`.
-- **Modules:** ES modules. `import`/`export`, never CommonJS.
-- **Indentation:** 2 spaces.
-- **Quotes:** single quotes in TS/TSX, double quotes only where required (JSX attributes use double).
-- **Semicolons:** on.
-- **Naming:**
-  - Components, types, type aliases: `PascalCase`.
-  - Functions, variables, hooks, store actions: `camelCase`.
-  - Constants exported from `constants/`: `SCREAMING_SNAKE_CASE` for true constants, `camelCase` for data tables.
-  - CSS classes: kebab-case, loosely BEM-ish (`.auth-card`, `.auth-card-head`, `.workspace-summary`).
-- **React:** functional components only. Hooks for state and effects. Props are typed inline or via a named `interface`.
-- **State:** local `useState` for component-only state. Zustand store for anything shared across routes or persisted.
-- **Async:** `async`/`await` over `.then`. Errors caught and surfaced via the relevant store slice or local state.
-- **Imports:** group as (1) react / external libs, (2) local store / services / hooks, (3) components, (4) types / constants / utils. Blank line between groups when it improves readability, otherwise compact.
+Biome 가 포맷 강제, 아래는 **의미적** 컨벤션.
 
-## Styling rules
+- **TypeScript strict**. `any` 금지 — `unknown` 후 narrowing, 또는 `src/types/` 에 정의.
+- **ES modules** 만. CommonJS 금지.
+- **포맷** (Biome 자동): 2-space indent, single quote (JSX double), semicolon ON, trailing comma all, line width 100.
+- **Naming**:
+  - Component / type / type alias → `PascalCase`
+  - Function / variable / hook / store action → `camelCase`
+  - 진짜 상수 (`constants/`) → `SCREAMING_SNAKE_CASE`, 데이터 테이블은 `camelCase`
+  - CSS class → kebab-case, 느슨한 BEM (`.auth-card-head`)
+- **React**: 함수형 컴포넌트만. Props 는 인라인 또는 named `interface`.
+- **State**: 컴포넌트 로컬 → `useState`, 라우트 공유/영속 → zustand store.
+- **Async**: `async`/`await`. 에러는 store slice 또는 로컬 state 로 표면화.
+- **Imports**: (1) react/외부, (2) store/services/hooks, (3) components, (4) types/constants/utils. 그룹 간 공백은 가독성에 도움이 될 때만.
 
-**Read `DESIGN.md` first.** Then:
-- All new visual decisions must use existing tokens from `:root` in `src/styles/main.css` (`--bg`, `--ink`, `--muted`, `--accent`, `--success`, `--warning`, `--danger`, `--radius`, `--radius-small`, `--font-ui`, `--font-mono`).
-- Do not add new fonts. Inter (app) and Pretendard (landing only) are the entire type system. Mono via system stack.
-- Do not introduce a chromatic brand color. Accent is ink (`#111111`).
-- Buttons are pills (`border-radius: 999px`). Primary fill is `#111111`, ghost is white-translucent, danger is outline-only.
-- Hover lift is `translateY(-1px)`. Never scale, never rotate.
-- New CSS goes into `src/styles/main.css` — not into per-component files. Group new selectors near their visual neighbors (auth section, workspace section, landing section, etc.).
-- Korean for explanatory copy and confirm dialogs; English for UI labels, buttons, eyebrows, headings.
+## Lint & format
+
+Biome 2 가 단일 도구. 자세한 룰 / `biome-ignore` 사용법 / warning 카테고리 → [**LINTING.md**](./LINTING.md).
+
+핵심:
+- 커밋 직전 `npm run check:fix && npm run typecheck`.
+- Lint baseline = **0 errors**. Warning 은 추적 중인 tech debt — 새 코드에서 *증가* 시키지 말 것.
+- 룰 우회는 `biome.json` 전역 변경이 아니라 `// biome-ignore <rule>: <reason>` (사유 필수).
+
+## Styling
+
+**`DESIGN.md` 먼저 읽기.** 이후:
+
+- 모든 색 / 라운드 / 폰트는 `:root` 토큰 (`--bg`, `--ink`, `--accent`, `--success`, `--warning`, `--danger`, `--radius`, `--radius-small`, `--font-ui`, `--font-mono`) 사용.
+- 폰트는 Inter (앱), Pretendard (랜딩만), 시스템 mono. 추가 금지.
+- Accent 는 ink (`#111111`) — 크로마틱 브랜드 컬러 도입 금지.
+- 버튼은 pill (`border-radius: 999px`). Primary = ink fill, ghost = white translucent, danger = outline.
+- Hover lift = `translateY(-1px)`. Scale / rotate 금지.
+- 신규 CSS 는 `src/styles/main.css` 한 파일에. 시각적 이웃 옆에 배치.
+- 설명 카피·확인 다이얼로그는 한국어, UI 라벨·버튼·헤딩은 영어.
 
 ## Verification
 
-Since there is no test runner or linter, verify in this order before claiming work is done:
+테스트 러너 없음. 아래 순서로 검증:
 
-1. **Typecheck:** `npm run typecheck`. Must be clean.
-2. **Dev server:** `npm run dev`. Click through the changed flow in a browser. For UI changes, verify in both desktop (>1180px) and tablet (<1180px) widths.
-3. **Build:** `npm run build`. The postbuild SPA fallback script must succeed.
-4. **Preview (optional but recommended for routing changes):** `npm run preview` or `npm run serve`, then exercise the production-mode bundle.
+1. `npm run typecheck` — clean.
+2. `npm run check` — 0 errors. 새 warning 증가 없도록.
+3. UI 변경이면 `npm run dev` 로 브라우저 확인. desktop (≥1180px), tablet (<1180px), mobile (<760px) 중 본 breakpoint 를 응답에 명시.
+4. `npm run build` — postbuild 까지 통과.
+5. 라우팅 변경이면 추가로 `npm run preview`/`npm run serve`.
 
-If you cannot verify a UI change in a browser (e.g., environment limitation), say so explicitly. Do not claim a visual feature works based on diff inspection alone.
+브라우저 확인 불가 환경이면 그 사실을 **명시**. diff 만 보고 "이상 없음" 선언 금지.
 
-## Commit conventions
+## Commits, branches, PRs
 
-Inspect recent history with `git log --oneline` and match the style. Current pattern:
-
-```
-feat: <what was added>
-fix(<scope>): <what was fixed>
-chore: <maintenance>
-style(<scope>): <visual / formatting only>
-docs: <documentation only>
-refactor: <no behavior change>
-```
-
-- Subject line under ~72 chars, imperative mood.
-- Korean or English in the subject is both fine; match the prevailing style in recent commits on the branch.
-- Body (optional) for the "why," not the "what." The diff explains the what.
-- **Never use `--no-verify` or skip hooks** unless explicitly requested.
-- **Never amend already-pushed commits.** Create a new commit.
-- Do not commit secrets. The `.env` is gitignored — keep it that way.
-
-## Branch & PR conventions
-
-- Branch naming: `<type>/<short-kebab>`. Examples in this repo: `feat/instance-cleanup`, `chore/remove-auth-debug-logs`, `style/ui-tweaks`, `fix-landing-page`.
-- One topic per branch. If scope grows, split.
-- PR target: `main`.
-- PR title matches commit subject style.
-- PR description should cover Summary (1-3 bullets, the why) + Test plan (how you verified).
-- Do not create PRs unless explicitly asked. Many tasks end at "commit on branch, ready to push."
+- 커밋 메시지: `<type>: <subject>` 또는 `<type>(<scope>): <subject>` — `feat / fix / chore / style / docs / refactor`.
+- 제목 ~72자, 명령형. 한국어/영어는 최근 브랜치 스타일을 따른다. Body 는 *why*.
+- 브랜치: `<type>/<short-kebab>` (한 토픽 = 한 브랜치).
+- PR target = `main`. 설명에 Summary (왜) + Test plan (어떻게 검증).
+- PR 생성은 명시 요청 시에만.
+- **금지**: `--no-verify`, 푸시된 commit `--amend`, `.env` 커밋, `dist/` 커밋.
 
 ## Things to avoid
 
-- **Do not introduce new dependencies** without discussion. The current dep list is intentionally small. If a feature really needs one, propose it first.
-- **Do not introduce a CSS framework** (Tailwind, etc.). The CSS is hand-tuned to the design tokens — see DESIGN.md.
-- **Do not commit `dist/`.** It's a build artifact.
-- **Do not add tests retroactively as part of an unrelated PR.** If tests are warranted, propose a separate test-infra PR.
-- **Do not rewrite `main.css` into multiple files** without coordinating. Many selectors share styles via grouping; splitting breaks the cascade ordering.
-- **Do not delete `assert`s, error handlers, or seemingly-unused code** without verifying they aren't load-bearing. Some code anticipates server states that don't fire in the demo path.
-- **Do not introduce a chromatic brand color, decorative gradients, illustrations, or emoji into the UI.** See DESIGN.md for the rationale.
+- **새 의존성** 도입 전 합의. 현재 dep 목록은 의도적으로 작다.
+- **CSS 프레임워크** (Tailwind 등) 도입 금지.
+- **테스트 인프라** 를 무관한 PR 에 끼워넣지 말 것. 필요 시 별도 PR.
+- **`main.css` 분할** 은 사전 조율 없이 금지 — cascade 순서가 깨진다.
+- **`assert` / 에러 핸들러 / 미사용처럼 보이는 코드** 를 검증 없이 삭제 금지. 서버 응답이 데모 경로에서 발화하지 않는 케이스가 있음.
+- **장식용 그라데이션 / 일러스트 / 이모지** 를 UI 에 추가 금지 (DESIGN.md 참고).
 
-## Bilingual interaction with agents
+## Communication
 
-This is an internal Korean-language project. When responding to the user in chat / CLI:
-
-- Default to Korean for explanations, summaries, and questions.
-- Keep code, identifiers, file paths, command names, and commit messages in English (matching the codebase).
-- Quote error messages and tool output verbatim — do not translate them.
+- 응답 기본 한국어. 코드·식별자·경로·커맨드·커밋 메시지는 영어.
+- 에러 메시지와 도구 출력은 원문 그대로 인용 — 번역 금지.
 
 ## Design system
 
-See `DESIGN.md` (project root) for the full token-level design system. It uses the **getdesign.md / awesome-design-md (Stitch)** standard:
-- YAML frontmatter contains machine-readable tokens (`colors`, `typography`, `rounded`, `spacing`, `shadow`, `blur`, `motion`, `components`).
-- Markdown body has 11 standard sections (Overview → Known Gaps).
-- Token references use the `{colors.primary}` syntax — preserve these when quoting from DESIGN.md.
+`DESIGN.md` — Stitch (getdesign.md) 표준. YAML frontmatter 에 머신 가독 토큰, 본문에 11 섹션. 토큰은 `src/styles/main.css:1–22` 와 수동으로 동기화. UI/UX 작업 전 필독.
 
-**Always read DESIGN.md before any visual or UI work.** It is the source of truth for color, type, layout, motion, voice, and component recipes. Tokens are mirrored manually in `src/styles/main.css:1–22` — keep both in sync when you change values.
+## References
 
-## Useful references
-
-- Design system: `DESIGN.md`
+- Linting & format: [`LINTING.md`](./LINTING.md), [`biome.json`](./biome.json)
+- Design system: [`DESIGN.md`](./DESIGN.md)
 - Routes: `src/constants/routes.ts`
 - Brand assets: `src/constants/brand.ts`
 - Terminal theme: `src/constants/terminal-theme.ts`

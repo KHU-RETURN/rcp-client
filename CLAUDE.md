@@ -1,68 +1,68 @@
 # CLAUDE.md
 
-This project uses `AGENTS.md` as the canonical agent guide for the whole team (Codex + Claude Code + others). Read it first.
+`AGENTS.md` 가 모든 에이전트의 단일 가이드. 먼저 읽는다.
 
 @AGENTS.md
 
 ---
 
-The rest of this file is Claude Code-specific guidance that doesn't belong in AGENTS.md.
+여기서부터는 Claude Code 한정 가이드.
 
-## Working with this user
+## User interaction
 
-- Default to Korean responses. The user prefers concise Korean for chat output and English for code / identifiers / commit messages.
-- Be direct and short. The user has interrupted long-winded answers before — don't over-explain decisions.
-- When unsure between two reasonable approaches, briefly propose both and let the user pick. Do not ask clarifying questions before reading the file in question.
-- Don't auto-commit. Wait for an explicit "커밋해줘" (or English equivalent) before running `git commit`.
+- 응답 기본 한국어. 코드·식별자·커밋 메시지는 영어. AGENTS.md "Communication" 참고.
+- 짧고 직설적으로. 결정 사유를 길게 설명하지 말 것.
+- 두 접근법이 합리적이면 둘 다 짧게 제시하고 사용자가 고르게 한다. 단, 파일을 읽기 전 명확화 질문은 금지.
+- 자동 커밋 금지. 명시 요청 ("커밋해줘" 등) 후에만 `git commit`.
 
 ## Plan mode
 
-Use plan mode (`/plan` or Ctrl+G) when:
-- A change touches more than 2-3 files.
-- The user is unsure about the approach ("어떻게 할까", "방법 제안").
-- Refactoring or layout changes where the diff isn't obvious.
+다음일 때 plan mode (`/plan` 또는 Ctrl+G):
+- 2~3 파일 초과 변경.
+- 접근법이 불확실 ("어떻게 할까", "방법 제안").
+- 리팩토링 / 레이아웃 변경 등 diff 가 자명하지 않을 때.
 
-Skip plan mode for: typos, one-liner CSS tweaks, copy changes, single-file fixes the user already described in detail.
+생략: 오타, 한 줄 CSS 수정, 카피 변경, 사용자가 이미 상세히 묘사한 단일 파일 fix.
 
-## Skills available in this session
+## Skills
 
-The `superpowers` and `gstack` plugins are loaded. Treat their guidance as advisory, not mandatory — Anthropic's official guidance (this file + AGENTS.md) takes precedence when they conflict.
+`superpowers`, `gstack` 플러그인이 로드되어 있음. **자문일 뿐**, AGENTS.md / 이 파일과 충돌하면 후자 우선.
 
-**Skills already used on this project:**
-- `design-consultation` → produced `DESIGN.md` (Stitch / getdesign.md format).
+사용 권장:
+- `frontend-design` — 새 컴포넌트 디자인.
+- `superpowers:brainstorming` — 신규 기능 작업 전.
+- `superpowers:systematic-debugging` — 버그 조사 전.
+- `superpowers:verification-before-completion` — 완료 선언 전. `npm run typecheck && npm run check` 와 브라우저 검증 실행.
 
-**Skills worth invoking when relevant:**
-- `frontend-design` — for new component design that needs to feel polished.
-- `superpowers:brainstorming` — before any new feature work (per the skill's "use before creative work" rule).
-- `superpowers:systematic-debugging` — for any bug investigation, before proposing fixes.
-- `superpowers:verification-before-completion` — before declaring work done. Run `npm run typecheck` and exercise the change in a browser.
+사용 금지: `superpowers:test-driven-development` (테스트 인프라 없음).
 
-Do not invoke `superpowers:test-driven-development` against this codebase — there is no test infrastructure (see AGENTS.md "Verification"). Propose adding tests as a separate piece of work if warranted.
+이전 사용: `design-consultation` → `DESIGN.md` 생성.
 
-## Verification expectations
+## Verification floor
 
-Because the repo has no test runner and no linter, the verification floor is:
+AGENTS.md "Verification" 절을 따른다. 요약:
 
-1. `npm run typecheck` — must be clean.
-2. For UI work: `npm run dev` + open the changed page in a browser. State the breakpoints you checked (desktop ≥1180px, tablet <1180px, mobile <760px).
-3. For build-affecting changes: `npm run build` — must succeed including the postbuild SPA fallback.
+1. `npm run typecheck` — clean.
+2. `npm run check` — 0 errors. 자세한 룰은 [LINTING.md](./LINTING.md).
+3. UI 변경이면 브라우저로 직접 확인 + 본 breakpoint 명시 (desktop ≥1180px / tablet <1180px / mobile <760px).
+4. 빌드 영향이 있으면 `npm run build`.
 
-If you cannot perform any of the above in the current environment, say so explicitly. Do not claim "이상 없음" / "verified" without evidence.
+수행 불가 항목은 "확인 못함" 으로 **명시**. 추정으로 "이상 없음" 선언 금지.
 
-## Tone and length
+## Tone
 
-- One-sentence updates between tool calls. Brief, not silent.
-- End-of-turn: 1-2 sentences. What changed, what's next. No headers, no bullets unless the user asked for a structured answer.
-- Use bullets and tables when comparing options, listing changes across files, or summarizing search results.
-- No em-dashes in prose. No filler phrases ("Let me...", "I'll go ahead and...").
+- 도구 호출 사이는 한 문장 업데이트. 침묵 금지.
+- 턴 종료: 1~2문장. 변경 사항 + 다음. 헤더/불릿은 사용자가 구조화된 답을 요청했을 때만.
+- 옵션 비교 / 파일 간 변경 정리 / 검색 결과 요약은 표나 불릿 사용.
+- prose 에 em-dash 금지. "Let me...", "I'll go ahead..." 같은 filler 금지.
 
-## What goes in CLAUDE.md vs AGENTS.md
+## CLAUDE.md vs AGENTS.md
 
-- **AGENTS.md**: anything every coding agent (Codex, Cursor, Gemini, Claude) should know — project facts, commands, conventions, structure, style.
-- **CLAUDE.md** (this file): Claude Code-specific UX — when to use plan mode, which skills to invoke, how to talk to this specific user, Anthropic-only features.
+- **AGENTS.md** — 모든 에이전트가 알아야 할 것: 프로젝트 사실, 컨벤션, 구조, 스타일.
+- **CLAUDE.md** (이 파일) — Claude Code UX: plan mode 기준, skill 선택, 이 사용자와의 대화 방식.
 
-If a rule applies to all agents, put it in AGENTS.md and rely on `@AGENTS.md` above. Don't duplicate.
+같은 규칙이면 AGENTS.md 에만 적고 `@AGENTS.md` 로 참조. 중복 금지.
 
 ## Personal overrides
 
-If a teammate wants Claude Code preferences that should not be committed (e.g., personal terseness settings, individual dev environment quirks), put them in `CLAUDE.local.md` and add it to `.gitignore`. That file is not present in this repo today.
+개인 설정은 `CLAUDE.local.md` 에 (gitignored). 현재 저장소에는 없음.
