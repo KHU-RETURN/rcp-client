@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { TerminalHost } from './TerminalHost';
-import { InlineBadge } from '../shared/InlineBadge';
+import { InstanceSummaryCard } from '../compute/InstanceSummaryCard';
 import { useFullscreen } from '../../hooks/useFullscreen';
 import { ROUTE_NAMES } from '../../constants';
-import { getDisplayInstanceId, getTerminalAvailability, statusTone } from '../../utils';
+import { getTerminalAvailability } from '../../utils';
 
 export function TerminalPage() {
   const navigate = useNavigate();
@@ -87,63 +87,26 @@ export function TerminalPage() {
           </div>
         </section>
 
-        <aside className="workspace-summary terminal-detail">
-          <div className="summary-headline">
-            <p className="eyebrow">Instance</p>
-            <h2>{instance?.name ?? 'No instance'}</h2>
-          </div>
-          {instance ? (
-            <>
-              <dl className="summary-grid large">
-                <div>
-                  <dt>ID</dt>
-                  <dd>{getDisplayInstanceId(instance.id)}</dd>
-                </div>
-                <div>
-                  <dt>Status</dt>
-                  <dd>
-                    <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>Flavor</dt>
-                  <dd>{instance.flavorId}</dd>
-                </div>
-                <div>
-                  <dt>Network</dt>
-                  <dd>{instance.networkId || 'Not set'}</dd>
-                </div>
-                <div>
-                  <dt>SSH key</dt>
-                  <dd>{instance.keyName || 'Not set'}</dd>
-                </div>
-              </dl>
-              <div className="summary-note">
-                <strong>Access</strong>
-                <p>Browser terminal</p>
-              </div>
-              <div className="command-list">
-                <strong>Commands</strong>
-                <ul>
-                  <li>
-                    <code>help</code>
-                  </li>
-                  <li>
-                    <code>cat instance.txt</code>
-                  </li>
-                  <li>
-                    <code>ip addr</code>
-                  </li>
-                  <li>
-                    <code>uptime</code>
-                  </li>
-                </ul>
-              </div>
-            </>
-          ) : (
-            <p className="muted">선택한 인스턴스를 찾을 수 없습니다.</p>
-          )}
-        </aside>
+        <InstanceSummaryCard
+          instance={instance}
+          emptyMessage="선택한 인스턴스를 찾을 수 없습니다."
+          actions={
+            instance && (
+              <>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => navigate(`/compute/instances/${encodeURIComponent(instance.id)}`)}
+                >
+                  View details
+                </button>
+                <button type="button" className="ghost-button" onClick={() => navigate('/compute')}>
+                  Back to instances
+                </button>
+              </>
+            )
+          }
+        />
       </main>
     </div>
   );

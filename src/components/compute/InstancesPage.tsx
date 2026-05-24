@@ -3,15 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
-import { InlineBadge } from '../shared/InlineBadge';
-import { ROUTE_NAMES, imageTemplates } from '../../constants';
-import {
-  getDisplayInstanceId,
-  getTerminalAvailability,
-  getVisibleInstances,
-  statusTone,
-} from '../../utils';
-import { humanizeDate } from '../../utils';
+import { InstanceSummaryCard } from './InstanceSummaryCard';
+import { ROUTE_NAMES } from '../../constants';
+import { getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
 
 export function InstancesPage() {
   const navigate = useNavigate();
@@ -149,55 +143,11 @@ export function InstancesPage() {
           </section>
         </section>
 
-        <aside className="workspace-summary list-detail">
-          <div className="summary-headline summary-headline-compact">
-            <div>
-              <p className="eyebrow">Instance details</p>
-              <h2>{selectedInstance?.name ?? 'No selection'}</h2>
-            </div>
-            {selectedInstance && (
-              <InlineBadge
-                tone={statusTone(selectedInstance.status)}
-                label={selectedInstance.status}
-              />
-            )}
-          </div>
-          {selectedInstance ? (
-            <>
-              <dl className="summary-grid summary-grid-stack">
-                <div>
-                  <dt>ID</dt>
-                  <dd className="summary-id">{getDisplayInstanceId(selectedInstance.id)}</dd>
-                </div>
-                <div>
-                  <dt>Flavor</dt>
-                  <dd>{selectedInstance.flavorName}</dd>
-                </div>
-                <div>
-                  <dt>OS</dt>
-                  <dd>
-                    {imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ??
-                      selectedInstance.imageId.slice(0, 8)}
-                  </dd>
-                </div>
-                <div>
-                  <dt>SSH key</dt>
-                  <dd>{selectedInstance.keyName || 'Not registered'}</dd>
-                </div>
-                <div>
-                  <dt>Created</dt>
-                  <dd>
-                    {selectedInstance.created && !selectedInstance.created.startsWith('0001')
-                      ? humanizeDate(selectedInstance.created)
-                      : '—'}
-                  </dd>
-                </div>
-              </dl>
-              <div className="summary-note">
-                <strong>Note</strong>
-                <p>{selectedInstance.note || 'No note'}</p>
-              </div>
-              <div className="action-row compact sidebar-actions">
+        <InstanceSummaryCard
+          instance={selectedInstance}
+          actions={
+            selectedInstance && (
+              <>
                 <button
                   className="primary-button"
                   disabled={!terminalAvailability.canOpen}
@@ -228,12 +178,10 @@ export function InstancesPage() {
                 >
                   {deletingId === selectedInstance.id ? 'Deleting...' : 'Delete instance'}
                 </button>
-              </div>
-            </>
-          ) : (
-            <p className="muted">표시할 인스턴스가 없습니다.</p>
-          )}
-        </aside>
+              </>
+            )
+          }
+        />
       </main>
     </div>
   );
