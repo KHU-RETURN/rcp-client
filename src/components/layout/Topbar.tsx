@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
+import { logoutSession } from '../../services/auth';
 import { BRAND_ASSETS, ROUTE_NAMES } from '../../constants';
 import type { RouteName } from '../../constants';
 
@@ -17,7 +18,8 @@ export function Topbar({ active }: TopbarProps) {
     active === ROUTE_NAMES.detail ||
     active === ROUTE_NAMES.terminal;
 
-  function handleLogout() {
+  async function handleLogout() {
+    await logoutSession();
     logout();
     navigate('/login', { replace: true });
   }
@@ -47,7 +49,7 @@ export function Topbar({ active }: TopbarProps) {
       </nav>
       <div className="topbar-tools">
         <span className="operator-label">{session?.name ?? ''}</span>
-        <button className="ghost-button" onClick={handleLogout}>
+        <button className="ghost-button" onClick={() => void handleLogout()}>
           Sign out
         </button>
       </div>
