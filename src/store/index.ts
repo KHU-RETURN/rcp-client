@@ -23,6 +23,7 @@ export const useStore = create<AppStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state): Partial<AppStore> => ({
         session: state.session,
+        pendingRoutePath: state.pendingRoutePath,
         draft: state.draft,
         instances: state.instances,
         selectedInstanceId: state.selectedInstanceId,
@@ -39,6 +40,7 @@ export const useStore = create<AppStore>()(
         return {
           ...current,
           session: p.session ?? null,
+          pendingRoutePath: p.pendingRoutePath ?? null,
           draft: {
             ...draft,
             imageTemplate: imageTemplate?.key ?? draft.imageTemplate,
