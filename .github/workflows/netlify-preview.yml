@@ -96,8 +96,6 @@ jobs:
               marker,
               deployMarker,
               `**Preview site:** ${process.env.PREVIEW_URL}`,
-              '',
-              'API requests are proxied through `/api` for this preview deployment.',
             ].join('\n');
 
             const { owner, repo } = context.repo;
