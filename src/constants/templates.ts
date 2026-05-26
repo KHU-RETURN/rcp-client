@@ -13,12 +13,6 @@ export const imageTemplates: ImageTemplate[] = [
     id: 'b2565d72-0842-473b-837e-42b9fae286ab',
     description: 'RHEL 호환. 안정성이 중요한 엔터프라이즈 환경에 추천',
   },
-  {
-    key: 'cirros',
-    label: 'cirros',
-    id: '922f6f7a-ec26-4536-99cf-a64f4843a7ca',
-    description: '수십 MB 초경량. 인스턴스 동작·네트워크 검증용 테스트 이미지',
-  },
 ];
 
 export const networkTemplates: NetworkTemplate[] = [

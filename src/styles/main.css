@@ -1685,10 +1685,6 @@ h3 {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-.image-card-mark-cirros {
-  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-}
-
 .image-card-mark-default {
   background: linear-gradient(135deg, rgba(17, 17, 17, 0.92), rgba(60, 60, 60, 0.92));
 }

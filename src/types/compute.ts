@@ -68,7 +68,7 @@ export interface SectionState {
   error: boolean;
 }
 
-export type SectionKey = 'basic' | 'compute' | 'image-network' | 'access' | 'review';
+export type SectionKey = 'basic' | 'image-network' | 'compute' | 'access' | 'review';
 export type SectionStates = Record<SectionKey, SectionState>;
 
 export type InstanceStatusFilter = 'all' | 'active' | 'build';
