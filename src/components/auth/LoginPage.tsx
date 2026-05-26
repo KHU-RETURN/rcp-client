@@ -5,7 +5,12 @@ const contactUrl = 'https://www.instagram.com/khu_return/';
 
 export function LoginPage() {
   function handleGoogleLogin() {
-    window.location.href = `${rcpConfig.apiBaseUrl}/api/v1/auth/oauth/google`;
+    const loginUrl = new URL(
+      `${rcpConfig.apiBaseUrl}/api/v1/auth/oauth/google`,
+      window.location.origin,
+    );
+    loginUrl.searchParams.set('redirect_origin', window.location.origin);
+    window.location.href = loginUrl.toString();
   }
 
   return (
