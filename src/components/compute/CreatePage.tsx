@@ -8,10 +8,9 @@ import { ROUTE_NAMES, imageTemplates, SECTION_ORDER } from '../../constants';
 import { validateName, validatePublicKey, formatRam } from '../../utils';
 import type { SectionStates } from '../../types';
 
-function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'cirros' | 'default' {
+function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'default' {
   if (key.includes('ubuntu')) return 'ubuntu';
   if (key.includes('rocky')) return 'rocky';
-  if (key.includes('cirros')) return 'cirros';
   return 'default';
 }
 
@@ -30,13 +29,6 @@ function ImageMarkIcon({ variant }: { variant: ReturnType<typeof imageMarkVarian
     return (
       <svg viewBox="0 0 24 24" aria-hidden focusable="false">
         <path d="M3.5 18.5 L9 9.5 L12.5 14 L16.5 7.5 L20.5 18.5 Z" />
-      </svg>
-    );
-  }
-  if (variant === 'cirros') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
-        <path d="M7.2 17.8h9.6a3.6 3.6 0 0 0 .55-7.16 5.1 5.1 0 0 0-9.7-1.04A4 4 0 0 0 7.2 17.8z" />
       </svg>
     );
   }

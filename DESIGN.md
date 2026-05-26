@@ -572,7 +572,7 @@ The landing's `{rounded.xs}` is intentionally sharper than the rest of the syste
 ### Photography & illustrations
 - **No photography. No illustrations. No emoji in UI.** The infinity-loop brand mark (`/assets/return-black.svg` / `return-white.png` / `return-black.png`) is the only graphic.
 - **Provider logos** are the single chromatic exception — the Google G on `oauth-button` is rendered in Google's brand colors at `22px` square.
-- **OS / image marks** (`.image-card-mark-ubuntu`, `-rocky`, `-cirros`, `-default`) are monochrome glyphs. Don't introduce vendor color here.
+- **OS / image marks** (`.image-card-mark-ubuntu`, `-rocky`, `-default`) are monochrome glyphs. Don't introduce vendor color here.
 
 ## Components
 
