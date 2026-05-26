@@ -30,7 +30,7 @@ jobs:
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       NETLIFY_SITE_NAME: ${{ vars.NETLIFY_SITE_NAME }}
       PREVIEW_API_BASE_URL: ${{ vars.PREVIEW_API_BASE_URL }}
-      VITE_RCP_API_BASE_URL: /api
+      VITE_RCP_API_BASE_URL: ''
       VITE_RCP_DEMO_MODE: ${{ vars.VITE_RCP_DEMO_MODE }}
 
     steps:
