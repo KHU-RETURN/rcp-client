@@ -2214,8 +2214,7 @@ h3 {
   align-items: end;
   justify-content: space-between;
   gap: 24px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
 }
 
 .instance-identity {
@@ -2254,11 +2253,19 @@ h3 {
   word-break: break-all;
 }
 
+.instance-note-inline {
+  color: var(--muted);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .instance-head-actions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .instance-cta {
@@ -2276,6 +2283,16 @@ h3 {
   display: grid;
   gap: 16px;
   min-width: 0;
+}
+
+.instance-edit-name {
+  gap: 8px;
+  max-width: 520px;
+}
+
+.instance-edit-name input {
+  font-size: 1.2rem;
+  font-weight: 800;
 }
 
 .instance-property-rows {
@@ -2306,6 +2323,25 @@ h3 {
   font-size: 0.98rem;
   line-height: 1.4;
   word-break: break-word;
+}
+
+.instance-inline-input {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  padding: 10px 12px;
+}
+
+.instance-inline-input:focus {
+  outline: none;
+  border-color: rgba(17, 17, 17, 0.35);
+  box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.06);
+}
+
+.instance-note-editor {
+  gap: 8px;
 }
 
 .instance-note {
@@ -2658,4 +2694,80 @@ h3 {
 .danger-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.instance-id-row code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;   
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  word-break: break-all;
+  opacity: 0.75;    
+}
+
+.instance-identity h3 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+  letter-spacing: -0.08em; 
+  line-height: 1;
+  word-break: break-word;
+}
+
+.instance-note {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(17, 17, 17, 0.03);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  display: flex;  
+  flex-direction: column; 
+  height: 100%;  
+}
+
+.instance-note p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.property-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-button-mini {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+}
+
+.metric-bar-track {
+  flex: 1;
+  max-width: 80px;
+  height: 6px;
+  background: var(--line-strong);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  background: var(--success);
+  /* width는 데이터에 따라 동적으로 변해야 하므로 React 컴포넌트의 인라인 스타일로 남겨둡니다. */
+}
+
+.metric-value {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.instance-block .eyebrow {
+  display: block;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 6px;
 }

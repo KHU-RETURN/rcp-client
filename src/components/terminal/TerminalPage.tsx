@@ -98,7 +98,7 @@ export function TerminalPage() {
                   className="ghost-button"
                   onClick={() => navigate(`/compute/instances/${encodeURIComponent(instance.id)}`)}
                 >
-                  View details
+                  View details & Edit
                 </button>
                 <button type="button" className="ghost-button" onClick={() => navigate('/compute')}>
                   Back to instances

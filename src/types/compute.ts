@@ -27,6 +27,12 @@ export interface Instance {
   note: string;
 }
 
+export interface UpdateInstancePayload {
+  name: string;
+  key_name: string;
+  note: string;
+}
+
 export interface Draft {
   name: string;
   description: string;

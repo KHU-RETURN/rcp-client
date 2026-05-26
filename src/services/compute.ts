@@ -8,6 +8,7 @@ import type {
   KeypairStatus,
   Instance,
   ServerInstanceResponse,
+  UpdateInstancePayload,
 } from '../types';
 
 function buildInventoryRecord(
@@ -64,7 +65,7 @@ function buildInventoryRecordFromServer(response: ServerInstanceResponse): Insta
     fixedIp: response.fixed_ip ?? '',
     cpuUsage: response.usage?.cpu_usage,
     memoryUsage: response.usage?.memory_usage,
-    note: '',
+    note: response.note ?? '',
   };
 }
 
@@ -119,4 +120,30 @@ export async function fetchInstanceById(id: string): Promise<Instance> {
     `/api/v1/compute/instances/${encodeURIComponent(id)}`,
   );
   return buildInventoryRecordFromServer(response);
+}
+
+export async function updateInstance(
+  id: string,
+  payload: UpdateInstancePayload,
+): Promise<Instance> {
+  const response = await apiRequest<ServerInstanceResponse>(
+    `/api/v1/compute/instances/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+  );
+  return buildInventoryRecordFromServer(response);
+}
+
+export async function pauseInstance(id: string): Promise<void> {
+  await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}/pause`, {
+    method: 'POST',
+  });
+}
+
+export async function unpauseInstance(id: string): Promise<void> {
+  await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}/unpause`, {
+    method: 'POST',
+  });
 }

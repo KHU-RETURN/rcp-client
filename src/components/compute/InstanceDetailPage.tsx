@@ -6,7 +6,6 @@ import { InlineBadge } from '../shared/InlineBadge';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import { ROUTE_NAMES, imageTemplates } from '../../constants';
 import {
-  formatCpuUsage,
   formatRam,
   getTerminalAvailability,
   humanizeDate,
@@ -40,18 +39,37 @@ function getMemoryUsageLabel(instance: Instance): string {
 export function InstanceDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { instances, ensureInstanceById } = useStore();
+  const { instances, ensureInstanceById, setInstancePaused, updateInstanceDetails } = useStore();
   const instance = instances.find((i) => i.id === id) ?? null;
   const [now, setNow] = useState(() => Date.now());
   const [loadState, setLoadState] = useState<LoadState>(instance ? 'ready' : 'loading');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPausing, setIsPausing] = useState(false);
+  
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedIp, setCopiedIp] = useState(false);
+  
+  const [form, setForm] = useState({ name: '', keyName: '', note: '' });
+  const [actionError, setActionError] = useState('');
   const terminalAvailability = getTerminalAvailability(instance, now);
+  const status = String(instance?.status ?? '').toUpperCase();
+  const isPaused = status === 'PAUSED';
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!instance || isEditing) return;
+    setForm({
+      name: instance.name,
+      keyName: instance.keyName,
+      note: instance.note,
+    });
+  }, [instance, isEditing]);
 
   useEffect(() => {
     if (!id) return;
@@ -84,6 +102,7 @@ export function InstanceDetailPage() {
   async function handleRefresh() {
     if (!id || isRefreshing) return;
     setIsRefreshing(true);
+    setActionError('');
     const result = await ensureInstanceById(id);
     if (result === 'not-found') setLoadState('not-found');
     else if (result === 'error') setLoadState('error');
@@ -91,12 +110,45 @@ export function InstanceDetailPage() {
     setIsRefreshing(false);
   }
 
-  async function handleCopyId() {
-    if (!instance) return;
+  async function handleSave() {
+    if (!instance || isSaving) return;
+    setIsSaving(true);
+    setActionError('');
+    const result = await updateInstanceDetails(instance.id, {
+      name: form.name.trim(),
+      key_name: form.keyName.trim(),
+      note: form.note.trim(),
+    });
+    setIsSaving(false);
+    if (!result.ok) {
+      setActionError(result.error ?? '변경사항을 저장하지 못했습니다.');
+      return;
+    }
+    setIsEditing(false);
+  }
+
+  async function handlePauseToggle() {
+    if (!instance || isPausing) return;
+    setIsPausing(true);
+    setActionError('');
+    const result = await setInstancePaused(instance.id, !isPaused);
+    setIsPausing(false);
+    if (!result.ok) {
+      setActionError(result.error ?? '상태 변경 요청을 완료하지 못했습니다.');
+    }
+  }
+
+  async function handleCopy(text: string, type: 'id' | 'ip') {
+    if (!text) return;
     try {
-      await navigator.clipboard.writeText(instance.id);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
+      await navigator.clipboard.writeText(text);
+      if (type === 'id') {
+        setCopiedId(true);
+        window.setTimeout(() => setCopiedId(false), 1400);
+      } else {
+        setCopiedIp(true);
+        window.setTimeout(() => setCopiedIp(false), 1400);
+      }
     } catch {
       // clipboard not available — silently ignore
     }
@@ -138,23 +190,78 @@ export function InstanceDetailPage() {
                       <p className="eyebrow">Instance</p>
                       <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
                     </div>
-                    <h3>{instance.name}</h3>
+                    {isEditing ? (
+                      <label className="field instance-edit-name">
+                        <span>Instance name</span>
+                        <input
+                          value={form.name}
+                          onChange={(event) => setForm({ ...form, name: event.target.value })}
+                        />
+                      </label>
+                    ) : (
+                      <h3>{instance.name}</h3>
+                    )}
                     <div className="instance-id-row">
                       <code>{instance.id}</code>
                       <button
                         type="button"
                         className="copy-button"
-                        onClick={() => void handleCopyId()}
+                        onClick={() => void handleCopy(instance.id, 'id')}
                         aria-label="Copy instance ID"
+                        title={instance.id}
                       >
-                        {copied ? 'Copied' : 'Copy'}
+                        {copiedId ? 'Copied ID' : 'Copy ID'}
                       </button>
                     </div>
                   </div>
                   <div className="instance-head-actions">
-                    <button type="button" className="ghost-button" disabled title="Coming soon">
-                      Edit
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      onClick={() => void handlePauseToggle()}
+                      disabled={isPausing || status === 'BUILD'}
+                    >
+                      {isPausing ? 'Sending...' : isPaused ? 'Resume' : 'Pause'}
                     </button>
+                    {isEditing ? (
+                      <>
+                        <button
+                          type="button"
+                          className="ghost-button"
+                          onClick={() => {
+                            setActionError('');
+                            setIsEditing(false);
+                            setForm({
+                              name: instance.name,
+                              keyName: instance.keyName,
+                              note: instance.note,
+                            });
+                          }}
+                          disabled={isSaving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="primary-button"
+                          onClick={() => void handleSave()}
+                          disabled={isSaving || form.name.trim().length === 0}
+                        >
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="ghost-button"
+                        onClick={() => {
+                          setActionError('');
+                          setIsEditing(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
                     <button
                       className="primary-button instance-cta"
                       disabled={!terminalAvailability.canOpen}
@@ -171,17 +278,44 @@ export function InstanceDetailPage() {
                   </div>
                 </header>
 
+                {actionError && <p className="inline-status error">{actionError}</p>}
+
                 <div className="instance-grid">
                   <section className="instance-block">
                     <p className="eyebrow">Connect</p>
                     <dl className="instance-property-rows">
                       <div>
                         <dt>Fixed IP</dt>
-                        <dd>{instance.fixedIp || '—'}</dd>
+                        <dd className="property-action-row">
+                          <span>{instance.fixedIp || '—'}</span>
+                          {instance.fixedIp && (
+                            <button
+                              type="button"
+                              className="copy-button copy-button-mini"
+                              onClick={() => void handleCopy(instance.fixedIp!, 'ip')}
+                              aria-label="Copy IP address"
+                            >
+                              {copiedIp ? 'Copied' : 'Copy'}
+                            </button>
+                          )}
+                        </dd>
                       </div>
                       <div>
                         <dt>SSH key</dt>
-                        <dd>{instance.keyName || 'Not registered'}</dd>
+                        <dd>
+                          {isEditing ? (
+                            <input
+                              className="instance-inline-input"
+                              value={form.keyName}
+                              placeholder="Not registered"
+                              onChange={(event) =>
+                                setForm({ ...form, keyName: event.target.value })
+                              }
+                            />
+                          ) : (
+                            instance.keyName || 'Not registered'
+                          )}
+                        </dd>
                       </div>
                     </dl>
                   </section>
@@ -208,23 +342,44 @@ export function InstanceDetailPage() {
                     <p className="eyebrow">Runtime</p>
                     <dl className="instance-property-rows">
                       <div>
-                        <dt>CPU time</dt>
-                        <dd>{formatCpuUsage(instance.cpuUsage)}</dd>
-                      </div>
-                      <div>
                         <dt>Memory</dt>
                         <dd>{getMemoryUsageLabel(instance)}</dd>
+                      </div>
+                      <div>
+                        <dt>CPU (Mock)</dt>
+                        <dd>
+                          <div className="property-action-row">
+                            <div className="metric-bar-track">
+                              <div className="metric-bar-fill" style={{ width: '15%' }} />
+                            </div>
+                            <span className="metric-value">15%</span>
+                          </div>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Uptime (Mock)</dt>
+                        <dd>12d 4h 23m</dd>
                       </div>
                     </dl>
                   </section>
                 </div>
 
-                {instance.note && (
+                {isEditing ? (
+                  <label className="field instance-note-editor">
+                    <span>Note</span>
+                    <textarea
+                      rows={3}
+                      value={form.note}
+                      placeholder="인스턴스 메모를 입력하세요."
+                      onChange={(event) => setForm({ ...form, note: event.target.value })}
+                    />
+                  </label>
+                ) : instance.note ? (
                   <div className="instance-note">
                     <strong>Note</strong>
                     <p>{instance.note}</p>
                   </div>
-                )}
+                ) : null}
 
                 {String(instance.status).toUpperCase() === 'BUILD' && (
                   <p className="muted instance-build-hint">상태가 변하면 자동으로 갱신됩니다.</p>

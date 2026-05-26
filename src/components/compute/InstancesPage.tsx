@@ -169,7 +169,7 @@ export function InstancesPage() {
                     navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)
                   }
                 >
-                  View details
+                  View details & Edit
                 </button>
                 <button
                   className="danger-button"
