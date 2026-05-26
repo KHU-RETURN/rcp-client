@@ -77,15 +77,15 @@ export function CreatePage() {
       valid: validateName(draft.name),
       error: draft.name.trim().length > 0 && !validateName(draft.name),
     },
-    compute: {
-      title: 'Compute sizing',
-      valid: Boolean(selectedFlavor && selectedFlavor.max_configurable > 0),
-      error: Boolean(selectedFlavor && selectedFlavor.max_configurable === 0),
-    },
     'image-network': {
       title: 'Image',
       valid: Boolean(resolvedImageId),
       error: !resolvedImageId,
+    },
+    compute: {
+      title: 'Compute sizing',
+      valid: Boolean(selectedFlavor && selectedFlavor.max_configurable > 0),
+      error: Boolean(selectedFlavor && selectedFlavor.max_configurable === 0),
     },
     access: {
       title: 'Access',
@@ -195,28 +195,11 @@ export function CreatePage() {
             </div>
           </section>
 
-          {/* Compute */}
-          <section className="editor-section" id="compute">
-            <div className="section-head">
-              <div>
-                <p className="eyebrow">02 · Sizing</p>
-                <h2>사양</h2>
-              </div>
-              <p className="muted">quota 기준으로 선택합니다.</p>
-            </div>
-            <div className="table-frame">
-              <FlavorTable
-                selectedFlavorId={draft.selectedFlavorId}
-                onSelectFlavor={handleSelectFlavor}
-              />
-            </div>
-          </section>
-
           {/* Image */}
           <section className="editor-section" id="image-network">
             <div className="section-head">
               <div>
-                <p className="eyebrow">03 · Image</p>
+                <p className="eyebrow">02 · Image</p>
                 <h2>이미지</h2>
               </div>
               <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
@@ -256,6 +239,23 @@ export function CreatePage() {
                   </button>
                 );
               })}
+            </div>
+          </section>
+
+          {/* Compute */}
+          <section className="editor-section" id="compute">
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">03 · Sizing</p>
+                <h2>사양</h2>
+              </div>
+              <p className="muted">quota 기준으로 선택합니다.</p>
+            </div>
+            <div className="table-frame">
+              <FlavorTable
+                selectedFlavorId={draft.selectedFlavorId}
+                onSelectFlavor={handleSelectFlavor}
+              />
             </div>
           </section>
 
