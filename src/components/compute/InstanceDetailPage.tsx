@@ -5,12 +5,7 @@ import { Topbar } from '../layout/Topbar';
 import { InlineBadge } from '../shared/InlineBadge';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import { ROUTE_NAMES, imageTemplates } from '../../constants';
-import {
-  formatRam,
-  getTerminalAvailability,
-  humanizeDate,
-  statusTone,
-} from '../../utils';
+import { formatRam, getTerminalAvailability, humanizeDate, statusTone } from '../../utils';
 import type { Instance } from '../../types';
 
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
@@ -47,10 +42,10 @@ export function InstanceDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
-  
+
   const [copiedId, setCopiedId] = useState(false);
   const [copiedIp, setCopiedIp] = useState(false);
-  
+
   const [form, setForm] = useState({ name: '', keyName: '', note: '' });
   const [actionError, setActionError] = useState('');
   const terminalAvailability = getTerminalAvailability(instance, now);

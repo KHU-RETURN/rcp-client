@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const platformFeatures = [
