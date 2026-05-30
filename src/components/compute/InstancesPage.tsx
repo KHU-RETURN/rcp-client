@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InstanceTable } from './InstanceTable';
-import { InlineBadge } from '../shared/InlineBadge';
-import { ROUTE_NAMES, imageTemplates, networkTemplates } from '../../constants';
-import { getDisplayInstanceId, getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
-import { humanizeDate } from '../../utils';
+import { InstanceSummaryCard } from './InstanceSummaryCard';
+import { ROUTE_NAMES } from '../../constants';
+import { getTerminalAvailability, getVisibleInstances, statusTone } from '../../utils';
 
 export function InstancesPage() {
   const navigate = useNavigate();
@@ -21,8 +20,6 @@ export function InstancesPage() {
     ensureSelectedInstance,
     ensureInstanceData,
     deleteInstance,
-    flavors,
-    ensureFlavorData,
   } = useStore();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -39,7 +36,7 @@ export function InstancesPage() {
       setDeletingId(null);
     }
   }
-  
+
   useEffect(() => {
     ensureSelectedInstance();
     void ensureInstanceData();
@@ -57,10 +54,6 @@ export function InstancesPage() {
     return () => window.clearInterval(timer);
   }, [instances, ensureInstanceData]);
 
-  useEffect(() => {
-    void ensureFlavorData();
-  }, [ensureFlavorData]);
-
   const visible = getVisibleInstances(instances, instanceQuery, instanceStatusFilter);
 
   useEffect(() => {
@@ -75,12 +68,6 @@ export function InstancesPage() {
   const buildCount = instances.filter((i) => String(i.status).toUpperCase() === 'BUILD').length;
   const errorCount = instances.filter((i) => statusTone(i.status) === 'error').length;
 
-  function getInstancesHealth() {
-    return useStore.getState().connectionMode === 'live'
-      ? '인스턴스 목록'
-      : '샘플 · 최근 생성 인스턴스';
-  }
-
   return (
     <div className="page page-instances shell-enter">
       <Topbar active={ROUTE_NAMES.instances} />
@@ -91,10 +78,10 @@ export function InstancesPage() {
               <div>
                 <p className="eyebrow">Compute</p>
                 <h2>Instances</h2>
-                <p className="muted section-support">{getInstancesHealth()}</p>
+                <p className="muted section-support">인스턴스 목록</p>
               </div>
               <div className="section-head-meta">
-                <div className="section-stats" aria-label="Inventory summary">
+                <div className="section-stats" role="group" aria-label="Inventory summary">
                   <div className="mini-stat">
                     <span>Visible</span>
                     <strong>{visible.length}</strong>
@@ -126,7 +113,7 @@ export function InstancesPage() {
                 />
               </label>
               <div className="toolbar-side">
-                <div className="filter-row" aria-label="Instance status filters">
+                <div className="filter-row" role="group" aria-label="Instance status filters">
                   <button
                     className={`filter-chip ${instanceStatusFilter === 'all' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('all')}
@@ -156,43 +143,19 @@ export function InstancesPage() {
           </section>
         </section>
 
-        <aside className="workspace-summary list-detail">
-          <div className="summary-headline summary-headline-compact">
-            <div>
-              <p className="eyebrow">Instance details</p>
-              <h2>{selectedInstance?.name ?? 'No selection'}</h2>
-            </div>
-            {selectedInstance && (
-              <InlineBadge tone={statusTone(selectedInstance.status)} label={selectedInstance.status} />
-            )}
-          </div>
-          {selectedInstance ? (
-            <>
-              <dl className="summary-grid large">
-                <div><dt>ID</dt><dd>{getDisplayInstanceId(selectedInstance.id)}</dd></div>
-                <div><dt>Flavor</dt><dd>{selectedInstance.flavorName}</dd></div>
-                <div><dt>OS</dt><dd>{imageTemplates.find((t) => t.id === selectedInstance.imageId)?.label ?? selectedInstance.imageId.slice(0, 8)}</dd></div>
-                <div><dt>Network</dt><dd>{networkTemplates.find((t) => t.id === selectedInstance.networkId)?.label ?? (selectedInstance.networkId || 'demo-net')}</dd></div>
-                <div><dt>SSH key</dt><dd>{selectedInstance.keyName || 'Not registered'}</dd></div>
-                <div><dt>Mode</dt><dd>{selectedInstance.mode}</dd></div>
-                <div>
-                  <dt>Created</dt>
-                  <dd>
-                    {selectedInstance.created && !selectedInstance.created.startsWith('0001') 
-                      ? humanizeDate(selectedInstance.created) 
-                      : '—'}
-                  </dd>
-                </div>
-              </dl>
-              <div className="summary-note">
-                <strong>Note</strong>
-                <p>{selectedInstance.note || 'No note'}</p>
-              </div>
-              <div className="action-row compact sidebar-actions">
+        <InstanceSummaryCard
+          instance={selectedInstance}
+          actions={
+            selectedInstance && (
+              <>
                 <button
                   className="primary-button"
                   disabled={!terminalAvailability.canOpen}
-                  onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}/terminal`)}
+                  onClick={() =>
+                    navigate(
+                      `/compute/instances/${encodeURIComponent(selectedInstance.id)}/terminal`,
+                    )
+                  }
                 >
                   {terminalAvailability.canOpen
                     ? 'Open terminal'
@@ -202,7 +165,9 @@ export function InstancesPage() {
                 </button>
                 <button
                   className="ghost-button"
-                  onClick={() => navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)}
+                  onClick={() =>
+                    navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)
+                  }
                 >
                   View details
                 </button>
@@ -213,12 +178,10 @@ export function InstancesPage() {
                 >
                   {deletingId === selectedInstance.id ? 'Deleting...' : 'Delete instance'}
                 </button>
-              </div>
-            </>
-          ) : (
-            <p className="muted">표시할 인스턴스가 없습니다.</p>
-          )}
-        </aside>
+              </>
+            )
+          }
+        />
       </main>
     </div>
   );

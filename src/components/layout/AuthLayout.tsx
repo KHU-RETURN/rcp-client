@@ -8,7 +8,13 @@ interface AuthLayoutProps {
   pageClass?: string;
 }
 
-export function AuthLayout({ headerTitle, headerSubtitle, headerActions, children, pageClass }: AuthLayoutProps) {
+export function AuthLayout({
+  headerTitle,
+  headerSubtitle,
+  headerActions,
+  children,
+  pageClass,
+}: AuthLayoutProps) {
   return (
     <div className={`page page-login shell-enter${pageClass ? ` ${pageClass}` : ''}`}>
       <main className="auth-shell">
@@ -29,14 +35,10 @@ export function AuthLayout({ headerTitle, headerSubtitle, headerActions, childre
               <strong>{headerTitle}</strong>
               {headerSubtitle && <small>{headerSubtitle}</small>}
             </div>
-            {headerActions && (
-              <div className="auth-header-actions">{headerActions}</div>
-            )}
+            {headerActions && <div className="auth-header-actions">{headerActions}</div>}
           </div>
 
-          <div className="auth-stage auth-stage-tight">
-            {children}
-          </div>
+          <div className="auth-stage auth-stage-tight">{children}</div>
         </section>
       </main>
     </div>

@@ -11,8 +11,3 @@ export interface TerminalRuntime {
   onDataDispose: { dispose: () => void } | null;
   resizeHandler: () => void;
 }
-
-export interface TerminalModules {
-  Terminal: typeof Terminal;
-  FitAddon: typeof FitAddon;
-}

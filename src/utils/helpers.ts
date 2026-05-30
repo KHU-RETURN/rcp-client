@@ -1,4 +1,4 @@
-import type { Flavor, Instance, StatusTone, InstanceSource } from '../types';
+import type { Flavor, Instance, StatusTone } from '../types';
 
 const TERMINAL_ACTIVE_GRACE_MS = 30_000;
 
@@ -9,10 +9,6 @@ export function normalizeHandle(value: string): string {
     .replace(/[^a-z0-9-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 24);
-}
-
-export function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function statusTone(status: string | null | undefined): StatusTone {
@@ -45,16 +41,11 @@ export function translateError(message: string | undefined | null): string {
   if (lower.includes('invalid request body')) return '입력값 형식이 올바르지 않습니다.';
   if (lower.includes('name already exists')) return '같은 이름의 키가 이미 존재합니다.';
   if (lower.includes('failed to create keypair')) return '공개키 등록 중 문제가 발생했습니다.';
-  if (lower.includes('failed to connect to cloud')) return '클라우드 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-  if (lower.includes('proxy failed') || lower.includes('failed to fetch')) return '백엔드에 연결하지 못했습니다.';
+  if (lower.includes('failed to connect to cloud'))
+    return '클라우드 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+  if (lower.includes('proxy failed') || lower.includes('failed to fetch'))
+    return '백엔드에 연결하지 못했습니다.';
   return message;
-}
-
-export function getInstanceSourceLabel(source: InstanceSource): string {
-  if (source === 'mock-seed') return 'Default';
-  if (source === 'mock-created') return 'New';
-  if (source === 'local-live') return 'Created';
-  return source;
 }
 
 export function getDisplayInstanceId(id: string): string {
@@ -71,7 +62,11 @@ export function getTerminalAvailability(
 
   const status = String(instance.status ?? '').toUpperCase();
   if (status !== 'ACTIVE') {
-    return { canOpen: false, waitSeconds: 0, reason: `Instance is ${instance.status || 'not ready'}` };
+    return {
+      canOpen: false,
+      waitSeconds: 0,
+      reason: `Instance is ${instance.status || 'not ready'}`,
+    };
   }
 
   const activeAt = Date.parse(instance.updated || instance.created);
@@ -103,7 +98,8 @@ export function getVisibleInstances(
       instance.name.toLowerCase().includes(q) ||
       instance.id.toLowerCase().includes(q) ||
       instance.flavorId.toLowerCase().includes(q);
-    const matchesStatus = statusFilter === 'all' || String(instance.status ?? '').toLowerCase() === statusFilter;
+    const matchesStatus =
+      statusFilter === 'all' || String(instance.status ?? '').toLowerCase() === statusFilter;
     return matchesQuery && matchesStatus;
   });
 }

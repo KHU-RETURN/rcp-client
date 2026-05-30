@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
+import { logoutSession } from '../../services/auth';
 import { BRAND_ASSETS, ROUTE_NAMES } from '../../constants';
-import { StatusPill } from '../shared/StatusPill';
 import type { RouteName } from '../../constants';
 
 interface TopbarProps {
@@ -10,17 +10,16 @@ interface TopbarProps {
 
 export function Topbar({ active }: TopbarProps) {
   const navigate = useNavigate();
-  const { session, logout, getConnectionStatus } = useStore();
-  const connectionStatus = getConnectionStatus();
+  const { session, logout } = useStore();
 
   const computeActive =
     active === ROUTE_NAMES.instances ||
     active === ROUTE_NAMES.create ||
     active === ROUTE_NAMES.detail ||
-    active === ROUTE_NAMES.result ||
     active === ROUTE_NAMES.terminal;
 
-  function handleLogout() {
+  async function handleLogout() {
+    await logoutSession();
     logout();
     navigate('/login', { replace: true });
   }
@@ -49,9 +48,8 @@ export function Topbar({ active }: TopbarProps) {
         </button>
       </nav>
       <div className="topbar-tools">
-        <StatusPill tone={connectionStatus.tone} label={connectionStatus.label} />
         <span className="operator-label">{session?.name ?? ''}</span>
-        <button className="ghost-button" onClick={handleLogout}>
+        <button className="ghost-button" onClick={() => void handleLogout()}>
           Sign out
         </button>
       </div>

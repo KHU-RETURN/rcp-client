@@ -4,12 +4,38 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { InlineBadge } from '../shared/InlineBadge';
 import { EmptyBlock } from '../shared/EmptyBlock';
-import { ROUTE_NAMES } from '../../constants';
-import { getDisplayInstanceId, getTerminalAvailability, humanizeDate, statusTone } from '../../utils';
+import { ROUTE_NAMES, imageTemplates } from '../../constants';
+import {
+  formatCpuUsage,
+  formatRam,
+  getTerminalAvailability,
+  humanizeDate,
+  statusTone,
+} from '../../utils';
+import type { Instance } from '../../types';
 
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
 
 const POLL_INTERVAL_MS = 5000;
+
+function getImageLabel(imageId: string): string {
+  if (!imageId) return '-';
+  return imageTemplates.find((t) => t.id === imageId)?.label ?? imageId;
+}
+
+function getFlavorLabel(instance: Instance): string {
+  const name = instance.flavorName || instance.flavorId || '-';
+  const parts: string[] = [];
+  if (instance.vcpus !== undefined) parts.push(`${instance.vcpus} vCPU`);
+  if (instance.ram !== undefined) parts.push(formatRam(instance.ram));
+  if (instance.disk !== undefined) parts.push(`${instance.disk} GiB disk`);
+  return parts.length ? `${name} · ${parts.join(' · ')}` : name;
+}
+
+function getMemoryUsageLabel(instance: Instance): string {
+  if (!instance.memoryUsage) return '—';
+  return formatRam(instance.memoryUsage);
+}
 
 export function InstanceDetailPage() {
   const navigate = useNavigate();
@@ -19,6 +45,7 @@ export function InstanceDetailPage() {
   const [now, setNow] = useState(() => Date.now());
   const [loadState, setLoadState] = useState<LoadState>(instance ? 'ready' : 'loading');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const terminalAvailability = getTerminalAvailability(instance, now);
 
   useEffect(() => {
@@ -39,7 +66,9 @@ export function InstanceDetailPage() {
       else setLoadState('ready');
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [id, ensureInstanceById]);
 
   useEffect(() => {
@@ -62,6 +91,17 @@ export function InstanceDetailPage() {
     setIsRefreshing(false);
   }
 
+  async function handleCopyId() {
+    if (!instance) return;
+    try {
+      await navigator.clipboard.writeText(instance.id);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // clipboard not available — silently ignore
+    }
+  }
+
   return (
     <div className="page page-instances shell-enter">
       <Topbar active={ROUTE_NAMES.detail} />
@@ -72,7 +112,9 @@ export function InstanceDetailPage() {
               <div>
                 <p className="eyebrow">Compute</p>
                 <h2>Instance details</h2>
-                <p className="muted section-support">선택한 인스턴스의 속성과 접근 정보를 확인합니다.</p>
+                <p className="muted section-support">
+                  선택한 인스턴스의 속성과 접근 정보를 확인합니다.
+                </p>
               </div>
               <div className="action-row compact">
                 <button
@@ -89,44 +131,36 @@ export function InstanceDetailPage() {
             </div>
 
             {instance ? (
-              <div className="detail-page-grid">
-                <section className="detail-page-main table-frame">
-                  <div className="detail-page-header">
-                    <div>
+              <article className="instance-card table-frame">
+                <header className="instance-card-head">
+                  <div className="instance-identity">
+                    <div className="instance-identity-top">
                       <p className="eyebrow">Instance</p>
-                      <h2>{instance.name}</h2>
+                      <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
                     </div>
-                    <InlineBadge tone={statusTone(instance.status)} label={instance.status} />
+                    <h3>{instance.name}</h3>
+                    <div className="instance-id-row">
+                      <code>{instance.id}</code>
+                      <button
+                        type="button"
+                        className="copy-button"
+                        onClick={() => void handleCopyId()}
+                        aria-label="Copy instance ID"
+                      >
+                        {copied ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
                   </div>
-                  <dl className="summary-grid large detail-grid">
-                    <div><dt>ID</dt><dd>{getDisplayInstanceId(instance.id)}</dd></div>
-                    <div><dt>Flavor</dt><dd>{instance.flavorId}</dd></div>
-                    <div><dt>Image</dt><dd>{instance.imageId}</dd></div>
-                    <div><dt>Network</dt><dd>{instance.networkId || 'demo-net'}</dd></div>
-                    <div><dt>SSH key</dt><dd>{instance.keyName || 'Not registered'}</dd></div>
-                    <div><dt>Mode</dt><dd>{instance.mode}</dd></div>
-                    <div><dt>Created</dt><dd>{humanizeDate(instance.created)}</dd></div>
-                    <div><dt>Updated</dt><dd>{humanizeDate(instance.updated)}</dd></div>
-                  </dl>
-                  {String(instance.status).toUpperCase() === 'BUILD' && (
-                    <p className="muted section-support">상태가 변하면 자동으로 갱신됩니다.</p>
-                  )}
-                </section>
-
-                <aside className="workspace-summary detail-side">
-                  <div className="summary-headline">
-                    <p className="eyebrow">Actions</p>
-                    <h2>{instance.name}</h2>
-                  </div>
-                  <div className="summary-note">
-                    <strong>Note</strong>
-                    <p>{instance.note || 'No note'}</p>
-                  </div>
-                  <div className="action-row compact sidebar-actions">
+                  <div className="instance-head-actions">
+                    <button type="button" className="ghost-button" disabled title="Coming soon">
+                      Edit
+                    </button>
                     <button
-                      className="primary-button"
+                      className="primary-button instance-cta"
                       disabled={!terminalAvailability.canOpen}
-                      onClick={() => navigate(`/compute/instances/${encodeURIComponent(instance.id)}/terminal`)}
+                      onClick={() =>
+                        navigate(`/compute/instances/${encodeURIComponent(instance.id)}/terminal`)
+                      }
                     >
                       {terminalAvailability.canOpen
                         ? 'Open terminal'
@@ -134,12 +168,68 @@ export function InstanceDetailPage() {
                           ? `Terminal ready in ${terminalAvailability.waitSeconds}s`
                           : 'Terminal unavailable'}
                     </button>
-                    <button className="ghost-button" onClick={() => navigate('/compute/create')}>
-                      Create VM
-                    </button>
                   </div>
-                </aside>
-              </div>
+                </header>
+
+                <div className="instance-grid">
+                  <section className="instance-block">
+                    <p className="eyebrow">Connect</p>
+                    <dl className="instance-property-rows">
+                      <div>
+                        <dt>Fixed IP</dt>
+                        <dd>{instance.fixedIp || '—'}</dd>
+                      </div>
+                      <div>
+                        <dt>SSH key</dt>
+                        <dd>{instance.keyName || 'Not registered'}</dd>
+                      </div>
+                    </dl>
+                  </section>
+
+                  <section className="instance-block">
+                    <p className="eyebrow">Configuration</p>
+                    <dl className="instance-property-rows">
+                      <div>
+                        <dt>Flavor</dt>
+                        <dd>{getFlavorLabel(instance)}</dd>
+                      </div>
+                      <div>
+                        <dt>Image</dt>
+                        <dd>{getImageLabel(instance.imageId)}</dd>
+                      </div>
+                      <div>
+                        <dt>Created</dt>
+                        <dd>{humanizeDate(instance.created)}</dd>
+                      </div>
+                    </dl>
+                  </section>
+
+                  <section className="instance-block">
+                    <p className="eyebrow">Runtime</p>
+                    <dl className="instance-property-rows">
+                      <div>
+                        <dt>CPU time</dt>
+                        <dd>{formatCpuUsage(instance.cpuUsage)}</dd>
+                      </div>
+                      <div>
+                        <dt>Memory</dt>
+                        <dd>{getMemoryUsageLabel(instance)}</dd>
+                      </div>
+                    </dl>
+                  </section>
+                </div>
+
+                {instance.note && (
+                  <div className="instance-note">
+                    <strong>Note</strong>
+                    <p>{instance.note}</p>
+                  </div>
+                )}
+
+                {String(instance.status).toUpperCase() === 'BUILD' && (
+                  <p className="muted instance-build-hint">상태가 변하면 자동으로 갱신됩니다.</p>
+                )}
+              </article>
             ) : loadState === 'loading' ? (
               <EmptyBlock
                 title="인스턴스를 불러오는 중입니다."
@@ -158,6 +248,30 @@ export function InstanceDetailPage() {
             )}
           </section>
         </section>
+
+        {instance && instances.filter((i) => i.id !== instance.id).length > 0 && (
+          <aside className="workspace-summary instance-siblings">
+            <p className="eyebrow">Other instances</p>
+            <ul className="instance-siblings-list">
+              {instances
+                .filter((i) => i.id !== instance.id)
+                .map((sibling) => (
+                  <li key={sibling.id}>
+                    <button
+                      type="button"
+                      className="instance-sibling-card"
+                      onClick={() =>
+                        navigate(`/compute/instances/${encodeURIComponent(sibling.id)}`)
+                      }
+                    >
+                      <InlineBadge tone={statusTone(sibling.status)} label={sibling.status} />
+                      <span className="instance-sibling-name">{sibling.name}</span>
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </aside>
+        )}
       </main>
     </div>
   );

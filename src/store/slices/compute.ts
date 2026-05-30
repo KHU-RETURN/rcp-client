@@ -6,13 +6,10 @@ import type {
   CreationStatus,
   FlavorsStatus,
   InstanceStatusFilter,
-  CreationResult,
 } from '../../types';
-import type { ConnectionSlice } from './connection';
 import type { DraftSlice } from './draft';
 import type { AuthSlice } from './auth';
-import { rcpConfig } from '../../config';
-import { demoFlavors, imageTemplates } from '../../constants';
+import { imageTemplates } from '../../constants';
 import { sortFlavors, translateError } from '../../utils';
 import { apiRequest } from '../../services/api';
 import {
@@ -21,22 +18,22 @@ import {
   fetchInstances as fetchComputeInstances,
   fetchInstanceById as fetchComputeInstanceById,
 } from '../../services/compute';
-import { buildInventoryRecord } from '../../services/demo';
 
 export interface ComputeSlice {
   flavors: Flavor[];
   flavorsStatus: FlavorsStatus;
+  flavorsError: string;
   instances: Instance[];
+  instancesError: string;
   selectedInstanceId: string | null;
   instanceQuery: string;
   instanceStatusFilter: InstanceStatusFilter;
   keypairStatus: KeypairStatus;
   creationStatus: CreationStatus;
-  result: CreationResult | null;
 
   ensureFlavorData: () => Promise<void>;
   ensureInstanceData: () => Promise<void>;
-  ensureInstanceById: (id: string) => Promise<'ok' | 'not-found' | 'error' | 'skipped'>;
+  ensureInstanceById: (id: string) => Promise<'ok' | 'not-found' | 'error'>;
   upsertInstance: (instance: Instance) => void;
   setSelectedInstanceId: (id: string | null) => void;
   ensureSelectedInstance: () => void;
@@ -44,53 +41,47 @@ export interface ComputeSlice {
   setInstanceStatusFilter: (filter: InstanceStatusFilter) => void;
   setKeypairStatus: (status: KeypairStatus) => void;
   setCreationStatus: (status: CreationStatus) => void;
-  setResult: (result: CreationResult | null) => void;
   handleKeypairRegistration: () => Promise<void>;
   handleCreateInstance: () => Promise<string | null>;
   getSelectedFlavor: () => Flavor | null;
   deleteInstance: (id: string) => Promise<void>;
 }
 
-type ComputeSliceDeps = ComputeSlice & ConnectionSlice & DraftSlice & AuthSlice;
+type ComputeSliceDeps = ComputeSlice & DraftSlice & AuthSlice;
 
-export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (set, get) => ({
+export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeSlice> = (
+  set,
+  get,
+) => ({
   flavors: [],
   flavorsStatus: 'idle',
+  flavorsError: '',
   instances: [],
+  instancesError: '',
   selectedInstanceId: null,
   instanceQuery: '',
   instanceStatusFilter: 'all',
   keypairStatus: { state: 'idle', message: '', response: null },
   creationStatus: { state: 'idle', message: '' },
-  result: null,
 
   ensureFlavorData: async () => {
-    const { flavorsStatus, connectionMode } = get();
+    const { flavorsStatus } = get();
 
     if (flavorsStatus === 'loading' || flavorsStatus === 'ready') return;
 
-    set({ flavorsStatus: 'loading' });
-
-    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') {
-      set({ flavors: sortFlavors(demoFlavors), flavorsStatus: 'ready' });
-      ensureDefaultFlavor(get);
-      return;
-    }
+    set({ flavorsStatus: 'loading', flavorsError: '' });
 
     try {
       const data = await apiRequest<Flavor[]>('/api/v1/compute/flavors?available=true');
-      set({ flavors: sortFlavors(data), flavorsStatus: 'ready', connectionMode: 'live', connectionReason: '' });
-    } catch {
-      set({ flavors: sortFlavors(demoFlavors), flavorsStatus: 'ready' });
+      set({ flavors: sortFlavors(data), flavorsStatus: 'ready', flavorsError: '' });
+      ensureDefaultFlavor(get);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load flavors';
+      set({ flavors: [], flavorsStatus: 'ready', flavorsError: translateError(message) });
     }
-
-    ensureDefaultFlavor(get);
-    void connectionMode;
   },
 
   ensureInstanceData: async () => {
-    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return;
-
     try {
       const previousInstances = get().instances;
       const data = (await fetchComputeInstances()).map((instance) => {
@@ -111,18 +102,15 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
       set({
         instances: data,
         selectedInstanceId,
-        connectionMode: 'live',
-        connectionReason: '',
+        instancesError: '',
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load instances';
-      set({ connectionMode: 'demo', connectionReason: translateError(message) });
+      set({ instancesError: translateError(message) });
     }
   },
 
   ensureInstanceById: async (id) => {
-    if (rcpConfig.demoMode === 'force' || get().connectionMode !== 'live') return 'skipped';
-
     try {
       const instance = await fetchComputeInstanceById(id);
       set((state) => {
@@ -130,7 +118,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
         const index = next.findIndex((i) => i.id === instance.id);
         if (index >= 0) next[index] = { ...next[index], ...instance };
         else next.unshift(instance);
-        return { instances: next, connectionMode: 'live', connectionReason: '' };
+        return { instances: next, instancesError: '' };
       });
       return 'ok';
     } catch (error) {
@@ -167,22 +155,22 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   setInstanceStatusFilter: (filter) => set({ instanceStatusFilter: filter }),
   setKeypairStatus: (status) => set({ keypairStatus: status }),
   setCreationStatus: (status) => set({ creationStatus: status }),
-  setResult: (result) => set({ result }),
 
   handleKeypairRegistration: async () => {
-    const { draft, connectionMode, setKeypairStatus } = get();
+    const { draft, setKeypairStatus } = get();
     setKeypairStatus({ state: 'saving', message: '공개키를 등록하는 중입니다.', response: null });
 
-    const status = await registerKeypair(
-      { name: draft.keypairName.trim(), public_key: draft.publicKey.trim() },
-      connectionMode === 'demo',
-    );
+    const status = await registerKeypair({
+      name: draft.keypairName.trim(),
+      public_key: draft.publicKey.trim(),
+    });
     setKeypairStatus(status);
   },
 
   handleCreateInstance: async () => {
-    const { draft, connectionMode, session, keypairStatus, instances, upsertInstance, setCreationStatus, setResult } = get();
-    const imageId = imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
+    const { draft, keypairStatus, upsertInstance, setCreationStatus } = get();
+    const imageId =
+      imageTemplates.find((item) => item.key === draft.imageTemplate)?.id ?? draft.imageId.trim();
 
     const payload = {
       name: draft.name.trim(),
@@ -193,24 +181,17 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
 
     setCreationStatus({ state: 'saving', message: '인스턴스 생성 요청을 보내는 중입니다.' });
 
-    const isDemo = connectionMode === 'demo';
-    const userId = session?.id ?? 'demo-user';
     const keypairName = keypairStatus.response?.name ?? '';
+    const { record, error } = await createInstance(payload, keypairName, draft.description.trim());
 
-    const result = await createInstance(payload, isDemo, userId, keypairName, draft.description.trim());
-
-    if (result.type === 'success' && result.response) {
-      const record = buildInventoryRecord(payload, result.response, result.mode, keypairName, draft.description.trim());
+    if (record) {
       upsertInstance(record);
-      setResult({ ...result, instanceId: record.id });
       setCreationStatus({ state: 'idle', message: '' });
-      return '/compute/create/result';
+      return '/compute';
     }
 
-    setResult(result);
-    setCreationStatus({ state: 'error', message: result.error ?? '생성 요청을 완료하지 못했습니다.' });
-    void instances;
-    return '/compute/create/result';
+    setCreationStatus({ state: 'error', message: error ?? '생성 요청을 완료하지 못했습니다.' });
+    return null;
   },
 
   getSelectedFlavor: () => {
@@ -222,9 +203,10 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
     await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}`, { method: 'DELETE' });
     set((state) => ({
       instances: state.instances.filter((i) => i.id !== id),
-      selectedInstanceId: state.selectedInstanceId === id
-        ? (state.instances.find((i) => i.id !== id)?.id ?? null)
-        : state.selectedInstanceId,
+      selectedInstanceId:
+        state.selectedInstanceId === id
+          ? (state.instances.find((i) => i.id !== id)?.id ?? null)
+          : state.selectedInstanceId,
     }));
   },
 });

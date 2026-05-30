@@ -94,7 +94,6 @@ export async function fetchAuthSession(): Promise<Session> {
   });
 
   if (!response.ok) {
-    const body = await response.text().catch(() => '');
     throw new Error(`Auth session check failed with ${response.status}`);
   }
 
@@ -102,4 +101,54 @@ export async function fetchAuthSession(): Promise<Session> {
   const session = normalizeAuthSession(payload);
 
   return session;
+}
+
+interface RefreshResponse {
+  access_token?: string;
+  expires_in?: number;
+}
+
+export type RefreshFailureKind = 'network' | 'http';
+
+// network = fetch 가 throw 한 경우 (DNS, TLS, 오프라인 등). 일시 단절일 가능성이 높아 재시도 후보.
+// http   = 서버가 응답을 줬으나 ok=false (401 등). 명시적 인증 거부이므로 즉시 로그아웃.
+export class RefreshFailedError extends Error {
+  constructor(
+    public readonly kind: RefreshFailureKind,
+    public readonly status?: number,
+  ) {
+    super(`Refresh failed: ${kind}${status !== undefined ? ` (${status})` : ''}`);
+    this.name = 'RefreshFailedError';
+  }
+}
+
+export async function refreshAccessToken(): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(buildApiUrl('/api/v1/auth/refresh'), {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch {
+    throw new RefreshFailedError('network');
+  }
+
+  if (!response.ok) {
+    throw new RefreshFailedError('http', response.status);
+  }
+
+  const payload = (await response.json().catch(() => null)) as RefreshResponse | null;
+  if (!payload?.access_token) {
+    throw new RefreshFailedError('http', response.status);
+  }
+  return payload.access_token;
+}
+
+export async function logoutSession(): Promise<void> {
+  await fetch(buildApiUrl('/api/v1/auth/logout'), {
+    method: 'POST',
+    credentials: 'include',
+  }).catch(() => {
+    // 네트워크 실패 시에도 클라이언트 측 정리는 계속 진행한다.
+  });
 }

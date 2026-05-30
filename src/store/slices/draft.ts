@@ -40,7 +40,9 @@ export const createDraftSlice: StateCreator<DraftSlice, [], [], DraftSlice> = (s
 
     if (changedName === 'imageAssistEnabled') {
       const imageId = checked
-        ? (imageTemplates.find((t) => t.key === draft.imageTemplate)?.id ?? imageTemplates[0]?.id ?? '')
+        ? (imageTemplates.find((t) => t.key === draft.imageTemplate)?.id ??
+          imageTemplates[0]?.id ??
+          '')
         : draft.imageId;
       set((state) => ({ draft: { ...state.draft, imageAssistEnabled: checked, imageId } }));
       return;
@@ -48,7 +50,9 @@ export const createDraftSlice: StateCreator<DraftSlice, [], [], DraftSlice> = (s
 
     if (changedName === 'networkAssistEnabled') {
       const networkId = checked
-        ? (networkTemplates.find((t) => t.key === draft.networkTemplate)?.id ?? networkTemplates[0]?.id ?? '')
+        ? (networkTemplates.find((t) => t.key === draft.networkTemplate)?.id ??
+          networkTemplates[0]?.id ??
+          '')
         : draft.networkId;
       set((state) => ({ draft: { ...state.draft, networkAssistEnabled: checked, networkId } }));
       return;

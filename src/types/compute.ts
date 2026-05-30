@@ -7,9 +7,6 @@ export interface Flavor {
   max_configurable: number;
 }
 
-export type InstanceSource = 'mock-seed' | 'mock-created' | 'local-live';
-export type InstanceMode = 'demo' | 'live';
-
 export interface Instance {
   id: string;
   name: string;
@@ -18,11 +15,15 @@ export interface Instance {
   updated: string;
   flavorId: string;
   flavorName: string | undefined;
+  vcpus: number | undefined;
+  ram: number | undefined;
+  disk: number | undefined;
   imageId: string;
   networkId: string;
   keyName: string;
-  mode: InstanceMode;
-  source: InstanceSource;
+  fixedIp: string;
+  cpuUsage: number | undefined;
+  memoryUsage: number | undefined;
   note: string;
 }
 
@@ -46,7 +47,7 @@ export interface KeypairResponse {
   public_key: string;
 }
 
-export type KeypairState = 'idle' | 'saving' | 'saved' | 'demo' | 'error';
+export type KeypairState = 'idle' | 'saving' | 'saved' | 'error';
 
 export interface KeypairStatus {
   state: KeypairState;
@@ -67,7 +68,7 @@ export interface SectionState {
   error: boolean;
 }
 
-export type SectionKey = 'basic' | 'compute' | 'image-network' | 'access' | 'review';
+export type SectionKey = 'basic' | 'image-network' | 'compute' | 'access' | 'review';
 export type SectionStates = Record<SectionKey, SectionState>;
 
 export type InstanceStatusFilter = 'all' | 'active' | 'build';

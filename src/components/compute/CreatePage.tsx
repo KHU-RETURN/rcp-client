@@ -8,10 +8,9 @@ import { ROUTE_NAMES, imageTemplates, SECTION_ORDER } from '../../constants';
 import { validateName, validatePublicKey, formatRam } from '../../utils';
 import type { SectionStates } from '../../types';
 
-function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'cirros' | 'default' {
+function imageMarkVariant(key: string): 'ubuntu' | 'rocky' | 'default' {
   if (key.includes('ubuntu')) return 'ubuntu';
   if (key.includes('rocky')) return 'rocky';
-  if (key.includes('cirros')) return 'cirros';
   return 'default';
 }
 
@@ -33,13 +32,6 @@ function ImageMarkIcon({ variant }: { variant: ReturnType<typeof imageMarkVarian
       </svg>
     );
   }
-  if (variant === 'cirros') {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden focusable="false">
-        <path d="M7.2 17.8h9.6a3.6 3.6 0 0 0 .55-7.16 5.1 5.1 0 0 0-9.7-1.04A4 4 0 0 0 7.2 17.8z" />
-      </svg>
-    );
-  }
   return <span className="image-card-mark-fallback">?</span>;
 }
 
@@ -51,19 +43,16 @@ export function CreatePage() {
     flavors,
     keypairStatus,
     creationStatus,
-    connectionMode,
     ensureFlavorData,
     handleKeypairRegistration,
     handleCreateInstance,
     getSelectedFlavor,
-    getConnectionStatus,
   } = useStore();
 
   useEffect(() => {
     void ensureFlavorData();
   }, [ensureFlavorData]);
 
-  const connectionStatus = getConnectionStatus();
   const selectedFlavor = getSelectedFlavor();
   const imageTemplate = imageTemplates.find((t) => t.key === draft.imageTemplate) ?? null;
   const resolvedImageId = imageTemplate?.id ?? draft.imageId.trim();
@@ -80,22 +69,19 @@ export function CreatePage() {
       valid: validateName(draft.name),
       error: draft.name.trim().length > 0 && !validateName(draft.name),
     },
-    compute: {
-      title: 'Compute sizing',
-      valid: Boolean(selectedFlavor && selectedFlavor.max_configurable > 0),
-      error: Boolean(selectedFlavor && selectedFlavor.max_configurable === 0),
-    },
     'image-network': {
       title: 'Image',
       valid: Boolean(resolvedImageId),
       error: !resolvedImageId,
     },
+    compute: {
+      title: 'Compute sizing',
+      valid: Boolean(selectedFlavor && selectedFlavor.max_configurable > 0),
+      error: Boolean(selectedFlavor && selectedFlavor.max_configurable === 0),
+    },
     access: {
       title: 'Access',
-      valid:
-        keypairStatus.state === 'saved' ||
-        keypairStatus.state === 'demo' ||
-        (!keyNamePresent && !publicKeyPresent),
+      valid: keypairStatus.state === 'saved' || (!keyNamePresent && !publicKeyPresent),
       error: Boolean((keyNamePresent && !keyNameValid) || (publicKeyPresent && !publicKeyValid)),
     },
     review: {
@@ -146,7 +132,7 @@ export function CreatePage() {
         <SectionRail sections={sections} />
 
         <section className="workspace-main">
-          <section className={`notice-strip create-strip ${connectionStatus.tone}`}>
+          <section className="notice-strip create-strip">
             <div>
               <strong>Compute / Create</strong>
               <p>
@@ -156,7 +142,6 @@ export function CreatePage() {
               </p>
             </div>
             <ul>
-              <li>{connectionStatus.label}</li>
               <li>{draft.imageId ? 'Image ready' : 'Image required'}</li>
               <li>{keypairStatus.response?.name ? 'SSH ready' : 'SSH optional'}</li>
             </ul>
@@ -202,34 +187,22 @@ export function CreatePage() {
             </div>
           </section>
 
-          {/* Compute */}
-          <section className="editor-section" id="compute">
-            <div className="section-head">
-              <div>
-                <p className="eyebrow">02 · Sizing</p>
-                <h2>사양</h2>
-              </div>
-              <p className="muted">quota 기준으로 선택합니다.</p>
-            </div>
-            <div className="table-frame">
-              <FlavorTable
-                selectedFlavorId={draft.selectedFlavorId}
-                onSelectFlavor={handleSelectFlavor}
-              />
-            </div>
-          </section>
-
           {/* Image */}
           <section className="editor-section" id="image-network">
             <div className="section-head">
               <div>
-                <p className="eyebrow">03 · Image</p>
+                <p className="eyebrow">02 · Image</p>
                 <h2>이미지</h2>
               </div>
               <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
             </div>
 
-            <div className="image-grid" data-ui="image-template" role="radiogroup" aria-label="Image template">
+            <div
+              className="image-grid"
+              data-ui="image-template"
+              role="radiogroup"
+              aria-label="Image template"
+            >
               {imageTemplates.map((item) => {
                 const selected = draft.imageTemplate === item.key;
                 return (
@@ -242,17 +215,39 @@ export function CreatePage() {
                     onClick={() => handleSelectImage(item.key)}
                     data-key={item.key}
                   >
-                    <span className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`} aria-hidden>
+                    <span
+                      className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`}
+                      aria-hidden
+                    >
                       <ImageMarkIcon variant={imageMarkVariant(item.key)} />
                     </span>
                     <span className="image-card-body">
                       <strong>{item.label}</strong>
                       <small className="muted">{item.description}</small>
                     </span>
-                    <span className="image-card-check" aria-hidden>{selected ? '✓' : ''}</span>
+                    <span className="image-card-check" aria-hidden>
+                      {selected ? '✓' : ''}
+                    </span>
                   </button>
                 );
               })}
+            </div>
+          </section>
+
+          {/* Compute */}
+          <section className="editor-section" id="compute">
+            <div className="section-head">
+              <div>
+                <p className="eyebrow">03 · Sizing</p>
+                <h2>사양</h2>
+              </div>
+              <p className="muted">quota 기준으로 선택합니다.</p>
+            </div>
+            <div className="table-frame">
+              <FlavorTable
+                selectedFlavorId={draft.selectedFlavorId}
+                onSelectFlavor={handleSelectFlavor}
+              />
             </div>
           </section>
 
@@ -330,8 +325,14 @@ export function CreatePage() {
             <div className="review-layout">
               <div className="review-copy">
                 <ul className="review-rows">
-                  <li><strong>Name</strong><span>{payload.name || '-'}</span></li>
-                  <li><strong>Flavor</strong><span>{selectedFlavor?.name ?? '-'}</span></li>
+                  <li>
+                    <strong>Name</strong>
+                    <span>{payload.name || '-'}</span>
+                  </li>
+                  <li>
+                    <strong>Flavor</strong>
+                    <span>{selectedFlavor?.name ?? '-'}</span>
+                  </li>
                   <li>
                     <strong>Resources</strong>
                     <span>
@@ -340,8 +341,14 @@ export function CreatePage() {
                         : '-'}
                     </span>
                   </li>
-                  <li><strong>Image</strong><span>{selectedImageLabel}</span></li>
-                  <li><strong>SSH key</strong><span>{keypairStatus.response?.name ?? 'Optional'}</span></li>
+                  <li>
+                    <strong>Image</strong>
+                    <span>{selectedImageLabel}</span>
+                  </li>
+                  <li>
+                    <strong>SSH key</strong>
+                    <span>{keypairStatus.response?.name ?? 'Optional'}</span>
+                  </li>
                 </ul>
                 {creationStatus.message && (
                   <p className={`inline-status ${creationStatus.state}`} aria-live="polite">
@@ -359,19 +366,25 @@ export function CreatePage() {
                   </button>
                   <button
                     className="ghost-button"
-                    onClick={() => document.getElementById('basic')?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() =>
+                      document.getElementById('basic')?.scrollIntoView({ behavior: 'smooth' })
+                    }
                   >
                     Back to edit
                   </button>
                 </div>
               </div>
               <pre className="code-block" data-ui="payload-preview">
-                {JSON.stringify({
-                  name: payload.name,
-                  flavor: selectedFlavor?.name ?? '',
-                  image: selectedImageLabel,
-                  ssh_key: keypairStatus.response?.name ?? 'Optional',
-                }, null, 2)}
+                {JSON.stringify(
+                  {
+                    name: payload.name,
+                    flavor: selectedFlavor?.name ?? '',
+                    image: selectedImageLabel,
+                    ssh_key: keypairStatus.response?.name ?? 'Optional',
+                  },
+                  null,
+                  2,
+                )}
               </pre>
             </div>
           </section>
@@ -384,18 +397,39 @@ export function CreatePage() {
             <h2 data-ui="summary-name">{draft.name || 'Untitled VM'}</h2>
           </div>
           <dl className="summary-grid">
-            <div><dt>Mode</dt><dd>{connectionMode === 'live' ? 'Live API' : 'Demo fallback'}</dd></div>
-            <div><dt>Flavor</dt><dd>{selectedFlavor?.name ?? 'Not selected'}</dd></div>
-            <div><dt>Quota impact</dt><dd>{selectedFlavor ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}` : '-'}</dd></div>
-            <div><dt>Max creatable</dt><dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd></div>
-            <div><dt>Image</dt><dd>{selectedImageLabel}</dd></div>
-            <div><dt>SSH key</dt><dd>{keypairStatus.response?.name ?? 'Not registered'}</dd></div>
+            <div>
+              <dt>Flavor</dt>
+              <dd>{selectedFlavor?.name ?? 'Not selected'}</dd>
+            </div>
+            <div>
+              <dt>Quota impact</dt>
+              <dd>
+                {selectedFlavor
+                  ? `${selectedFlavor.vcpus} vCPU / ${formatRam(selectedFlavor.ram)}`
+                  : '-'}
+              </dd>
+            </div>
+            <div>
+              <dt>Max creatable</dt>
+              <dd>{selectedFlavor ? selectedFlavor.max_configurable : '-'}</dd>
+            </div>
+            <div>
+              <dt>Image</dt>
+              <dd>{selectedImageLabel}</dd>
+            </div>
+            <div>
+              <dt>SSH key</dt>
+              <dd>{keypairStatus.response?.name ?? 'Not registered'}</dd>
+            </div>
           </dl>
           <div className="summary-checks" data-ui="summary-checks">
             {SECTION_ORDER.map((key) => {
               const section = sections[key];
               return (
-                <div key={key} className={`check-row ${section.error ? 'error' : section.valid ? 'valid' : 'pending'}`}>
+                <div
+                  key={key}
+                  className={`check-row ${section.error ? 'error' : section.valid ? 'valid' : 'pending'}`}
+                >
                   <span>{section.title}</span>
                   <strong>{section.error ? 'Fix' : section.valid ? 'Ready' : 'Pending'}</strong>
                 </div>
