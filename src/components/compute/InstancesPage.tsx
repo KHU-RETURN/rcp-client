@@ -81,7 +81,7 @@ export function InstancesPage() {
                 <p className="muted section-support">인스턴스 목록</p>
               </div>
               <div className="section-head-meta">
-                <div className="section-stats" role="group" aria-label="Inventory summary">
+                <section className="section-stats" aria-label="Inventory summary">
                   <div className="mini-stat">
                     <span>Visible</span>
                     <strong>{visible.length}</strong>
@@ -94,8 +94,12 @@ export function InstancesPage() {
                     <span>Active</span>
                     <strong>{activeCount}</strong>
                   </div>
-                </div>
-                <button className="primary-button" onClick={() => navigate('/compute/create')}>
+                </section>
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => navigate('/compute/create')}
+                >
                   Create new VM
                 </button>
               </div>
@@ -113,26 +117,30 @@ export function InstancesPage() {
                 />
               </label>
               <div className="toolbar-side">
-                <div className="filter-row" role="group" aria-label="Instance status filters">
+                <fieldset className="filter-row">
+                  <legend className="sr-only">Instance status filters</legend>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'all' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('all')}
                   >
                     All {instances.length}
                   </button>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'active' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('active')}
                   >
                     Active {activeCount}
                   </button>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'build' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('build')}
                   >
                     Building {buildCount}
                   </button>
-                </div>
+                </fieldset>
                 {errorCount > 0 && <span className="toolbar-meta">Issues {errorCount}</span>}
               </div>
             </div>
@@ -149,6 +157,7 @@ export function InstancesPage() {
             selectedInstance && (
               <>
                 <button
+                  type="button"
                   className="primary-button"
                   disabled={!terminalAvailability.canOpen}
                   onClick={() =>
@@ -164,6 +173,7 @@ export function InstancesPage() {
                       : 'Terminal unavailable'}
                 </button>
                 <button
+                  type="button"
                   className="ghost-button"
                   onClick={() =>
                     navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)
@@ -172,6 +182,7 @@ export function InstancesPage() {
                   View details
                 </button>
                 <button
+                  type="button"
                   className="danger-button"
                   disabled={deletingId === selectedInstance.id}
                   onClick={() => handleDeleteInstance(selectedInstance.id)}

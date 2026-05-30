@@ -14,7 +14,11 @@ export function ChangesPage() {
   const navigate = useNavigate();
 
   const headerActions = (
-    <button className="ghost-button ghost-button-small" onClick={() => navigate('/login')}>
+    <button
+      type="button"
+      className="ghost-button ghost-button-small"
+      onClick={() => navigate('/login')}
+    >
       로그인
     </button>
   );

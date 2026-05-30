@@ -27,14 +27,14 @@ export function AuthGuard() {
         const restoredSession = await fetchAuthSession();
         login(restoredSession);
         setIsChecking(false);
-      } catch (error) {
+      } catch {
         setPendingRoutePath(location.pathname);
         navigate('/login', { replace: true });
       }
     }
 
     void restoreProtectedRouteSession();
-  }, [session, login, navigate, location.pathname, setPendingRoutePath, isChecking]);
+  }, [session, login, navigate, location.pathname, setPendingRoutePath]);
 
   if (!session && isChecking) return null;
   if (!session) return null;

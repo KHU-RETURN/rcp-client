@@ -3,3 +3,4 @@ dist/
 .playwright-cli/
 npm-debug.log*
 .env
+.gstack/

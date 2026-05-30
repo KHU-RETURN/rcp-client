@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const platformFeatures = [
@@ -108,6 +108,7 @@ export function LandingPage() {
     <div className="page landing-page">
       <header className="landing-nav">
         <button
+          type="button"
           className="landing-brand"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
@@ -115,15 +116,20 @@ export function LandingPage() {
           <span>Return Cloud Platform</span>
         </button>
         <nav aria-label="Landing navigation">
-          <button onClick={scrollToStory}>Features</button>
+          <button type="button" onClick={scrollToStory}>
+            Features
+          </button>
           <button
+            type="button"
             onClick={() =>
               document.getElementById('landing-flavors')?.scrollIntoView({ behavior: 'smooth' })
             }
           >
             Options
           </button>
-          <button onClick={() => navigate('/login')}>Login</button>
+          <button type="button" onClick={() => navigate('/login')}>
+            Login
+          </button>
         </nav>
       </header>
 
@@ -146,6 +152,7 @@ export function LandingPage() {
             </div>
 
             <button
+              type="button"
               className="landing-scroll"
               onClick={scrollToStory}
               aria-label="Scroll to features"
@@ -218,7 +225,7 @@ export function LandingPage() {
           <img src="/assets/return-black.svg" alt="" />
           <h2>RETURN Cloud Platform</h2>
           <p>필요한 리소스를 바로 준비하세요.</p>
-          <button className="primary-button" onClick={() => navigate('/login')}>
+          <button type="button" className="primary-button" onClick={() => navigate('/login')}>
             Login to RCP
           </button>
         </section>
