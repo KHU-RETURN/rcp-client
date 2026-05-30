@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { describeSession, fetchAuthSession } from '../../services/auth';
+import { fetchAuthSession } from '../../services/auth';
 import { useStore } from '../../store';
 
 export function AuthGuard() {
