@@ -1089,10 +1089,16 @@ h3 {
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
-.oauth-button:hover {
+.oauth-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(17, 17, 17, 0.18);
   box-shadow: 0 16px 34px rgba(17, 17, 17, 0.08);
+}
+
+.oauth-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .oauth-mark {
