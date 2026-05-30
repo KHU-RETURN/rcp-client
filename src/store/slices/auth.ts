@@ -1,5 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { Session, AuthMessage } from '../../types';
+import { resetAuthFailureGuard } from '../../services/api';
 
 export interface AuthSlice {
   session: Session | null;
@@ -8,6 +9,7 @@ export interface AuthSlice {
 
   login: (user: Session, nextPath?: string) => string;
   logout: () => void;
+  updateAccessToken: (token: string) => void;
   setAuthMessage: (message: AuthMessage | null) => void;
   setPendingRoutePath: (path: string | null) => void;
 }
@@ -24,11 +26,18 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (set,
       authMessage: null,
       pendingRoutePath: null,
     });
+    resetAuthFailureGuard();
     return nextPath ?? pending ?? '/compute';
   },
 
   logout: () => {
     set({ session: null, pendingRoutePath: null, authMessage: null });
+  },
+
+  updateAccessToken: (token) => {
+    const session = get().session;
+    if (!session) return;
+    set({ session: { ...session, accessToken: token } });
   },
 
   setAuthMessage: (message) => {
