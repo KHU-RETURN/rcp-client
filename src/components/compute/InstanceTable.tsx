@@ -73,7 +73,6 @@ export function InstanceTable() {
         <td>{instance.created?.startsWith('0001') ? '—' : humanizeDate(instance.created)}</td>
         <td>
           <button
-            type="button"
             className="ghost-button ghost-button-small"
             disabled={!terminalAvailability.canOpen}
             title={

@@ -134,14 +134,13 @@ export function StorageContainerPage() {
               <div className="action-row compact">
                 <input ref={fileInputRef} type="file" hidden onChange={handleFileChange} />
                 <button
-                  type="button"
                   className="primary-button"
                   disabled={notFound || objectUpload.state === 'saving'}
                   onClick={() => void handlePickFile()}
                 >
                   {objectUpload.state === 'saving' ? 'Uploading...' : 'Upload file'}
                 </button>
-                <button type="button" className="ghost-button" onClick={() => navigate('/storage')}>
+                <button className="ghost-button" onClick={() => navigate('/storage')}>
                   Back
                 </button>
               </div>
@@ -234,7 +233,6 @@ export function StorageContainerPage() {
                                 style={{ justifyContent: 'flex-end' }}
                               >
                                 <button
-                                  type="button"
                                   className="ghost-button"
                                   disabled={downloadingKey === obj.name}
                                   onClick={() => void handleDownload(obj.name)}
@@ -242,7 +240,6 @@ export function StorageContainerPage() {
                                   {downloadingKey === obj.name ? 'Downloading...' : 'Download'}
                                 </button>
                                 <button
-                                  type="button"
                                   className="danger-button"
                                   disabled={busyKey === obj.name}
                                   onClick={() => void handleDeleteObject(obj.name)}
@@ -290,18 +287,13 @@ export function StorageContainerPage() {
               </dl>
               <div className="action-row compact sidebar-actions">
                 <button
-                  type="button"
                   className="primary-button"
                   disabled={objectUpload.state === 'saving'}
                   onClick={() => void handlePickFile()}
                 >
                   {objectUpload.state === 'saving' ? 'Uploading...' : 'Upload file'}
                 </button>
-                <button
-                  type="button"
-                  className="danger-button"
-                  onClick={() => void handleDeleteContainer()}
-                >
+                <button className="danger-button" onClick={() => void handleDeleteContainer()}>
                   Delete container
                 </button>
               </div>

@@ -206,18 +206,15 @@ export function CreatePage() {
               {imageTemplates.map((item) => {
                 const selected = draft.imageTemplate === item.key;
                 return (
-                  <label
+                  <button
                     key={item.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
                     className={`image-card${selected ? ' is-selected' : ''}`}
+                    onClick={() => handleSelectImage(item.key)}
                     data-key={item.key}
                   >
-                    <input
-                      className="image-card-input"
-                      type="radio"
-                      name="imageTemplate"
-                      checked={selected}
-                      onChange={() => handleSelectImage(item.key)}
-                    />
                     <span
                       className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`}
                       aria-hidden
@@ -231,7 +228,7 @@ export function CreatePage() {
                     <span className="image-card-check" aria-hidden>
                       {selected ? '✓' : ''}
                     </span>
-                  </label>
+                  </button>
                 );
               })}
             </div>
@@ -293,7 +290,6 @@ export function CreatePage() {
 
             <div className="action-row">
               <button
-                type="button"
                 className="primary-button secondary-tone"
                 data-ui="register-key"
                 disabled={keypairStatus.state === 'saving'}
@@ -361,7 +357,6 @@ export function CreatePage() {
                 )}
                 <div className="action-row compact">
                   <button
-                    type="button"
                     className="primary-button"
                     data-ui="create-vm"
                     disabled={!canCreate}
@@ -370,7 +365,6 @@ export function CreatePage() {
                     {creationStatus.state === 'saving' ? 'Creating...' : 'Create instance'}
                   </button>
                   <button
-                    type="button"
                     className="ghost-button"
                     onClick={() =>
                       document.getElementById('basic')?.scrollIntoView({ behavior: 'smooth' })

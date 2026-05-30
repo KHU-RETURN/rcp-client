@@ -32,26 +32,6 @@ interface UseTerminalReturn {
   reconnect: () => void;
 }
 
-async function createConsoleSession(inst: Instance): Promise<ConsoleSessionResponse> {
-  return apiRequest<ConsoleSessionResponse>(
-    `/api/v1/access/instances/${encodeURIComponent(inst.id)}/console-sessions`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ username: 'ubuntu' }),
-    },
-  );
-}
-
-function resolveWebSocketUrl(rawUrl: string): string {
-  const baseUrl = rcpConfig.apiBaseUrl || window.location.origin;
-  const url = new URL(rawUrl, baseUrl);
-
-  if (url.protocol === 'http:') url.protocol = 'ws:';
-  if (url.protocol === 'https:') url.protocol = 'wss:';
-
-  return url.toString();
-}
-
 export function useTerminal(
   instance: Instance | null,
   hostRef: React.RefObject<HTMLDivElement | null>,
@@ -61,7 +41,7 @@ export function useTerminal(
   const setupVersionRef = useRef(0);
   const [isConnected, setIsConnected] = useState(false);
 
-  const dispose = useCallback(() => {
+  function dispose() {
     setupVersionRef.current += 1;
     const rt = runtimeRef.current;
     if (!rt) return;
@@ -72,81 +52,7 @@ export function useTerminal(
     rt.terminal.dispose();
     runtimeRef.current = null;
     setIsConnected(false);
-  }, []);
-
-  const connect = useCallback(
-    async (rt: TerminalRuntimeRef, inst: Instance, setupVersion: number) => {
-      const term = rt.terminal;
-      term.write(`[Creating console session for ${inst.name}...]\r\n`);
-
-      try {
-        const session = await createConsoleSession(inst);
-        if (!session.url) throw new Error('console session response did not include a url');
-        if (setupVersion !== setupVersionRef.current || runtimeRef.current !== rt) return;
-
-        term.write('[Opening WebSocket...]\r\n');
-
-        const socketUrl = resolveWebSocketUrl(session.url);
-        console.info('[useTerminal] opening websocket', {
-          instanceId: inst.id,
-          url: socketUrl,
-        });
-
-        const socket = new WebSocket(socketUrl);
-        socket.binaryType = 'arraybuffer';
-        rt.socket = socket;
-
-        socket.onopen = () => {
-          console.info('[useTerminal] websocket open', { instanceId: inst.id });
-          setIsConnected(true);
-          term.write('[Connected]\r\n\r\n');
-          term.focus();
-        };
-
-        socket.onmessage = async (event) => {
-          if (typeof event.data === 'string') {
-            term.write(event.data);
-            return;
-          }
-
-          if (event.data instanceof ArrayBuffer) {
-            term.write(rt.decoder.decode(new Uint8Array(event.data)));
-            return;
-          }
-
-          if (event.data instanceof Blob) {
-            const buffer = await event.data.arrayBuffer();
-            term.write(rt.decoder.decode(new Uint8Array(buffer)));
-          }
-        };
-
-        socket.onerror = (event) => {
-          console.error('[useTerminal] websocket error', {
-            instanceId: inst.id,
-            url: socketUrl,
-            event,
-          });
-          term.write('\r\n[WebSocket error]\r\n');
-        };
-
-        socket.onclose = (event) => {
-          console.info('[useTerminal] websocket close', {
-            instanceId: inst.id,
-            code: event.code,
-            reason: event.reason,
-            wasClean: event.wasClean,
-          });
-          setIsConnected(false);
-          term.write('\r\n[Disconnected]\r\n');
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown terminal error';
-        term.write(`\r\n[Error] ${message}\r\n`);
-        console.error(error);
-      }
-    },
-    [],
-  );
+  }
 
   const setup = useCallback(async () => {
     if (!instance || !hostRef.current) return;
@@ -213,14 +119,105 @@ export function useTerminal(
     rt.resizeHandler();
 
     await connect(rt, instance, setupVersion);
-  }, [connect, dispose, hostRef, instance]);
+  }, [instance, hostRef]);
+
+  async function createConsoleSession(inst: Instance): Promise<ConsoleSessionResponse> {
+    return apiRequest<ConsoleSessionResponse>(
+      `/api/v1/access/instances/${encodeURIComponent(inst.id)}/console-sessions`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ username: 'ubuntu' }),
+      },
+    );
+  }
+
+  function resolveWebSocketUrl(rawUrl: string): string {
+    const baseUrl = rcpConfig.apiBaseUrl || window.location.origin;
+    const url = new URL(rawUrl, baseUrl);
+
+    if (url.protocol === 'http:') url.protocol = 'ws:';
+    if (url.protocol === 'https:') url.protocol = 'wss:';
+
+    return url.toString();
+  }
+
+  async function connect(rt: TerminalRuntimeRef, inst: Instance, setupVersion: number) {
+    const term = rt.terminal;
+    term.write(`[Creating console session for ${inst.name}...]\r\n`);
+
+    try {
+      const session = await createConsoleSession(inst);
+      if (!session.url) throw new Error('console session response did not include a url');
+      if (setupVersion !== setupVersionRef.current || runtimeRef.current !== rt) return;
+
+      term.write('[Opening WebSocket...]\r\n');
+
+      const socketUrl = resolveWebSocketUrl(session.url);
+      console.info('[useTerminal] opening websocket', {
+        instanceId: inst.id,
+        url: socketUrl,
+      });
+
+      const socket = new WebSocket(socketUrl);
+      socket.binaryType = 'arraybuffer';
+      rt.socket = socket;
+
+      socket.onopen = () => {
+        console.info('[useTerminal] websocket open', { instanceId: inst.id });
+        setIsConnected(true);
+        term.write('[Connected]\r\n\r\n');
+        term.focus();
+      };
+
+      socket.onmessage = async (event) => {
+        if (typeof event.data === 'string') {
+          term.write(event.data);
+          return;
+        }
+
+        if (event.data instanceof ArrayBuffer) {
+          term.write(rt.decoder.decode(new Uint8Array(event.data)));
+          return;
+        }
+
+        if (event.data instanceof Blob) {
+          const buffer = await event.data.arrayBuffer();
+          term.write(rt.decoder.decode(new Uint8Array(buffer)));
+        }
+      };
+
+      socket.onerror = (event) => {
+        console.error('[useTerminal] websocket error', {
+          instanceId: inst.id,
+          url: socketUrl,
+          event,
+        });
+        term.write('\r\n[WebSocket error]\r\n');
+      };
+
+      socket.onclose = (event) => {
+        console.info('[useTerminal] websocket close', {
+          instanceId: inst.id,
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+        });
+        setIsConnected(false);
+        term.write('\r\n[Disconnected]\r\n');
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown terminal error';
+      term.write(`\r\n[Error] ${message}\r\n`);
+      console.error(error);
+    }
+  }
 
   useEffect(() => {
     void setup();
     return () => {
       dispose();
     };
-  }, [dispose, setup]);
+  }, [setup]);
 
   const clear = useCallback(() => {
     runtimeRef.current?.terminal.clear();
@@ -229,7 +226,7 @@ export function useTerminal(
   const reconnect = useCallback(() => {
     dispose();
     void setup();
-  }, [dispose, setup]);
+  }, [setup]);
 
   return {
     isConnected,

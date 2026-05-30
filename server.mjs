@@ -67,7 +67,7 @@ async function proxyApi(req, res, requestUrl) {
     const headers = Object.fromEntries(upstream.headers.entries());
     delete headers['content-encoding'];
     delete headers['transfer-encoding'];
-    delete headers.connection;
+    delete headers['connection'];
 
     res.writeHead(upstream.status, headers);
     const arrayBuffer = await upstream.arrayBuffer();
@@ -122,7 +122,7 @@ async function serveStatic(res, pathname) {
 async function sendFile(res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const contentType = mimeTypes.get(ext) || 'application/octet-stream';
-  const content = await fs.readFile(filePath);
+  let content = await fs.readFile(filePath);
 
   // Vite bakes env vars at build time; no runtime injection needed for the built app.
 

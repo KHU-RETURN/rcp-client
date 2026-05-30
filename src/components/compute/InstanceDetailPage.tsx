@@ -54,12 +54,10 @@ export function InstanceDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (!instance) setLoadState('loading');
-  }, [instance]);
-
-  useEffect(() => {
     if (!id) return;
     let cancelled = false;
+    if (!instance) setLoadState('loading');
+
     void (async () => {
       const result = await ensureInstanceById(id);
       if (cancelled) return;
@@ -120,14 +118,13 @@ export function InstanceDetailPage() {
               </div>
               <div className="action-row compact">
                 <button
-                  type="button"
                   className="ghost-button"
                   onClick={() => void handleRefresh()}
                   disabled={isRefreshing || !id}
                 >
                   {isRefreshing ? 'Refreshing…' : 'Refresh'}
                 </button>
-                <button type="button" className="ghost-button" onClick={() => navigate('/compute')}>
+                <button className="ghost-button" onClick={() => navigate('/compute')}>
                   Back to instances
                 </button>
               </div>
@@ -159,7 +156,6 @@ export function InstanceDetailPage() {
                       Edit
                     </button>
                     <button
-                      type="button"
                       className="primary-button instance-cta"
                       disabled={!terminalAvailability.canOpen}
                       onClick={() =>

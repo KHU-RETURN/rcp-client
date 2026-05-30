@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { fetchAuthSession } from '../../services/auth';
+import { describeSession, fetchAuthSession } from '../../services/auth';
 import { useStore } from '../../store';
 
 export function AuthGuard() {
@@ -27,14 +27,14 @@ export function AuthGuard() {
         const restoredSession = await fetchAuthSession();
         login(restoredSession);
         setIsChecking(false);
-      } catch {
+      } catch (error) {
         setPendingRoutePath(location.pathname);
         navigate('/login', { replace: true });
       }
     }
 
     void restoreProtectedRouteSession();
-  }, [session, login, navigate, location.pathname, setPendingRoutePath]);
+  }, [session, login, navigate, location.pathname, setPendingRoutePath, isChecking]);
 
   if (!session && isChecking) return null;
   if (!session) return null;

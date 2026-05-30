@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
@@ -24,7 +24,6 @@ export function StoragePage() {
   const [draftName, setDraftName] = useState('');
   const [createError, setCreateError] = useState('');
   const [busy, setBusy] = useState(false);
-  const createNameInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     void ensureContainers();
@@ -41,11 +40,6 @@ export function StoragePage() {
       setSelectedContainerName(visible[0]?.name ?? null);
     }
   }, [visible, selectedContainerName, setSelectedContainerName]);
-
-  useEffect(() => {
-    if (!createOpen) return;
-    createNameInputRef.current?.focus();
-  }, [createOpen]);
 
   const selected = containers.find((c) => c.name === selectedContainerName) ?? null;
 
@@ -98,7 +92,7 @@ export function StoragePage() {
                 <p className="muted section-support">컨테이너 단위로 파일을 보관합니다.</p>
               </div>
               <div className="section-head-meta">
-                <section className="section-stats" aria-label="Storage summary">
+                <div className="section-stats" role="group" aria-label="Storage summary">
                   <div className="mini-stat">
                     <span>Visible</span>
                     <strong>{visible.length}</strong>
@@ -107,12 +101,8 @@ export function StoragePage() {
                     <span>Total</span>
                     <strong>{containers.length}</strong>
                   </div>
-                </section>
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={() => setCreateOpen((v) => !v)}
-                >
+                </div>
+                <button className="primary-button" onClick={() => setCreateOpen((v) => !v)}>
                   {createOpen ? 'Cancel' : 'New container'}
                 </button>
               </div>
@@ -123,12 +113,12 @@ export function StoragePage() {
                 <label className="field">
                   <span>Container name</span>
                   <input
-                    ref={createNameInputRef}
                     name="containerName"
                     type="text"
                     placeholder="my-photos"
                     value={draftName}
                     onChange={(e) => setDraftName(e.target.value)}
+                    autoFocus
                     required
                   />
                 </label>
@@ -214,7 +204,6 @@ export function StoragePage() {
                           <td>{humanizeDate(container.created_at)}</td>
                           <td style={{ textAlign: 'right' }}>
                             <button
-                              type="button"
                               className="ghost-button"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -254,14 +243,12 @@ export function StoragePage() {
               </dl>
               <div className="action-row compact sidebar-actions">
                 <button
-                  type="button"
                   className="primary-button"
                   onClick={() => navigate(`/storage/${encodeURIComponent(selected.name)}`)}
                 >
                   Open container
                 </button>
                 <button
-                  type="button"
                   className="danger-button"
                   disabled={busy}
                   onClick={() => handleDelete(selected.name)}

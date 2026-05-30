@@ -35,14 +35,12 @@ export function Topbar({ active }: TopbarProps) {
       </div>
       <nav className="topbar-nav" aria-label="Primary">
         <button
-          type="button"
           className={`nav-button ${computeActive ? 'active' : ''}`}
           onClick={() => navigate('/compute')}
         >
           Compute
         </button>
         <button
-          type="button"
           className={`nav-button ${active === ROUTE_NAMES.storage ? 'active' : ''}`}
           onClick={() => navigate('/storage')}
         >
@@ -51,7 +49,7 @@ export function Topbar({ active }: TopbarProps) {
       </nav>
       <div className="topbar-tools">
         <span className="operator-label">{session?.name ?? ''}</span>
-        <button type="button" className="ghost-button" onClick={() => void handleLogout()}>
+        <button className="ghost-button" onClick={() => void handleLogout()}>
           Sign out
         </button>
       </div>

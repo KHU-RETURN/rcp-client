@@ -7,6 +7,7 @@ import { useStore } from '../../store';
 export function AuthCallback() {
   const navigate = useNavigate();
   const login = useStore((state) => state.login);
+  const session = useStore((state) => state.session);
   const handledRef = useRef(false);
 
   useEffect(() => {
@@ -21,13 +22,13 @@ export function AuthCallback() {
         const restoredSession = await fetchAuthSession();
         const nextPath = login(restoredSession, '/compute');
         navigate(nextPath, { replace: true });
-      } catch {
+      } catch (error) {
         navigate('/login', { replace: true });
       }
     }
 
     void completeOAuthCallback();
-  }, [login, navigate]);
+  }, [login, navigate, session]);
 
   return (
     <div
