@@ -15,8 +15,14 @@ import {
   fetchObjects,
   uploadObject,
   downloadObject,
+  downloadObjectArchive,
   deleteObject,
 } from '../../services/storage';
+import {
+  buildArchiveFilename,
+  getUploadObjectKey,
+  normalizeObjectPrefix,
+} from '../../services/storage-paths';
 
 type DeleteContainerResult =
   | { state: 'ok' }
@@ -40,7 +46,9 @@ export interface StorageSlice {
   removeContainer: (name: string, force?: boolean) => Promise<DeleteContainerResult>;
   ensureObjects: (name: string, force?: boolean) => Promise<void>;
   uploadFile: (name: string, file: File) => Promise<{ ok: boolean; error?: string }>;
+  uploadFiles: (name: string, files: File[]) => Promise<{ ok: boolean; error?: string }>;
   downloadFile: (name: string, key: string) => Promise<{ ok: boolean; error?: string }>;
+  downloadFolder: (name: string, prefix: string) => Promise<{ ok: boolean; error?: string }>;
   removeObject: (name: string, key: string) => Promise<{ ok: boolean; error?: string }>;
   resetStorageUiState: () => void;
 }
@@ -177,10 +185,22 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
   },
 
   uploadFile: async (name, file) => {
-    set({ objectUpload: { state: 'saving', message: `${file.name} 업로드 중...` } });
+    return get().uploadFiles(name, [file]);
+  },
+
+  uploadFiles: async (name, files) => {
+    if (files.length === 0) {
+      return { ok: false, error: '업로드할 파일을 선택해 주세요.' };
+    }
+
+    const uploadLabel =
+      files.length === 1 ? `${files[0].name} 업로드 중...` : `${files.length}개 파일 업로드 중...`;
+    set({ objectUpload: { state: 'saving', message: uploadLabel } });
 
     try {
-      await uploadObject(name, file);
+      for (const file of files) {
+        await uploadObject(name, file, getUploadObjectKey(file));
+      }
       await get().ensureObjects(name, true);
       set({ objectUpload: { state: 'idle', message: '' } });
       return { ok: true };
@@ -199,6 +219,25 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
       const anchor = document.createElement('a');
       anchor.href = url;
       anchor.download = key.split('/').pop() || key;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      return { ok: true };
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : 'Unknown error';
+      return { ok: false, error: translateError(raw) };
+    }
+  },
+
+  downloadFolder: async (name, prefix) => {
+    try {
+      const normalizedPrefix = normalizeObjectPrefix(prefix);
+      const blob = await downloadObjectArchive(name, normalizedPrefix);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = buildArchiveFilename(normalizedPrefix, name);
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

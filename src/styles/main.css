@@ -2080,6 +2080,55 @@ h3 {
   border-top: 1px solid rgba(17, 17, 17, 0.06);
 }
 
+.storage-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(17, 17, 17, 0.06);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storage-breadcrumb .breadcrumb-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.storage-breadcrumb .breadcrumb-link:disabled {
+  color: var(--ink);
+  cursor: default;
+}
+
+.object-name-button {
+  display: grid;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.object-name-button:hover strong {
+  text-decoration: underline;
+}
+
 .inline-create-form {
   display: flex;
   flex-wrap: wrap;
