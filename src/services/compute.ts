@@ -10,6 +10,17 @@ import type {
   ServerInstanceResponse,
 } from '../types';
 
+const TERMINAL_READY_DELAY_MS = 30_000;
+
+function buildTerminalReadyAt(
+  status: string | undefined,
+  baseTime = Date.now(),
+): string | undefined {
+  return String(status ?? '').toUpperCase() === 'ACTIVE'
+    ? new Date(baseTime + TERMINAL_READY_DELAY_MS).toISOString()
+    : undefined;
+}
+
 function buildInventoryRecord(
   payload: CreateInstancePayload,
   response: CreateInstanceResponse,
@@ -27,6 +38,7 @@ function buildInventoryRecord(
     status: response.status || 'BUILD',
     created,
     updated: response.updated ?? created,
+    terminalReadyAt: buildTerminalReadyAt(response.status),
     flavorId,
     flavorName: undefined,
     vcpus: undefined,
@@ -119,4 +131,16 @@ export async function fetchInstanceById(id: string): Promise<Instance> {
     `/api/v1/compute/instances/${encodeURIComponent(id)}`,
   );
   return buildInventoryRecordFromServer(response);
+}
+
+export async function pauseInstance(id: string): Promise<void> {
+  await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}/pause`, {
+    method: 'POST',
+  });
+}
+
+export async function unpauseInstance(id: string): Promise<void> {
+  await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}/unpause`, {
+    method: 'POST',
+  });
 }

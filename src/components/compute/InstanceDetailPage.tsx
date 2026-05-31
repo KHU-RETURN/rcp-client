@@ -40,11 +40,12 @@ function getMemoryUsageLabel(instance: Instance): string {
 export function InstanceDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { instances, ensureInstanceById } = useStore();
+  const { instances, ensureInstanceById, pauseInstance, unpauseInstance } = useStore();
   const instance = instances.find((i) => i.id === id) ?? null;
   const [now, setNow] = useState(() => Date.now());
   const [loadState, setLoadState] = useState<LoadState>(instance ? 'ready' : 'loading');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isPowerActionRunning, setIsPowerActionRunning] = useState(false);
   const [copied, setCopied] = useState(false);
   const terminalAvailability = getTerminalAvailability(instance, now);
 
@@ -102,6 +103,20 @@ export function InstanceDetailPage() {
     }
   }
 
+  async function handlePowerAction() {
+    if (!instance || isPowerActionRunning) return;
+    try {
+      setIsPowerActionRunning(true);
+      if (String(instance.status).toUpperCase() === 'PAUSED') {
+        await unpauseInstance(instance.id);
+      } else {
+        await pauseInstance(instance.id);
+      }
+    } finally {
+      setIsPowerActionRunning(false);
+    }
+  }
+
   return (
     <div className="page page-instances shell-enter">
       <Topbar active={ROUTE_NAMES.detail} />
@@ -152,6 +167,21 @@ export function InstanceDetailPage() {
                     </div>
                   </div>
                   <div className="instance-head-actions">
+                    <button
+                      type="button"
+                      className="ghost-button"
+                      disabled={
+                        isPowerActionRunning ||
+                        !['ACTIVE', 'PAUSED'].includes(String(instance.status).toUpperCase())
+                      }
+                      onClick={() => void handlePowerAction()}
+                    >
+                      {isPowerActionRunning
+                        ? 'Working...'
+                        : String(instance.status).toUpperCase() === 'PAUSED'
+                          ? 'Resume'
+                          : 'Pause'}
+                    </button>
                     <button type="button" className="ghost-button" disabled title="Coming soon">
                       Edit
                     </button>
