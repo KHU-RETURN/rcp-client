@@ -4,7 +4,11 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import { ROUTE_NAMES } from '../../constants';
-import { buildObjectBrowserEntries, normalizeObjectPrefix } from '../../services/storage-paths';
+import {
+  buildObjectBrowserEntries,
+  formatObjectContentType,
+  normalizeObjectPrefix,
+} from '../../services/storage-paths';
 import { formatBytes, humanizeDate } from '../../utils';
 
 export function StorageContainerPage() {
@@ -363,7 +367,9 @@ export function StorageContainerPage() {
                                 <td>
                                   <strong>{entry.name}</strong>
                                 </td>
-                                <td className="muted">{entry.object.content_type || '—'}</td>
+                                <td className="muted">
+                                  {formatObjectContentType(entry.object.content_type)}
+                                </td>
                                 <td>{formatBytes(entry.object.size_bytes)}</td>
                                 <td>{humanizeDate(entry.object.last_modified)}</td>
                                 <td style={{ textAlign: 'right' }}>

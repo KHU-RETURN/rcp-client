@@ -51,6 +51,35 @@ export function buildArchiveFilename(prefix: string, containerName: string): str
   return `${base || 'objects'}.zip`;
 }
 
+export function formatObjectContentType(value: string): string {
+  const raw = value.replace(/[\u2018\u2019\u201c\u201d]/g, '').trim();
+  if (!raw) return '-';
+
+  const [mediaType = '', ...paramParts] = raw.split(';');
+  const normalizedMediaType = mediaType.trim().toLowerCase();
+  if (!normalizedMediaType) return '-';
+
+  const params = paramParts
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const [rawKey = '', ...rawValueParts] = part.split('=');
+      const key = rawKey.trim().toLowerCase();
+      let paramValue = rawValueParts.join('=').trim().replace(/^"|"$/g, '');
+      if (key === 'charset') {
+        paramValue = paramValue.toLowerCase() === 'utf8' ? 'utf-8' : paramValue.toLowerCase();
+      }
+      return key && paramValue ? `${key}=${paramValue}` : '';
+    })
+    .filter(Boolean);
+
+  if (normalizedMediaType === 'text/html' && !params.some((part) => part.startsWith('charset='))) {
+    params.unshift('charset=utf-8');
+  }
+
+  return [normalizedMediaType, ...params].join('; ');
+}
+
 export function buildObjectBrowserEntries<T extends StorageObjectLike>(
   objects: T[],
   prefix: string,

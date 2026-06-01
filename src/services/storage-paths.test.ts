@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   buildArchiveFilename,
   buildObjectBrowserEntries,
+  formatObjectContentType,
   getUploadObjectKey,
 } from './storage-paths.ts';
 
@@ -120,4 +121,13 @@ test('buildObjectBrowserEntries shows nested entries inside the selected prefix'
 test('buildArchiveFilename names folder downloads after the last prefix segment', () => {
   assert.equal(buildArchiveFilename('docs/nested/', 'container-a'), 'nested.zip');
   assert.equal(buildArchiveFilename('', 'container-a'), 'container-a.zip');
+});
+
+test('formatObjectContentType normalizes malformed html charset for display', () => {
+  assert.equal(
+    formatObjectContentType('text/html; charset=utf-8\u201d'),
+    'text/html; charset=utf-8',
+  );
+  assert.equal(formatObjectContentType('text/html; charset=utf8'), 'text/html; charset=utf-8');
+  assert.equal(formatObjectContentType(''), '-');
 });
