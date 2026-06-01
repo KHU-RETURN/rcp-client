@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import { Topbar } from '../layout/Topbar';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import { ROUTE_NAMES } from '../../constants';
+import { buildObjectBrowserEntries, normalizeObjectPrefix } from '../../services/storage-paths';
 import { formatBytes, humanizeDate } from '../../utils';
 
 export function StorageContainerPage() {
@@ -21,7 +22,9 @@ export function StorageContainerPage() {
     ensureContainers,
     ensureObjects,
     uploadFile,
+    uploadFiles,
     downloadFile,
+    downloadFolder,
     removeObject,
     removeContainer,
   } = useStore();
@@ -32,24 +35,56 @@ export function StorageContainerPage() {
   const containerMeta = containers.find((c) => c.name === containerName);
 
   const [query, setQuery] = useState('');
+  const [currentPrefix, setCurrentPrefix] = useState('');
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const folderInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     void ensureContainers();
   }, [ensureContainers]);
 
   useEffect(() => {
+    if (containerName === '') return;
+    setCurrentPrefix('');
+    setQuery('');
+  }, [containerName]);
+
+  useEffect(() => {
+    const input = folderInputRef.current;
+    if (!input) return;
+    input.setAttribute('webkitdirectory', '');
+    input.setAttribute('directory', '');
+  }, []);
+
+  useEffect(() => {
     if (!containerName) return;
     void ensureObjects(containerName);
   }, [containerName, ensureObjects]);
 
+  const entries = useMemo(
+    () => buildObjectBrowserEntries(objects, currentPrefix),
+    [objects, currentPrefix],
+  );
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return objects;
-    return objects.filter((o) => o.name.toLowerCase().includes(q));
-  }, [objects, query]);
+    if (!q) return entries;
+    return entries.filter((entry) => entry.name.toLowerCase().includes(q));
+  }, [entries, query]);
+
+  const breadcrumbs = useMemo(() => {
+    const segments = normalizeObjectPrefix(currentPrefix).split('/').filter(Boolean);
+    let prefix = '';
+    return [
+      { label: 'Root', prefix: '' },
+      ...segments.map((segment) => {
+        prefix += `${segment}/`;
+        return { label: segment, prefix };
+      }),
+    ];
+  }, [currentPrefix]);
 
   const totalSize = useMemo(
     () => objects.reduce((sum, obj) => sum + (obj.size_bytes || 0), 0),
@@ -58,6 +93,10 @@ export function StorageContainerPage() {
 
   async function handlePickFile() {
     fileInputRef.current?.click();
+  }
+
+  async function handlePickFolder() {
+    folderInputRef.current?.click();
   }
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -70,6 +109,16 @@ export function StorageContainerPage() {
     }
   }
 
+  async function handleFolderChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    if (files.length === 0) return;
+    const result = await uploadFiles(containerName, files);
+    if (!result.ok) {
+      alert(result.error ?? '폴더 업로드에 실패했습니다.');
+    }
+  }
+
   async function handleDownload(key: string) {
     setDownloadingKey(key);
     try {
@@ -78,6 +127,21 @@ export function StorageContainerPage() {
     } finally {
       setDownloadingKey(null);
     }
+  }
+
+  async function handleDownloadFolder(prefix: string) {
+    setDownloadingKey(prefix);
+    try {
+      const result = await downloadFolder(containerName, prefix);
+      if (!result.ok) alert(result.error ?? '폴더 다운로드에 실패했습니다.');
+    } finally {
+      setDownloadingKey(null);
+    }
+  }
+
+  function handleOpenFolder(prefix: string) {
+    setCurrentPrefix(prefix);
+    setQuery('');
   }
 
   async function handleDeleteObject(key: string) {
@@ -133,14 +197,30 @@ export function StorageContainerPage() {
               </div>
               <div className="action-row compact">
                 <input ref={fileInputRef} type="file" hidden onChange={handleFileChange} />
+                <input
+                  ref={folderInputRef}
+                  type="file"
+                  hidden
+                  multiple
+                  onChange={handleFolderChange}
+                />
                 <button
+                  type="button"
                   className="primary-button"
                   disabled={notFound || objectUpload.state === 'saving'}
                   onClick={() => void handlePickFile()}
                 >
                   {objectUpload.state === 'saving' ? 'Uploading...' : 'Upload file'}
                 </button>
-                <button className="ghost-button" onClick={() => navigate('/storage')}>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  disabled={notFound || objectUpload.state === 'saving'}
+                  onClick={() => void handlePickFolder()}
+                >
+                  Upload folder
+                </button>
+                <button type="button" className="ghost-button" onClick={() => navigate('/storage')}>
                   Back
                 </button>
               </div>
@@ -153,6 +233,22 @@ export function StorageContainerPage() {
               />
             ) : (
               <>
+                <nav className="storage-breadcrumb" aria-label="Object path">
+                  {breadcrumbs.map((crumb, index) => (
+                    <span className="breadcrumb-item" key={crumb.prefix || 'root'}>
+                      {index > 0 && <span aria-hidden="true">/</span>}
+                      <button
+                        type="button"
+                        className="breadcrumb-link"
+                        disabled={crumb.prefix === currentPrefix}
+                        onClick={() => handleOpenFolder(crumb.prefix)}
+                      >
+                        {crumb.label}
+                      </button>
+                    </span>
+                  ))}
+                </nav>
+
                 <div className="inventory-toolbar">
                   <label className="field inventory-search">
                     <span>Search</span>
@@ -165,6 +261,7 @@ export function StorageContainerPage() {
                     />
                   </label>
                   <div className="toolbar-side">
+                    <span className="toolbar-meta">Visible {visible.length}</span>
                     <span className="toolbar-meta">Total {objects.length}</span>
                     <span className="toolbar-meta">{formatBytes(totalSize)}</span>
                   </div>
@@ -219,35 +316,83 @@ export function StorageContainerPage() {
                         </tr>
                       )}
                       {!isLoading &&
-                        visible.map((obj) => (
-                          <tr key={obj.name}>
-                            <td>
-                              <strong>{obj.name}</strong>
-                            </td>
-                            <td className="muted">{obj.content_type || '—'}</td>
-                            <td>{formatBytes(obj.size_bytes)}</td>
-                            <td>{humanizeDate(obj.last_modified)}</td>
-                            <td style={{ textAlign: 'right' }}>
-                              <div
-                                className="action-row compact"
-                                style={{ justifyContent: 'flex-end' }}
-                              >
-                                <button
-                                  className="ghost-button"
-                                  disabled={downloadingKey === obj.name}
-                                  onClick={() => void handleDownload(obj.name)}
-                                >
-                                  {downloadingKey === obj.name ? 'Downloading...' : 'Download'}
-                                </button>
-                                <button
-                                  className="danger-button"
-                                  disabled={busyKey === obj.name}
-                                  onClick={() => void handleDeleteObject(obj.name)}
-                                >
-                                  {busyKey === obj.name ? 'Deleting...' : 'Delete'}
-                                </button>
-                              </div>
-                            </td>
+                        visible.map((entry) => (
+                          <tr key={entry.kind === 'folder' ? entry.prefix : entry.object.name}>
+                            {entry.kind === 'folder' ? (
+                              <>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className="object-name-button"
+                                    onClick={() => handleOpenFolder(entry.prefix)}
+                                  >
+                                    <strong>{entry.name}</strong>
+                                    <small>{entry.objectCount} objects</small>
+                                  </button>
+                                </td>
+                                <td className="muted">Folder</td>
+                                <td>{formatBytes(entry.sizeBytes)}</td>
+                                <td>{humanizeDate(entry.lastModified)}</td>
+                                <td style={{ textAlign: 'right' }}>
+                                  <div
+                                    className="action-row compact"
+                                    style={{ justifyContent: 'flex-end' }}
+                                  >
+                                    <button
+                                      type="button"
+                                      className="ghost-button"
+                                      onClick={() => handleOpenFolder(entry.prefix)}
+                                    >
+                                      Open
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="ghost-button"
+                                      disabled={downloadingKey === entry.prefix}
+                                      onClick={() => void handleDownloadFolder(entry.prefix)}
+                                    >
+                                      {downloadingKey === entry.prefix
+                                        ? 'Downloading...'
+                                        : 'Download'}
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td>
+                                  <strong>{entry.name}</strong>
+                                </td>
+                                <td className="muted">{entry.object.content_type || '—'}</td>
+                                <td>{formatBytes(entry.object.size_bytes)}</td>
+                                <td>{humanizeDate(entry.object.last_modified)}</td>
+                                <td style={{ textAlign: 'right' }}>
+                                  <div
+                                    className="action-row compact"
+                                    style={{ justifyContent: 'flex-end' }}
+                                  >
+                                    <button
+                                      type="button"
+                                      className="ghost-button"
+                                      disabled={downloadingKey === entry.object.name}
+                                      onClick={() => void handleDownload(entry.object.name)}
+                                    >
+                                      {downloadingKey === entry.object.name
+                                        ? 'Downloading...'
+                                        : 'Download'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="danger-button"
+                                      disabled={busyKey === entry.object.name}
+                                      onClick={() => void handleDeleteObject(entry.object.name)}
+                                    >
+                                      {busyKey === entry.object.name ? 'Deleting...' : 'Delete'}
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
                           </tr>
                         ))}
                     </tbody>
@@ -287,13 +432,26 @@ export function StorageContainerPage() {
               </dl>
               <div className="action-row compact sidebar-actions">
                 <button
+                  type="button"
                   className="primary-button"
                   disabled={objectUpload.state === 'saving'}
                   onClick={() => void handlePickFile()}
                 >
                   {objectUpload.state === 'saving' ? 'Uploading...' : 'Upload file'}
                 </button>
-                <button className="danger-button" onClick={() => void handleDeleteContainer()}>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  disabled={objectUpload.state === 'saving'}
+                  onClick={() => void handlePickFolder()}
+                >
+                  Upload folder
+                </button>
+                <button
+                  type="button"
+                  className="danger-button"
+                  onClick={() => void handleDeleteContainer()}
+                >
                   Delete container
                 </button>
               </div>
