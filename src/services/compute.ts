@@ -1,5 +1,6 @@
 import { apiRequest } from './api';
 import { validatePublicKey, translateError } from '../utils';
+import { TERMINAL_READY_DELAY_MS } from '../constants';
 import type {
   CreateInstancePayload,
   CreateKeypairPayload,
@@ -9,8 +10,6 @@ import type {
   Instance,
   ServerInstanceResponse,
 } from '../types';
-
-const TERMINAL_READY_DELAY_MS = 30_000;
 
 function buildTerminalReadyAt(
   status: string | undefined,

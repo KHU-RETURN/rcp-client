@@ -20,8 +20,7 @@ import {
   pauseInstance as pauseComputeInstance,
   unpauseInstance as unpauseComputeInstance,
 } from '../../services/compute';
-
-const TERMINAL_READY_DELAY_MS = 30_000;
+import { TERMINAL_READY_DELAY_MS } from '../../constants';
 
 export interface ComputeSlice {
   flavors: Flavor[];

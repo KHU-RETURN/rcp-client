@@ -26,6 +26,7 @@ export function InstancesPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [powerActionId, setPowerActionId] = useState<string | null>(null);
+  const [powerActionError, setPowerActionError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   async function handleDeleteInstance(id: string) {
@@ -41,6 +42,7 @@ export function InstancesPage() {
   }
 
   async function handlePowerAction(id: string, status: string) {
+    setPowerActionError(null);
     try {
       setPowerActionId(id);
       if (String(status).toUpperCase() === 'PAUSED') {
@@ -49,7 +51,7 @@ export function InstancesPage() {
         await pauseInstance(id);
       }
     } catch {
-      alert('Instance power action failed. Please try again.');
+      setPowerActionError('Instance power action failed. Please try again.');
     } finally {
       setPowerActionId(null);
     }
@@ -214,6 +216,7 @@ export function InstancesPage() {
                       ? 'Resume'
                       : 'Pause'}
                 </button>
+                {powerActionError && <p className="inline-status error">{powerActionError}</p>}
                 <button
                   className="danger-button"
                   disabled={

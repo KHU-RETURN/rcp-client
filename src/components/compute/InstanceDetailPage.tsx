@@ -46,6 +46,7 @@ export function InstanceDetailPage() {
   const [loadState, setLoadState] = useState<LoadState>(instance ? 'ready' : 'loading');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPowerActionRunning, setIsPowerActionRunning] = useState(false);
+  const [powerActionError, setPowerActionError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const terminalAvailability = getTerminalAvailability(instance, now);
 
@@ -105,6 +106,7 @@ export function InstanceDetailPage() {
 
   async function handlePowerAction() {
     if (!instance || isPowerActionRunning) return;
+    setPowerActionError(null);
     try {
       setIsPowerActionRunning(true);
       if (String(instance.status).toUpperCase() === 'PAUSED') {
@@ -112,6 +114,8 @@ export function InstanceDetailPage() {
       } else {
         await pauseInstance(instance.id);
       }
+    } catch {
+      setPowerActionError('Instance power action failed. Please try again.');
     } finally {
       setIsPowerActionRunning(false);
     }
@@ -182,6 +186,7 @@ export function InstanceDetailPage() {
                           ? 'Resume'
                           : 'Pause'}
                     </button>
+                    {powerActionError && <p className="inline-status error">{powerActionError}</p>}
                     <button type="button" className="ghost-button" disabled title="Coming soon">
                       Edit
                     </button>
