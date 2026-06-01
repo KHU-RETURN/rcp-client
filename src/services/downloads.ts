@@ -29,8 +29,17 @@ export interface DownloadEnvironment {
   appendAnchor: (anchor: AnchorLike) => void;
 }
 
+export interface PreparedResponseDownload {
+  ready: Promise<void>;
+  save: (response: Response) => Promise<DownloadMode>;
+}
+
 type WindowWithSaveFilePicker = Window & {
   showSaveFilePicker?: (options: SaveFilePickerOptionsLike) => Promise<FileHandleLike>;
+};
+
+type FilePickerResult = {
+  handle?: FileHandleLike;
 };
 
 function browserDownloadEnvironment(): DownloadEnvironment {
@@ -46,14 +55,27 @@ function browserDownloadEnvironment(): DownloadEnvironment {
   };
 }
 
-export async function saveResponseAsFile(
-  response: Response,
+export function prepareResponseFileDownload(
   filename: string,
   env: DownloadEnvironment = browserDownloadEnvironment(),
+): PreparedResponseDownload {
+  const pickerResult = openSaveFilePicker(filename, env);
+
+  return {
+    ready: pickerResult ? pickerResult.then(() => undefined) : Promise.resolve(),
+    save: (response) => saveResponseAsFile(response, filename, env, pickerResult),
+  };
+}
+
+async function saveResponseAsFile(
+  response: Response,
+  filename: string,
+  env: DownloadEnvironment,
+  pickerResult?: Promise<FilePickerResult>,
 ): Promise<DownloadMode> {
-  if (response.body && env.showSaveFilePicker) {
-    const handle = await env.showSaveFilePicker({ suggestedName: filename });
-    const writable = await handle.createWritable();
+  const filePicker = await pickerResult;
+  if (response.body && filePicker?.handle) {
+    const writable = await filePicker.handle.createWritable();
     await writeResponseBody(response.body, writable);
     return 'stream';
   }
@@ -73,6 +95,36 @@ export async function saveResponseAsFile(
   }
 
   return 'blob';
+}
+
+function openSaveFilePicker(
+  filename: string,
+  env: DownloadEnvironment,
+): Promise<FilePickerResult> | undefined {
+  if (!env.showSaveFilePicker) {
+    return undefined;
+  }
+
+  try {
+    return env.showSaveFilePicker({ suggestedName: filename }).then(
+      (handle) => ({ handle }),
+      (error) => {
+        if (isUserAbortError(error)) {
+          throw error;
+        }
+        return {};
+      },
+    );
+  } catch (error) {
+    if (isUserAbortError(error)) {
+      throw error;
+    }
+    return Promise.resolve({});
+  }
+}
+
+function isUserAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError';
 }
 
 async function writeResponseBody(

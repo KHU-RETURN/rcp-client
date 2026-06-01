@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { saveResponseAsFile } from './downloads.ts';
+import { prepareResponseFileDownload } from './downloads.ts';
 
 function streamFromTextChunks(chunks: string[]): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
@@ -15,9 +15,10 @@ function streamFromTextChunks(chunks: string[]): ReadableStream<Uint8Array> {
   });
 }
 
-test('saveResponseAsFile writes response stream without reading blob', async () => {
+test('prepareResponseFileDownload opens picker before response is available', async () => {
   let blobCalled = false;
   let closed = false;
+  const events: string[] = [];
   const writes: string[] = [];
   const response = new Response(streamFromTextChunks(['hello ', 'world']));
   Object.defineProperty(response, 'blob', {
@@ -27,8 +28,9 @@ test('saveResponseAsFile writes response stream without reading blob', async () 
     },
   });
 
-  const mode = await saveResponseAsFile(response, 'hello.txt', {
+  const download = prepareResponseFileDownload('hello.txt', {
     showSaveFilePicker: async (options) => {
+      events.push('picker');
       assert.equal(options.suggestedName, 'hello.txt');
       return {
         createWritable: async () => ({
@@ -51,21 +53,26 @@ test('saveResponseAsFile writes response stream without reading blob', async () 
     },
     appendAnchor: () => {},
   });
+  events.push('fetch');
 
+  await download.ready;
+  const mode = await download.save(response);
+
+  assert.deepEqual(events.slice(0, 2), ['picker', 'fetch']);
   assert.equal(mode, 'stream');
   assert.equal(blobCalled, false);
   assert.equal(closed, true);
   assert.deepEqual(writes, ['hello ', 'world']);
 });
 
-test('saveResponseAsFile falls back to blob download when streaming is unavailable', async () => {
+test('prepareResponseFileDownload falls back to blob download when streaming is unavailable', async () => {
   let clicked = false;
   let removed = false;
   let revokedUrl = '';
   let capturedBlob: Blob | null = null;
   const response = new Response('fallback');
 
-  const mode = await saveResponseAsFile(response, 'fallback.txt', {
+  const download = prepareResponseFileDownload('fallback.txt', {
     createObjectURL: (blob) => {
       capturedBlob = blob;
       return 'blob:test';
@@ -89,9 +96,40 @@ test('saveResponseAsFile falls back to blob download when streaming is unavailab
     },
   });
 
+  await download.ready;
+  const mode = await download.save(response);
+
   assert.equal(mode, 'blob');
   assert.equal(await capturedBlob?.text(), 'fallback');
   assert.equal(clicked, true);
   assert.equal(removed, true);
   assert.equal(revokedUrl, 'blob:test');
+});
+
+test('prepareResponseFileDownload falls back to blob when picker cannot open', async () => {
+  let clicked = false;
+  const response = new Response('fallback after picker error');
+
+  const download = prepareResponseFileDownload('fallback.txt', {
+    showSaveFilePicker: () => {
+      throw new DOMException('blocked', 'SecurityError');
+    },
+    createObjectURL: () => 'blob:test',
+    revokeObjectURL: () => {},
+    createAnchor: () => ({
+      href: '',
+      download: '',
+      click: () => {
+        clicked = true;
+      },
+      remove: () => {},
+    }),
+    appendAnchor: () => {},
+  });
+
+  await download.ready;
+  const mode = await download.save(response);
+
+  assert.equal(mode, 'blob');
+  assert.equal(clicked, true);
 });

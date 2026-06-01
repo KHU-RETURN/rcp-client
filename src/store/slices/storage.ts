@@ -23,7 +23,7 @@ import {
   getUploadObjectKey,
   normalizeObjectPrefix,
 } from '../../services/storage-paths';
-import { saveResponseAsFile } from '../../services/downloads';
+import { prepareResponseFileDownload } from '../../services/downloads';
 
 type DeleteContainerResult =
   | { state: 'ok' }
@@ -215,8 +215,11 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
 
   downloadFile: async (name, key) => {
     try {
+      const filename = key.split('/').pop() || key;
+      const download = prepareResponseFileDownload(filename);
+      await download.ready;
       const response = await downloadObject(name, key);
-      await saveResponseAsFile(response, key.split('/').pop() || key);
+      await download.save(response);
       return { ok: true };
     } catch (error) {
       const raw = error instanceof Error ? error.message : 'Unknown error';
@@ -227,8 +230,11 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
   downloadFolder: async (name, prefix) => {
     try {
       const normalizedPrefix = normalizeObjectPrefix(prefix);
+      const filename = buildArchiveFilename(normalizedPrefix, name);
+      const download = prepareResponseFileDownload(filename);
+      await download.ready;
       const response = await downloadObjectArchive(name, normalizedPrefix);
-      await saveResponseAsFile(response, buildArchiveFilename(normalizedPrefix, name));
+      await download.save(response);
       return { ok: true };
     } catch (error) {
       const raw = error instanceof Error ? error.message : 'Unknown error';
