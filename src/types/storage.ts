@@ -31,4 +31,5 @@ export type StorageActionState = 'idle' | 'saving' | 'error';
 export interface StorageActionStatus {
   state: StorageActionState;
   message: string;
+  progress?: number;
 }

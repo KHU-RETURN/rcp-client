@@ -283,6 +283,24 @@ export function StorageContainerPage() {
                   </p>
                 )}
 
+                {objectUpload.state === 'saving' && (
+                  <div
+                    className="upload-progress"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={objectUpload.progress ?? 0}
+                  >
+                    <div className="upload-progress-head">
+                      <span>{objectUpload.message}</span>
+                      <strong>{objectUpload.progress ?? 0}%</strong>
+                    </div>
+                    <div className="upload-progress-track">
+                      <span style={{ width: `${objectUpload.progress ?? 0}%` }} />
+                    </div>
+                  </div>
+                )}
+
                 <div className="table-frame">
                   <table className="flavor-table instance-table" data-ui="object-table">
                     <thead>
