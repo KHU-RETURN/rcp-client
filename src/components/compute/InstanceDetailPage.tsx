@@ -40,6 +40,10 @@ function getMemoryUsageLabel(instance: Instance): string {
   return formatRam(instance.memoryUsage);
 }
 
+function getAppHostUrl(host: string): string {
+  return host.startsWith('http://') || host.startsWith('https://') ? host : `https://${host}`;
+}
+
 export function InstanceDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -149,7 +153,7 @@ export function InstanceDetailPage() {
       setAppSubdomain('');
       setAppStatus({
         state: 'saved',
-        message: '앱 서브도메인이 인스턴스에 등록되었습니다.',
+        message: '등록되었습니다.',
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -165,7 +169,7 @@ export function InstanceDetailPage() {
     try {
       await deleteInstanceApp(instance.id);
       await ensureInstanceById(instance.id);
-      setAppStatus({ state: 'saved', message: '앱 등록이 삭제되었습니다.' });
+      setAppStatus({ state: 'saved', message: '삭제되었습니다.' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       setAppStatus({ state: 'error', message: translateError(message) });
@@ -317,16 +321,21 @@ export function InstanceDetailPage() {
                     <div className="instance-app-copy">
                       <p className="eyebrow">App routing</p>
                       <h4>Registered app</h4>
-                      <p className="muted">등록된 앱 도메인으로 VM 서비스를 전달합니다.</p>
+                      <p className="muted">VM 서비스 바로가기입니다.</p>
                     </div>
                     <dl className="instance-app-meta">
                       <div>
-                        <dt>Subdomain</dt>
-                        <dd>{instance.app.subdomain}</dd>
-                      </div>
-                      <div>
                         <dt>Host</dt>
-                        <dd>{instance.app.host}</dd>
+                        <dd>
+                          <a
+                            className="instance-app-link"
+                            href={getAppHostUrl(instance.app.host)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {instance.app.host}
+                          </a>
+                        </dd>
                       </div>
                     </dl>
                     <div className="instance-app-actions">

@@ -2396,6 +2396,11 @@ h3 {
   border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
+.instance-app-registered {
+  grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1fr) auto;
+  align-items: center;
+}
+
 .instance-app-copy {
   display: grid;
   gap: 8px;
@@ -2419,7 +2424,6 @@ h3 {
 
 .instance-app-meta {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin: 0;
 }
@@ -2445,6 +2449,18 @@ h3 {
   word-break: break-word;
 }
 
+.instance-app-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  word-break: break-word;
+}
+
+.instance-app-link:hover {
+  opacity: 0.72;
+}
+
 .instance-app-actions {
   display: grid;
   justify-items: end;
@@ -2455,6 +2471,11 @@ h3 {
 .instance-app-actions .inline-status {
   max-width: 220px;
   text-align: right;
+}
+
+.instance-app-registered .inline-status {
+  max-width: none;
+  white-space: nowrap;
 }
 
 .instance-build-hint {
@@ -2707,6 +2728,10 @@ h3 {
     align-items: stretch;
   }
 
+  .instance-app-registered {
+    grid-template-columns: 1fr;
+  }
+
   .instance-app-actions {
     justify-items: start;
   }
@@ -2714,6 +2739,7 @@ h3 {
   .instance-app-actions .inline-status {
     max-width: none;
     text-align: left;
+    white-space: normal;
   }
 }
 
