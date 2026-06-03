@@ -23,6 +23,7 @@ import {
   getUploadObjectKey,
   normalizeObjectPrefix,
 } from '../../services/storage-paths';
+import { calculateUploadProgress } from '../../services/storage-progress';
 import { prepareResponseFileDownload } from '../../services/downloads';
 
 type DeleteContainerResult =
@@ -196,12 +197,22 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
 
     const uploadLabel =
       files.length === 1 ? `${files[0].name} 업로드 중...` : `${files.length}개 파일 업로드 중...`;
-    set({ objectUpload: { state: 'saving', message: uploadLabel } });
+    set({ objectUpload: { state: 'saving', message: uploadLabel, progress: 0 } });
 
     try {
-      for (const file of files) {
-        await uploadObject(name, file, getUploadObjectKey(file));
+      for (const [index, file] of files.entries()) {
+        await uploadObject(name, file, getUploadObjectKey(file), {
+          onProgress: (loadedBytes) => {
+            const progress = calculateUploadProgress(files, index, loadedBytes);
+            const detail =
+              files.length === 1
+                ? `${file.name} 업로드 중... ${progress.percent}%`
+                : `${files.length}개 파일 업로드 중... ${progress.percent}% (${index + 1}/${files.length})`;
+            set({ objectUpload: { state: 'saving', message: detail, progress: progress.percent } });
+          },
+        });
       }
+      set({ objectUpload: { state: 'saving', message: '업로드 완료 중... 100%', progress: 100 } });
       await get().ensureObjects(name, true);
       set({ objectUpload: { state: 'idle', message: '' } });
       return { ok: true };
