@@ -13,6 +13,7 @@ export interface Instance {
   status: string;
   created: string;
   updated: string;
+  terminalReadyAt?: string;
   flavorId: string;
   flavorName: string | undefined;
   vcpus: number | undefined;
@@ -77,6 +78,6 @@ export interface SectionState {
 export type SectionKey = 'basic' | 'image-network' | 'compute' | 'access' | 'review';
 export type SectionStates = Record<SectionKey, SectionState>;
 
-export type InstanceStatusFilter = 'all' | 'active' | 'build';
+export type InstanceStatusFilter = 'all' | 'active' | 'paused' | 'build';
 
 export type StatusTone = 'valid' | 'pending' | 'error';

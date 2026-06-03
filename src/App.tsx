@@ -3,6 +3,8 @@ import { AuthGuard } from './components/layout/AuthGuard';
 import { LoginPage } from './components/auth/LoginPage';
 import { ChangesPage } from './components/auth/ChangesPage';
 import { AuthCallback } from './components/auth/AuthCallback';
+import { SshAuthPage } from './components/auth/SshAuthPage';
+import { SshCompletePage } from './components/auth/SshCompletePage';
 import { LandingPage } from './components/landing/LandingPage';
 import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';
@@ -19,6 +21,8 @@ export function App() {
         <Route path="/changes" element={<ChangesPage />} />
 
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/ssh-auth" element={<SshAuthPage />} />
+        <Route path="/ssh/complete" element={<SshCompletePage />} />
 
         <Route element={<AuthGuard />}>
           <Route path="/compute" element={<InstancesPage />} />

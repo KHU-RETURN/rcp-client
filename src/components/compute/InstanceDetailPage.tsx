@@ -214,7 +214,7 @@ export function InstanceDetailPage() {
                       type="button"
                       className="ghost-button"
                       onClick={() => void handlePauseToggle()}
-                      disabled={isPausing || status === 'BUILD'}
+                      disabled={isPausing || !['ACTIVE', 'PAUSED'].includes(status)}
                     >
                       {isPausing ? 'Sending...' : isPaused ? 'Resume' : 'Pause'}
                     </button>

@@ -20,9 +20,13 @@ export function InstancesPage() {
     ensureSelectedInstance,
     ensureInstanceData,
     deleteInstance,
+    pauseInstance,
+    unpauseInstance,
   } = useStore();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [powerActionId, setPowerActionId] = useState<string | null>(null);
+  const [powerActionError, setPowerActionError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
   async function handleDeleteInstance(id: string) {
@@ -34,6 +38,22 @@ export function InstancesPage() {
       alert('인스턴스 삭제에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handlePowerAction(id: string, status: string) {
+    setPowerActionError(null);
+    try {
+      setPowerActionId(id);
+      if (String(status).toUpperCase() === 'PAUSED') {
+        await unpauseInstance(id);
+      } else {
+        await pauseInstance(id);
+      }
+    } catch {
+      setPowerActionError('Instance power action failed. Please try again.');
+    } finally {
+      setPowerActionId(null);
     }
   }
 
@@ -65,6 +85,7 @@ export function InstancesPage() {
   const selectedInstance = instances.find((i) => i.id === selectedInstanceId) ?? null;
   const terminalAvailability = getTerminalAvailability(selectedInstance, now);
   const activeCount = instances.filter((i) => String(i.status).toUpperCase() === 'ACTIVE').length;
+  const pauseCount = instances.filter((i) => String(i.status).toUpperCase() === 'PAUSED').length;
   const buildCount = instances.filter((i) => String(i.status).toUpperCase() === 'BUILD').length;
   const errorCount = instances.filter((i) => statusTone(i.status) === 'error').length;
 
@@ -83,16 +104,20 @@ export function InstancesPage() {
               <div className="section-head-meta">
                 <div className="section-stats" role="group" aria-label="Inventory summary">
                   <div className="mini-stat">
-                    <span>Visible</span>
+                    <span>VISIBLE</span>
                     <strong>{visible.length}</strong>
                   </div>
                   <div className="mini-stat">
-                    <span>Total</span>
+                    <span>TOTAL</span>
                     <strong>{instances.length}</strong>
                   </div>
                   <div className="mini-stat">
-                    <span>Active</span>
+                    <span>ACTIVE</span>
                     <strong>{activeCount}</strong>
+                  </div>
+                  <div className="mini-stat">
+                    <span>PAUSE</span>
+                    <strong>{pauseCount}</strong>
                   </div>
                 </div>
                 <button className="primary-button" onClick={() => navigate('/compute/create')}>
@@ -118,19 +143,25 @@ export function InstancesPage() {
                     className={`filter-chip ${instanceStatusFilter === 'all' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('all')}
                   >
-                    All {instances.length}
+                    ALL {instances.length}
                   </button>
                   <button
                     className={`filter-chip ${instanceStatusFilter === 'active' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('active')}
                   >
-                    Active {activeCount}
+                    ACTIVE {activeCount}
+                  </button>
+                  <button
+                    className={`filter-chip ${instanceStatusFilter === 'paused' ? 'active' : ''}`}
+                    onClick={() => setInstanceStatusFilter('paused')}
+                  >
+                    PAUSE {pauseCount}
                   </button>
                   <button
                     className={`filter-chip ${instanceStatusFilter === 'build' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('build')}
                   >
-                    Building {buildCount}
+                    BUILDING {buildCount}
                   </button>
                 </div>
                 {errorCount > 0 && <span className="toolbar-meta">Issues {errorCount}</span>}
@@ -172,8 +203,25 @@ export function InstancesPage() {
                   View details & Edit
                 </button>
                 <button
+                  className="ghost-button"
+                  disabled={
+                    powerActionId === selectedInstance.id ||
+                    !['ACTIVE', 'PAUSED'].includes(String(selectedInstance.status).toUpperCase())
+                  }
+                  onClick={() => handlePowerAction(selectedInstance.id, selectedInstance.status)}
+                >
+                  {powerActionId === selectedInstance.id
+                    ? 'Working...'
+                    : String(selectedInstance.status).toUpperCase() === 'PAUSED'
+                      ? 'Resume'
+                      : 'Pause'}
+                </button>
+                {powerActionError && <p className="inline-status error">{powerActionError}</p>}
+                <button
                   className="danger-button"
-                  disabled={deletingId === selectedInstance.id}
+                  disabled={
+                    deletingId === selectedInstance.id || powerActionId === selectedInstance.id
+                  }
                   onClick={() => handleDeleteInstance(selectedInstance.id)}
                 >
                   {deletingId === selectedInstance.id ? 'Deleting...' : 'Delete instance'}

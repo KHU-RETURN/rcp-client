@@ -1,13 +1,15 @@
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const port = Number(process.env.PORT || 4173);
-const apiTarget = new URL(process.env.RCP_API_TARGET || 'http://127.0.0.1:8080');
-const distDir = path.join(__dirname, 'dist');
+const defaultApiTarget = new URL(process.env.RCP_API_TARGET || 'http://127.0.0.1:8080');
+const defaultDistDir = path.join(__dirname, 'dist');
 
 const mimeTypes = new Map([
   ['.html', 'text/html; charset=utf-8'],
@@ -23,38 +25,42 @@ const mimeTypes = new Map([
   ['.ico', 'image/x-icon'],
 ]);
 
-const server = http.createServer(async (req, res) => {
-  try {
-    const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+export function createFrontendServer({
+  apiTarget = defaultApiTarget,
+  distDir = defaultDistDir,
+} = {}) {
+  const target = new URL(apiTarget);
 
-    if (requestUrl.pathname.startsWith('/api/')) {
-      await proxyApi(req, res, requestUrl);
-      return;
+  return http.createServer(async (req, res) => {
+    try {
+      const requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+
+      if (requestUrl.pathname.startsWith('/api/')) {
+        await proxyApi(req, res, requestUrl, target);
+        return;
+      }
+
+      await serveStatic(res, requestUrl.pathname, distDir);
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(
+        JSON.stringify({ error: error instanceof Error ? error.message : 'internal server error' }),
+      );
     }
+  });
+}
 
-    await serveStatic(res, requestUrl.pathname);
-  } catch (error) {
-    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'internal server error' }),
-    );
-  }
-});
+if (process.argv[1] === __filename) {
+  const server = createFrontendServer();
+  server.listen(port, () => {
+    console.log(`RCP frontend server running at http://127.0.0.1:${port}`);
+    console.log(`Proxying /api requests to ${defaultApiTarget.origin}`);
+  });
+}
 
-server.listen(port, () => {
-  console.log(`RCP frontend server running at http://127.0.0.1:${port}`);
-  console.log(`Proxying /api requests to ${apiTarget.origin}`);
-});
-
-async function proxyApi(req, res, requestUrl) {
+async function proxyApi(req, res, requestUrl, apiTarget) {
   const upstreamUrl = new URL(requestUrl.pathname + requestUrl.search, apiTarget);
-  const chunks = [];
-
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-
-  const body = chunks.length > 0 ? Buffer.concat(chunks) : undefined;
+  const body = hasRequestBody(req.method) ? req : undefined;
 
   try {
     const upstream = await fetch(upstreamUrl, {
@@ -67,12 +73,19 @@ async function proxyApi(req, res, requestUrl) {
     const headers = Object.fromEntries(upstream.headers.entries());
     delete headers['content-encoding'];
     delete headers['transfer-encoding'];
-    delete headers['connection'];
+    delete headers.connection;
 
     res.writeHead(upstream.status, headers);
-    const arrayBuffer = await upstream.arrayBuffer();
-    res.end(Buffer.from(arrayBuffer));
+    if (!upstream.body) {
+      res.end();
+      return;
+    }
+    await pipeline(Readable.fromWeb(upstream.body), res);
   } catch (error) {
+    if (res.headersSent) {
+      res.destroy(error instanceof Error ? error : undefined);
+      return;
+    }
     res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(
       JSON.stringify({
@@ -82,15 +95,20 @@ async function proxyApi(req, res, requestUrl) {
   }
 }
 
+function hasRequestBody(method) {
+  return method !== 'GET' && method !== 'HEAD';
+}
+
 function filterProxyHeaders(headers) {
   const nextHeaders = { ...headers };
   delete nextHeaders.host;
   delete nextHeaders.connection;
   delete nextHeaders['content-length'];
+  delete nextHeaders['transfer-encoding'];
   return nextHeaders;
 }
 
-async function serveStatic(res, pathname) {
+async function serveStatic(res, pathname, distDir) {
   const normalized = pathname === '/' ? '/login' : pathname;
   const looksLikeAsset = path.extname(normalized).length > 0;
 

@@ -1089,10 +1089,16 @@ h3 {
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
-.oauth-button:hover {
+.oauth-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(17, 17, 17, 0.18);
   box-shadow: 0 16px 34px rgba(17, 17, 17, 0.08);
+}
+
+.oauth-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .oauth-mark {
@@ -2072,6 +2078,101 @@ h3 {
   margin-bottom: 14px;
   padding-top: 8px;
   border-top: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.storage-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(17, 17, 17, 0.06);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storage-breadcrumb .breadcrumb-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.storage-breadcrumb .breadcrumb-link:disabled {
+  color: var(--ink);
+  cursor: default;
+}
+
+.upload-progress {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.upload-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.upload-progress-head span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-progress-head strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.upload-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.upload-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #111111;
+  transition: width 160ms ease;
+}
+
+.object-name-button {
+  display: grid;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.object-name-button:hover strong {
+  text-decoration: underline;
 }
 
 .inline-create-form {

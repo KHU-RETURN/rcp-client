@@ -15,8 +15,16 @@ import {
   fetchObjects,
   uploadObject,
   downloadObject,
+  downloadObjectArchive,
   deleteObject,
 } from '../../services/storage';
+import {
+  buildArchiveFilename,
+  getUploadObjectKey,
+  normalizeObjectPrefix,
+} from '../../services/storage-paths';
+import { calculateUploadProgress } from '../../services/storage-progress';
+import { prepareResponseFileDownload } from '../../services/downloads';
 
 type DeleteContainerResult =
   | { state: 'ok' }
@@ -40,7 +48,9 @@ export interface StorageSlice {
   removeContainer: (name: string, force?: boolean) => Promise<DeleteContainerResult>;
   ensureObjects: (name: string, force?: boolean) => Promise<void>;
   uploadFile: (name: string, file: File) => Promise<{ ok: boolean; error?: string }>;
+  uploadFiles: (name: string, files: File[]) => Promise<{ ok: boolean; error?: string }>;
   downloadFile: (name: string, key: string) => Promise<{ ok: boolean; error?: string }>;
+  downloadFolder: (name: string, prefix: string) => Promise<{ ok: boolean; error?: string }>;
   removeObject: (name: string, key: string) => Promise<{ ok: boolean; error?: string }>;
   resetStorageUiState: () => void;
 }
@@ -177,10 +187,32 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
   },
 
   uploadFile: async (name, file) => {
-    set({ objectUpload: { state: 'saving', message: `${file.name} 업로드 중...` } });
+    return get().uploadFiles(name, [file]);
+  },
+
+  uploadFiles: async (name, files) => {
+    if (files.length === 0) {
+      return { ok: false, error: '업로드할 파일을 선택해 주세요.' };
+    }
+
+    const uploadLabel =
+      files.length === 1 ? `${files[0].name} 업로드 중...` : `${files.length}개 파일 업로드 중...`;
+    set({ objectUpload: { state: 'saving', message: uploadLabel, progress: 0 } });
 
     try {
-      await uploadObject(name, file);
+      for (const [index, file] of files.entries()) {
+        await uploadObject(name, file, getUploadObjectKey(file), {
+          onProgress: (loadedBytes) => {
+            const progress = calculateUploadProgress(files, index, loadedBytes);
+            const detail =
+              files.length === 1
+                ? `${file.name} 업로드 중... ${progress.percent}%`
+                : `${files.length}개 파일 업로드 중... ${progress.percent}% (${index + 1}/${files.length})`;
+            set({ objectUpload: { state: 'saving', message: detail, progress: progress.percent } });
+          },
+        });
+      }
+      set({ objectUpload: { state: 'saving', message: '업로드 완료 중... 100%', progress: 100 } });
       await get().ensureObjects(name, true);
       set({ objectUpload: { state: 'idle', message: '' } });
       return { ok: true };
@@ -194,15 +226,26 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
 
   downloadFile: async (name, key) => {
     try {
-      const blob = await downloadObject(name, key);
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = key.split('/').pop() || key;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
+      const filename = key.split('/').pop() || key;
+      const download = prepareResponseFileDownload(filename);
+      await download.ready;
+      const response = await downloadObject(name, key);
+      await download.save(response);
+      return { ok: true };
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : 'Unknown error';
+      return { ok: false, error: translateError(raw) };
+    }
+  },
+
+  downloadFolder: async (name, prefix) => {
+    try {
+      const normalizedPrefix = normalizeObjectPrefix(prefix);
+      const filename = buildArchiveFilename(normalizedPrefix, name);
+      const download = prepareResponseFileDownload(filename);
+      await download.ready;
+      const response = await downloadObjectArchive(name, normalizedPrefix);
+      await download.save(response);
       return { ok: true };
     } catch (error) {
       const raw = error instanceof Error ? error.message : 'Unknown error';

@@ -1,5 +1,6 @@
 import { apiRequest } from './api';
 import { validatePublicKey, translateError } from '../utils';
+import { TERMINAL_READY_DELAY_MS } from '../constants';
 import type {
   CreateInstancePayload,
   CreateKeypairPayload,
@@ -10,6 +11,15 @@ import type {
   ServerInstanceResponse,
   UpdateInstancePayload,
 } from '../types';
+
+function buildTerminalReadyAt(
+  status: string | undefined,
+  baseTime = Date.now(),
+): string | undefined {
+  return String(status ?? '').toUpperCase() === 'ACTIVE'
+    ? new Date(baseTime + TERMINAL_READY_DELAY_MS).toISOString()
+    : undefined;
+}
 
 function buildInventoryRecord(
   payload: CreateInstancePayload,
@@ -28,6 +38,7 @@ function buildInventoryRecord(
     status: response.status || 'BUILD',
     created,
     updated: response.updated ?? created,
+    terminalReadyAt: buildTerminalReadyAt(response.status),
     flavorId,
     flavorName: undefined,
     vcpus: undefined,

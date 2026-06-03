@@ -21,6 +21,7 @@ import {
   unpauseInstance as unpauseComputeInstance,
   updateInstance as updateComputeInstance,
 } from '../../services/compute';
+import { TERMINAL_READY_DELAY_MS } from '../../constants';
 
 export interface ComputeSlice {
   flavors: Flavor[];
@@ -53,6 +54,8 @@ export interface ComputeSlice {
   handleCreateInstance: () => Promise<string | null>;
   getSelectedFlavor: () => Flavor | null;
   deleteInstance: (id: string) => Promise<void>;
+  pauseInstance: (id: string) => Promise<void>;
+  unpauseInstance: (id: string) => Promise<void>;
 }
 
 type ComputeSliceDeps = ComputeSlice & DraftSlice & AuthSlice;
@@ -94,14 +97,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
       const previousInstances = get().instances;
       const data = (await fetchComputeInstances()).map((instance) => {
         const previous = previousInstances.find((item) => item.id === instance.id);
-        const wasActive = String(previous?.status ?? '').toUpperCase() === 'ACTIVE';
-        const isActive = String(instance.status ?? '').toUpperCase() === 'ACTIVE';
-
-        if (previous && !wasActive && isActive) {
-          return { ...instance, updated: new Date().toISOString() };
-        }
-
-        return instance;
+        return previous ? mergeInstanceWithActiveTransition(previous, instance) : instance;
       });
       const selectedInstanceId = data.some((instance) => instance.id === get().selectedInstanceId)
         ? get().selectedInstanceId
@@ -124,7 +120,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
       set((state) => {
         const next = [...state.instances];
         const index = next.findIndex((i) => i.id === instance.id);
-        if (index >= 0) next[index] = { ...next[index], ...instance };
+        if (index >= 0) next[index] = mergeInstanceWithActiveTransition(next[index], instance);
         else next.unshift(instance);
         return { instances: next, instancesError: '' };
       });
@@ -241,7 +237,49 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
           : state.selectedInstanceId,
     }));
   },
+
+  pauseInstance: async (id) => {
+    await pauseComputeInstance(id);
+    set((state) => ({
+      instances: state.instances.map((instance) =>
+        instance.id === id
+          ? { ...instance, status: 'PAUSED', updated: new Date().toISOString() }
+          : instance,
+      ),
+    }));
+  },
+
+  unpauseInstance: async (id) => {
+    await unpauseComputeInstance(id);
+    const terminalReadyAt = createTerminalReadyAt();
+    set((state) => ({
+      instances: state.instances.map((instance) =>
+        instance.id === id
+          ? { ...instance, status: 'ACTIVE', updated: new Date().toISOString(), terminalReadyAt }
+          : instance,
+      ),
+    }));
+  },
 });
+
+function mergeInstanceWithActiveTransition(previous: Instance, next: Instance): Instance {
+  const wasActive = String(previous.status ?? '').toUpperCase() === 'ACTIVE';
+  const isActive = String(next.status ?? '').toUpperCase() === 'ACTIVE';
+  if (!wasActive && isActive) {
+    return { ...previous, ...next, terminalReadyAt: createTerminalReadyAt() };
+  }
+
+  const previousReadyAt = Date.parse(previous.terminalReadyAt ?? '');
+  if (Number.isFinite(previousReadyAt) && previousReadyAt > Date.now()) {
+    return { ...previous, ...next, terminalReadyAt: previous.terminalReadyAt };
+  }
+
+  return { ...previous, ...next, terminalReadyAt: next.terminalReadyAt };
+}
+
+function createTerminalReadyAt(): string {
+  return new Date(Date.now() + TERMINAL_READY_DELAY_MS).toISOString();
+}
 
 function ensureDefaultFlavor(get: () => ComputeSliceDeps): void {
   const { flavors, draft, updateDraft } = get();
