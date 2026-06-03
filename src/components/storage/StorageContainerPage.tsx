@@ -326,11 +326,7 @@ export function StorageContainerPage() {
                       )}
                       {!isLoading && visible.length === 0 && (
                         <tr>
-                          <td
-                            colSpan={5}
-                            className="muted"
-                            style={{ textAlign: 'center', padding: '24px' }}
-                          >
+                          <td colSpan={5} className="muted object-empty-cell">
                             {objects.length === 0 ? (
                               <button
                                 type="button"
