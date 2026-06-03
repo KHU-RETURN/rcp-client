@@ -1,7 +1,5 @@
 import type { Flavor, Instance, StatusTone } from '../types';
 
-const TERMINAL_ACTIVE_GRACE_MS = 30_000;
-
 export function normalizeHandle(value: string): string {
   return value
     .trim()
@@ -69,12 +67,16 @@ export function getTerminalAvailability(
     };
   }
 
-  const activeAt = Date.parse(instance.updated || instance.created);
-  if (!Number.isFinite(activeAt)) {
+  if (!instance.terminalReadyAt) {
     return { canOpen: true, waitSeconds: 0, reason: 'Ready' };
   }
 
-  const remainingMs = TERMINAL_ACTIVE_GRACE_MS - (now - activeAt);
+  const readyAt = Date.parse(instance.terminalReadyAt);
+  if (!Number.isFinite(readyAt)) {
+    return { canOpen: true, waitSeconds: 0, reason: 'Ready' };
+  }
+
+  const remainingMs = readyAt - now;
   if (remainingMs <= 0) {
     return { canOpen: true, waitSeconds: 0, reason: 'Ready' };
   }

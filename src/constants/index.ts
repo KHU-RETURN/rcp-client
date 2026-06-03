@@ -4,3 +4,5 @@ export type { RouteName } from './routes';
 export { STORAGE_KEYS } from './storage-keys';
 export { imageTemplates, networkTemplates } from './templates';
 export { TERMINAL_THEME, TERMINAL_OPTIONS } from './terminal-theme';
+
+export const TERMINAL_READY_DELAY_MS = 30_000;
