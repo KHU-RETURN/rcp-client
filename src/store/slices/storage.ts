@@ -23,6 +23,7 @@ import {
   getUploadObjectKey,
   normalizeObjectPrefix,
 } from '../../services/storage-paths';
+import { prepareResponseFileDownload } from '../../services/downloads';
 
 type DeleteContainerResult =
   | { state: 'ok' }
@@ -214,15 +215,11 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
 
   downloadFile: async (name, key) => {
     try {
-      const blob = await downloadObject(name, key);
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = key.split('/').pop() || key;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
+      const filename = key.split('/').pop() || key;
+      const download = prepareResponseFileDownload(filename);
+      await download.ready;
+      const response = await downloadObject(name, key);
+      await download.save(response);
       return { ok: true };
     } catch (error) {
       const raw = error instanceof Error ? error.message : 'Unknown error';
@@ -233,15 +230,11 @@ export const createStorageSlice: StateCreator<StorageSlice, [], [], StorageSlice
   downloadFolder: async (name, prefix) => {
     try {
       const normalizedPrefix = normalizeObjectPrefix(prefix);
-      const blob = await downloadObjectArchive(name, normalizedPrefix);
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = buildArchiveFilename(normalizedPrefix, name);
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
+      const filename = buildArchiveFilename(normalizedPrefix, name);
+      const download = prepareResponseFileDownload(filename);
+      await download.ready;
+      const response = await downloadObjectArchive(name, normalizedPrefix);
+      await download.save(response);
       return { ok: true };
     } catch (error) {
       const raw = error instanceof Error ? error.message : 'Unknown error';

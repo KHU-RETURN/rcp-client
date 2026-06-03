@@ -56,22 +56,18 @@ export async function uploadObject(
   );
 }
 
-export async function downloadObject(name: string, key: string): Promise<Blob> {
-  const response = await apiFetch(
-    `${BASE}/${encodeContainer(name)}/objects/${encodeObjectKey(key)}`,
-  );
-  return response.blob();
+export async function downloadObject(name: string, key: string): Promise<Response> {
+  return apiFetch(`${BASE}/${encodeContainer(name)}/objects/${encodeObjectKey(key)}`);
 }
 
-export async function downloadObjectArchive(name: string, prefix: string): Promise<Blob> {
+export async function downloadObjectArchive(name: string, prefix: string): Promise<Response> {
   const params = new URLSearchParams();
   const normalizedPrefix = normalizeObjectPrefix(prefix);
   if (normalizedPrefix) {
     params.set('prefix', normalizedPrefix);
   }
   const suffix = params.toString() ? `?${params.toString()}` : '';
-  const response = await apiFetch(`${BASE}/${encodeContainer(name)}/archive${suffix}`);
-  return response.blob();
+  return apiFetch(`${BASE}/${encodeContainer(name)}/archive${suffix}`);
 }
 
 export async function deleteObject(name: string, key: string): Promise<void> {
