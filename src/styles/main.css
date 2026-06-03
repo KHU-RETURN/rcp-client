@@ -1912,16 +1912,28 @@ h3 {
   text-align: center;
 }
 
-.empty-upload-button {
-  border: 0;
+.flavor-table td.object-empty-cell {
   padding: 0;
+  text-align: center;
+}
+
+.empty-upload-button {
+  display: flex;
+  width: 100%;
+  min-height: 80px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 24px;
   background: transparent;
   color: var(--muted);
   font: inherit;
+  text-align: center;
   cursor: pointer;
 }
 
 .empty-upload-button:hover {
+  background: rgba(17, 17, 17, 0.03);
   color: var(--ink);
 }
 
