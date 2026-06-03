@@ -1912,6 +1912,24 @@ h3 {
   text-align: center;
 }
 
+.empty-upload-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.empty-upload-button:hover {
+  color: var(--ink);
+}
+
+.empty-upload-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 @keyframes shimmer {
   from {
     background-position: 200% 0;

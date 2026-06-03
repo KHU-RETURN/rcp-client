@@ -331,9 +331,18 @@ export function StorageContainerPage() {
                             className="muted"
                             style={{ textAlign: 'center', padding: '24px' }}
                           >
-                            {objects.length === 0
-                              ? '아직 객체가 없습니다. Upload file 로 첫 파일을 올려 보세요.'
-                              : '검색 결과가 없습니다.'}
+                            {objects.length === 0 ? (
+                              <button
+                                type="button"
+                                className="empty-upload-button"
+                                disabled={objectUpload.state === 'saving'}
+                                onClick={() => void handlePickFile()}
+                              >
+                                아직 객체가 없습니다. Upload file 로 첫 파일을 올려 보세요.
+                              </button>
+                            ) : (
+                              '검색 결과가 없습니다.'
+                            )}
                           </td>
                         </tr>
                       )}
