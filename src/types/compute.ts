@@ -7,6 +7,12 @@ export interface Flavor {
   max_configurable: number;
 }
 
+export interface InstanceApp {
+  id: string;
+  subdomain: string;
+  host: string;
+}
+
 export interface Instance {
   id: string;
   name: string;
@@ -26,6 +32,7 @@ export interface Instance {
   cpuUsage: number | undefined;
   memoryUsage: number | undefined;
   note: string;
+  app: InstanceApp | null;
 }
 
 export interface Draft {

@@ -2,6 +2,7 @@ export type { Session, AuthMessage } from './auth';
 export type {
   Flavor,
   Instance,
+  InstanceApp,
   Draft,
   KeypairResponse,
   KeypairStatus,
@@ -29,6 +30,8 @@ export type {
   CreateInstancePayload,
   CreateKeypairPayload,
   CreateInstanceResponse,
+  RegisterInstanceAppPayload,
+  RegisterInstanceAppResponse,
   ServerInstanceResponse,
 } from './api';
 export { ApiRequestError } from './api';

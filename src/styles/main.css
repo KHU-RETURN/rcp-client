@@ -2461,6 +2461,99 @@ h3 {
   line-height: 1.55;
 }
 
+.instance-app-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto;
+  align-items: end;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(17, 17, 17, 0.03);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.instance-app-registered {
+  grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1fr) auto;
+  align-items: center;
+}
+
+.instance-app-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.instance-app-copy h4 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.instance-app-copy p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.instance-app-field {
+  min-width: 0;
+}
+
+.instance-app-meta {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+
+.instance-app-meta > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.instance-app-meta dt {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.instance-app-meta dd {
+  margin: 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.instance-app-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  word-break: break-word;
+}
+
+.instance-app-link:hover {
+  opacity: 0.72;
+}
+
+.instance-app-actions {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.instance-app-actions .inline-status {
+  max-width: 220px;
+  text-align: right;
+}
+
+.instance-app-registered .inline-status {
+  max-width: none;
+  white-space: nowrap;
+}
+
 .instance-build-hint {
   margin: 0;
   font-size: 0.88rem;
@@ -2704,6 +2797,25 @@ h3 {
   .instance-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 28px;
+  }
+
+  .instance-app-form {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .instance-app-registered {
+    grid-template-columns: 1fr;
+  }
+
+  .instance-app-actions {
+    justify-items: start;
+  }
+
+  .instance-app-actions .inline-status {
+    max-width: none;
+    text-align: left;
+    white-space: normal;
   }
 }
 

@@ -12,6 +12,16 @@ export interface CreateKeypairPayload {
   public_key: string;
 }
 
+export interface RegisterInstanceAppPayload {
+  subdomain: string;
+}
+
+export interface RegisterInstanceAppResponse {
+  id?: string;
+  subdomain?: string;
+  host?: string;
+}
+
 export interface CreateInstanceResponse {
   id: string;
   tenant_id?: string;
@@ -53,6 +63,11 @@ export interface ServerInstanceResponse {
   fixed_ip?: string;
   floating_ip?: string;
   usage?: { cpu_usage: number; memory_usage: number };
+  app?: {
+    id: string;
+    subdomain: string;
+    host: string;
+  } | null;
   created?: string;
   updated?: string;
 }
