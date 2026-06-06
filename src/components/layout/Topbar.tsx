@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { EasterEggLogoMark } from '../easter-eggs';
 import { useStore } from '../../store';
 import { logoutSession } from '../../services/auth';
 import { BRAND_ASSETS, ROUTE_NAMES } from '../../constants';
@@ -27,7 +28,7 @@ export function Topbar({ active }: TopbarProps) {
   return (
     <header className="topbar">
       <div className="brand">
-        <img className="brand-logo" src={BRAND_ASSETS.light} alt="RETURN logo" />
+        <EasterEggLogoMark className="brand-logo" src={BRAND_ASSETS.light} alt="RETURN logo" />
         <div>
           <strong>Return Cloud Platform</strong>
           <span>{active === ROUTE_NAMES.storage ? 'Storage' : 'Compute'}</span>

@@ -113,10 +113,9 @@ h3 {
   line-height: 1.15;
 }
 
-.landing-brand img {
+.landing-brand-logo {
   width: 34px;
   height: 34px;
-  object-fit: contain;
 }
 
 .landing-nav nav {
@@ -620,7 +619,6 @@ h3 {
 .brand-logo {
   width: 30px;
   height: 30px;
-  object-fit: contain;
 }
 
 .brand strong,
@@ -2788,6 +2786,74 @@ h3 {
   background: transparent;
 }
 
+.easter-egg-logo-mark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.easter-egg-logo-base,
+.easter-egg-logo-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.easter-egg-logo-base {
+  object-fit: contain;
+}
+
+.easter-egg-logo-mark.is-swapped .easter-egg-logo-base {
+  animation: easterEggLogoBaseSwap 3100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-logo-avatar-shell {
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: 0;
+  box-shadow:
+    0 0 0 1px rgba(17, 17, 17, 0.12),
+    0 10px 22px rgba(17, 17, 17, 0.18);
+}
+
+.easter-egg-logo-avatar-shell.is-loaded {
+  animation: easterEggLogoAvatarSwap 3100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-brand-logo .easter-egg-logo-avatar-shell {
+  inset: -2px;
+}
+
+.easter-egg-logo-avatar {
+  object-fit: cover;
+}
+
+.easter-egg-logo-signature {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 2;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.78);
+  box-shadow: 0 10px 20px rgba(17, 17, 17, 0.18);
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: easterEggLogoSignature 3100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .easter-egg-stage {
   position: fixed;
   inset: 0;
@@ -2855,6 +2921,85 @@ h3 {
 
 .easter-egg-return-arrowhead.is-lower {
   offset-path: var(--easter-egg-return-lower-path);
+}
+
+@keyframes easterEggLogoBaseSwap {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+
+  14% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.78);
+  }
+
+  76% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.78);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes easterEggLogoAvatarSwap {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.72) rotate(-2deg);
+  }
+
+  16% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) rotate(0);
+  }
+
+  72% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.9) rotate(2deg);
+  }
+}
+
+@keyframes easterEggLogoSignature {
+  0% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  20% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  32% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  68% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(3px);
+  }
 }
 
 @keyframes easterEggReturnTrace {
@@ -2957,6 +3102,9 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .easter-egg-logo-base,
+  .easter-egg-logo-avatar-shell,
+  .easter-egg-logo-signature,
   .easter-egg-return-unfold,
   .easter-egg-return-branch,
   .easter-egg-return-path,

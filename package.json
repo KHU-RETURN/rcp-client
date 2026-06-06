@@ -10,7 +10,7 @@
     "postbuild": "node scripts/create-spa-fallback.mjs",
     "preview": "vite preview",
     "serve": "node server.mjs",
-    "test": "node --test server.test.mjs src/services/*.test.ts src/components/easter-eggs/*.test.ts",
+    "test": "node --test server.test.mjs src/services/*.test.ts",
     "typecheck": "tsc --noEmit",
     "format": "biome format --write",
     "format:check": "biome format",

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-import { useEasterEggs } from './useEasterEggs';
+import { useActiveEasterEgg } from './EasterEggProvider';
 
 const RETURN_UNFOLD_UPPER_PATH =
   'M 160 130 H 238 C 280 130 292 98 292 70 C 292 34 260 10 226 10 C 190 10 160 38 160 74 V 840';
@@ -13,9 +13,9 @@ const returnUnfoldStyle = {
 } as CSSProperties;
 
 export function EasterEggLayer() {
-  const egg = useEasterEggs();
+  const egg = useActiveEasterEgg();
 
-  if (!egg) {
+  if (!egg || egg.animation !== 'return-unfold') {
     return null;
   }
 

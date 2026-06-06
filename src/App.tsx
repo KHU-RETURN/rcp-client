@@ -12,35 +12,37 @@ import { CreatePage } from './components/compute/CreatePage';
 import { StoragePage } from './components/storage/StoragePage';
 import { StorageContainerPage } from './components/storage/StorageContainerPage';
 import { TerminalPage } from './components/terminal/TerminalPage';
-import { EasterEggLayer } from './components/easter-eggs';
+import { EasterEggLayer, EasterEggProvider } from './components/easter-eggs';
 
 export function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/changes" element={<ChangesPage />} />
+      <EasterEggProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/changes" element={<ChangesPage />} />
 
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/ssh-auth" element={<SshAuthPage />} />
-        <Route path="/ssh/complete" element={<SshCompletePage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/ssh-auth" element={<SshAuthPage />} />
+          <Route path="/ssh/complete" element={<SshCompletePage />} />
 
-        <Route element={<AuthGuard />}>
-          <Route path="/compute" element={<InstancesPage />} />
-          <Route path="/compute/create" element={<CreatePage />} />
-          <Route path="/compute/create/result" element={<Navigate to="/compute" replace />} />
-          <Route path="/compute/instances/:id" element={<InstanceDetailPage />} />
-          <Route path="/instances/:id" element={<InstanceDetailPage />} />
-          <Route path="/compute/instances/:id/terminal" element={<TerminalPage />} />
-          <Route path="/instances/:id/terminal" element={<TerminalPage />} />
-          <Route path="/storage" element={<StoragePage />} />
-          <Route path="/storage/:name" element={<StorageContainerPage />} />
-        </Route>
+          <Route element={<AuthGuard />}>
+            <Route path="/compute" element={<InstancesPage />} />
+            <Route path="/compute/create" element={<CreatePage />} />
+            <Route path="/compute/create/result" element={<Navigate to="/compute" replace />} />
+            <Route path="/compute/instances/:id" element={<InstanceDetailPage />} />
+            <Route path="/instances/:id" element={<InstanceDetailPage />} />
+            <Route path="/compute/instances/:id/terminal" element={<TerminalPage />} />
+            <Route path="/instances/:id/terminal" element={<TerminalPage />} />
+            <Route path="/storage" element={<StoragePage />} />
+            <Route path="/storage/:name" element={<StorageContainerPage />} />
+          </Route>
 
-        <Route path="/" element={<LandingPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-      <EasterEggLayer />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+        <EasterEggLayer />
+      </EasterEggProvider>
     </BrowserRouter>
   );
 }
