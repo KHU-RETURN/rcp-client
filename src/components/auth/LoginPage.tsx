@@ -27,7 +27,12 @@ export function LoginPage() {
             <span>경희대 계정으로만 접근할 수 있습니다.</span>
           </div>
 
-          <button className="oauth-button" onClick={handleGoogleLogin} data-ui="google-login">
+          <button
+            type="button"
+            className="oauth-button"
+            onClick={handleGoogleLogin}
+            data-ui="google-login"
+          >
             <span className="oauth-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none">
                 <path

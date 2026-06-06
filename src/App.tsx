@@ -13,6 +13,13 @@ import { StoragePage } from './components/storage/StoragePage';
 import { StorageContainerPage } from './components/storage/StorageContainerPage';
 import { TerminalPage } from './components/terminal/TerminalPage';
 import { EasterEggLayer, EasterEggProvider } from './components/easter-eggs';
+import { AdminGuard } from './components/admin/AdminGuard';
+import { AdminPage } from './components/admin/AdminPage';
+import {
+  AdminContainerDetailPage,
+  AdminInstanceDetailPage,
+  AdminUserDetailPage,
+} from './components/admin/AdminDetailPages';
 
 export function App() {
   return (
@@ -36,6 +43,12 @@ export function App() {
             <Route path="/instances/:id/terminal" element={<TerminalPage />} />
             <Route path="/storage" element={<StoragePage />} />
             <Route path="/storage/:name" element={<StorageContainerPage />} />
+            <Route element={<AdminGuard />}>
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
+              <Route path="/admin/instances/:id" element={<AdminInstanceDetailPage />} />
+              <Route path="/admin/containers/:id" element={<AdminContainerDetailPage />} />
+            </Route>
           </Route>
 
           <Route path="/" element={<LandingPage />} />

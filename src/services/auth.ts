@@ -1,25 +1,12 @@
 import type { Session } from '../types';
 import { buildApiUrl } from './api';
 
-type AuthUserPayload = Partial<Session> & {
+type AuthPayload = Partial<Session> & {
   user?: Partial<Session>;
-  data?: AuthUser;
-  tokens?: AuthUser;
-  auth?: AuthUser;
-  session?: AuthUser;
-  access_token?: string;
-  refresh_token?: string;
-  AccessToken?: string;
-  RefreshToken?: string;
-  token?: string;
-};
-
-type AuthUser = Partial<Session> & {
-  user?: Partial<Session>;
-  data?: AuthUser;
-  tokens?: AuthUser;
-  auth?: AuthUser;
-  session?: AuthUser;
+  data?: AuthPayload;
+  tokens?: AuthPayload;
+  auth?: AuthPayload;
+  session?: AuthPayload;
   access_token?: string;
   refresh_token?: string;
   AccessToken?: string;
@@ -50,14 +37,14 @@ function findStringValue(value: unknown, keys: string[], depth = 0): string | un
   return undefined;
 }
 
-function resolveUserPayload(payload: AuthUserPayload): AuthUser {
+function resolveUserPayload(payload: AuthPayload): Partial<Session> | AuthPayload {
   if (payload.user) return payload.user;
   if (payload.data && 'user' in payload.data && payload.data.user) return payload.data.user;
   if (payload.data && !('user' in payload.data)) return payload.data;
   return payload;
 }
 
-export function normalizeAuthSession(payload: AuthUserPayload): Session {
+export function normalizeAuthSession(payload: AuthPayload): Session {
   const user = resolveUserPayload(payload);
   const accessToken = findStringValue(payload, ACCESS_TOKEN_KEYS);
   const refreshToken = findStringValue(payload, REFRESH_TOKEN_KEYS);
@@ -65,26 +52,12 @@ export function normalizeAuthSession(payload: AuthUserPayload): Session {
   return {
     id: user.id ?? user.email ?? 'google',
     name: user.name ?? user.email ?? 'Google User',
-    role: user.role ?? 'student',
+    role: user.role ?? 'user',
     subtitle: user.subtitle ?? 'Authenticated with Google',
     email: user.email,
     accessToken,
     refreshToken,
     source: user.source ?? 'google',
-  };
-}
-
-export function describeSession(session: Session | null): Record<string, unknown> | null {
-  if (!session) return null;
-
-  return {
-    id: session.id,
-    name: session.name,
-    email: session.email,
-    role: session.role,
-    source: session.source,
-    hasAccessToken: Boolean(session.accessToken),
-    hasRefreshToken: Boolean(session.refreshToken),
   };
 }
 
@@ -97,7 +70,7 @@ export async function fetchAuthSession(): Promise<Session> {
     throw new Error(`Auth session check failed with ${response.status}`);
   }
 
-  const payload = (await response.json()) as AuthUserPayload;
+  const payload = (await response.json()) as AuthPayload;
   const session = normalizeAuthSession(payload);
 
   return session;

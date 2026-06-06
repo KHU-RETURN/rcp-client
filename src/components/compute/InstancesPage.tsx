@@ -102,7 +102,8 @@ export function InstancesPage() {
                 <p className="muted section-support">인스턴스 목록</p>
               </div>
               <div className="section-head-meta">
-                <div className="section-stats" role="group" aria-label="Inventory summary">
+                <fieldset className="section-stats">
+                  <legend className="visually-hidden">Inventory summary</legend>
                   <div className="mini-stat">
                     <span>VISIBLE</span>
                     <strong>{visible.length}</strong>
@@ -119,8 +120,12 @@ export function InstancesPage() {
                     <span>PAUSE</span>
                     <strong>{pauseCount}</strong>
                   </div>
-                </div>
-                <button className="primary-button" onClick={() => navigate('/compute/create')}>
+                </fieldset>
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => navigate('/compute/create')}
+                >
                   Create new VM
                 </button>
               </div>
@@ -138,32 +143,37 @@ export function InstancesPage() {
                 />
               </label>
               <div className="toolbar-side">
-                <div className="filter-row" role="group" aria-label="Instance status filters">
+                <fieldset className="filter-row">
+                  <legend className="visually-hidden">Instance status filters</legend>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'all' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('all')}
                   >
                     ALL {instances.length}
                   </button>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'active' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('active')}
                   >
                     ACTIVE {activeCount}
                   </button>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'paused' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('paused')}
                   >
                     PAUSE {pauseCount}
                   </button>
                   <button
+                    type="button"
                     className={`filter-chip ${instanceStatusFilter === 'build' ? 'active' : ''}`}
                     onClick={() => setInstanceStatusFilter('build')}
                   >
                     BUILDING {buildCount}
                   </button>
-                </div>
+                </fieldset>
                 {errorCount > 0 && <span className="toolbar-meta">Issues {errorCount}</span>}
               </div>
             </div>
@@ -180,6 +190,7 @@ export function InstancesPage() {
             selectedInstance && (
               <>
                 <button
+                  type="button"
                   className="primary-button"
                   disabled={!terminalAvailability.canOpen}
                   onClick={() =>
@@ -195,6 +206,7 @@ export function InstancesPage() {
                       : 'Terminal unavailable'}
                 </button>
                 <button
+                  type="button"
                   className="ghost-button"
                   onClick={() =>
                     navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)
@@ -203,6 +215,7 @@ export function InstancesPage() {
                   View details
                 </button>
                 <button
+                  type="button"
                   className="ghost-button"
                   disabled={
                     powerActionId === selectedInstance.id ||
@@ -218,6 +231,7 @@ export function InstancesPage() {
                 </button>
                 {powerActionError && <p className="inline-status error">{powerActionError}</p>}
                 <button
+                  type="button"
                   className="danger-button"
                   disabled={
                     deletingId === selectedInstance.id || powerActionId === selectedInstance.id

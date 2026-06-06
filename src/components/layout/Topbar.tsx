@@ -18,6 +18,7 @@ export function Topbar({ active }: TopbarProps) {
     active === ROUTE_NAMES.create ||
     active === ROUTE_NAMES.detail ||
     active === ROUTE_NAMES.terminal;
+  const isAdmin = session?.role?.toLowerCase() === 'admin';
 
   async function handleLogout() {
     await logoutSession();
@@ -31,26 +32,43 @@ export function Topbar({ active }: TopbarProps) {
         <EasterEggLogoMark className="brand-logo" src={BRAND_ASSETS.light} alt="RETURN logo" />
         <div>
           <strong>Return Cloud Platform</strong>
-          <span>{active === ROUTE_NAMES.storage ? 'Storage' : 'Compute'}</span>
+          <span>
+            {active === ROUTE_NAMES.admin
+              ? 'admin'
+              : active === ROUTE_NAMES.storage
+                ? 'Storage'
+                : 'Compute'}
+          </span>
         </div>
       </div>
       <nav className="topbar-nav" aria-label="Primary">
         <button
+          type="button"
           className={`nav-button ${computeActive ? 'active' : ''}`}
           onClick={() => navigate('/compute')}
         >
           Compute
         </button>
         <button
+          type="button"
           className={`nav-button ${active === ROUTE_NAMES.storage ? 'active' : ''}`}
           onClick={() => navigate('/storage')}
         >
           Storage
         </button>
+        {isAdmin && (
+          <button
+            type="button"
+            className={`nav-button ${active === ROUTE_NAMES.admin ? 'active' : ''}`}
+            onClick={() => navigate('/admin')}
+          >
+            admin
+          </button>
+        )}
       </nav>
       <div className="topbar-tools">
         <span className="operator-label">{session?.name ?? ''}</span>
-        <button className="ghost-button" onClick={() => void handleLogout()}>
+        <button type="button" className="ghost-button" onClick={() => void handleLogout()}>
           Sign out
         </button>
       </div>

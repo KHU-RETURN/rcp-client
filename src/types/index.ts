@@ -39,3 +39,14 @@ export type { FlavorsStatus, RcpConfig } from './config';
 export type { TerminalRuntime } from './terminal';
 export type { ReleaseNote } from './release';
 export type { ImageTemplate, NetworkTemplate } from './templates';
+export type {
+  AdminContainer,
+  AdminInstance,
+  AdminKeypair,
+  AdminPaginatedResponse,
+  AdminPagination,
+  AdminSummary,
+  AdminSystem,
+  AdminUser,
+  AdminUserResources,
+} from './admin';

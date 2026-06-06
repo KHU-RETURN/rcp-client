@@ -36,11 +36,19 @@ export function TerminalPage() {
             <div className="terminal-shell-head">
               <div className="terminal-heading">
                 <div className="terminal-breadcrumb">
-                  <button className="breadcrumb-link" onClick={() => navigate('/compute')}>
+                  <button
+                    type="button"
+                    className="breadcrumb-link"
+                    onClick={() => navigate('/compute')}
+                  >
                     Compute
                   </button>
                   <span>/</span>
-                  <button className="breadcrumb-link" onClick={() => navigate('/compute')}>
+                  <button
+                    type="button"
+                    className="breadcrumb-link"
+                    onClick={() => navigate('/compute')}
+                  >
                     Instances
                   </button>
                   <span>/</span>
@@ -49,20 +57,21 @@ export function TerminalPage() {
                 <h2>{instance?.name ?? 'Unknown instance'}</h2>
               </div>
               <div className="action-row compact">
-                <button className="ghost-button" onClick={toggleFullscreen}>
+                <button type="button" className="ghost-button" onClick={toggleFullscreen}>
                   {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                 </button>
-                <button className="ghost-button" onClick={() => clearRef.current?.()}>
+                <button type="button" className="ghost-button" onClick={() => clearRef.current?.()}>
                   Clear
                 </button>
                 <button
+                  type="button"
                   className="ghost-button"
                   disabled={!terminalAvailability.canOpen}
                   onClick={() => reconnectRef.current?.()}
                 >
                   Reconnect
                 </button>
-                <button className="ghost-button" onClick={() => navigate('/compute')}>
+                <button type="button" className="ghost-button" onClick={() => navigate('/compute')}>
                   Back to list
                 </button>
               </div>

@@ -92,7 +92,8 @@ export function StoragePage() {
                 <p className="muted section-support">컨테이너 단위로 파일을 보관합니다.</p>
               </div>
               <div className="section-head-meta">
-                <div className="section-stats" role="group" aria-label="Storage summary">
+                <fieldset className="section-stats">
+                  <legend className="visually-hidden">Storage summary</legend>
                   <div className="mini-stat">
                     <span>Visible</span>
                     <strong>{visible.length}</strong>
@@ -101,8 +102,12 @@ export function StoragePage() {
                     <span>Total</span>
                     <strong>{containers.length}</strong>
                   </div>
-                </div>
-                <button className="primary-button" onClick={() => setCreateOpen((v) => !v)}>
+                </fieldset>
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => setCreateOpen((v) => !v)}
+                >
                   {createOpen ? 'Cancel' : 'New container'}
                 </button>
               </div>
@@ -118,7 +123,6 @@ export function StoragePage() {
                     placeholder="my-photos"
                     value={draftName}
                     onChange={(e) => setDraftName(e.target.value)}
-                    autoFocus
                     required
                   />
                 </label>
@@ -204,6 +208,7 @@ export function StoragePage() {
                           <td>{humanizeDate(container.created_at)}</td>
                           <td style={{ textAlign: 'right' }}>
                             <button
+                              type="button"
                               className="ghost-button"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -243,12 +248,14 @@ export function StoragePage() {
               </dl>
               <div className="action-row compact sidebar-actions">
                 <button
+                  type="button"
                   className="primary-button"
                   onClick={() => navigate(`/storage/${encodeURIComponent(selected.name)}`)}
                 >
                   Open container
                 </button>
                 <button
+                  type="button"
                   className="danger-button"
                   disabled={busy}
                   onClick={() => handleDelete(selected.name)}

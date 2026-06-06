@@ -197,24 +197,23 @@ export function CreatePage() {
               <p className="muted">사용할 OS 템플릿을 선택합니다.</p>
             </div>
 
-            <div
-              className="image-grid"
-              data-ui="image-template"
-              role="radiogroup"
-              aria-label="Image template"
-            >
+            <fieldset className="image-grid" data-ui="image-template">
+              <legend className="visually-hidden">Image template</legend>
               {imageTemplates.map((item) => {
                 const selected = draft.imageTemplate === item.key;
                 return (
-                  <button
+                  <label
                     key={item.key}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
                     className={`image-card${selected ? ' is-selected' : ''}`}
-                    onClick={() => handleSelectImage(item.key)}
                     data-key={item.key}
                   >
+                    <input
+                      className="visually-hidden"
+                      type="radio"
+                      name="imageTemplate"
+                      checked={selected}
+                      onChange={() => handleSelectImage(item.key)}
+                    />
                     <span
                       className={`image-card-mark image-card-mark-${imageMarkVariant(item.key)}`}
                       aria-hidden
@@ -228,10 +227,10 @@ export function CreatePage() {
                     <span className="image-card-check" aria-hidden>
                       {selected ? '✓' : ''}
                     </span>
-                  </button>
+                  </label>
                 );
               })}
-            </div>
+            </fieldset>
           </section>
 
           {/* Compute */}
@@ -290,6 +289,7 @@ export function CreatePage() {
 
             <div className="action-row">
               <button
+                type="button"
                 className="primary-button secondary-tone"
                 data-ui="register-key"
                 disabled={keypairStatus.state === 'saving'}
@@ -357,6 +357,7 @@ export function CreatePage() {
                 )}
                 <div className="action-row compact">
                   <button
+                    type="button"
                     className="primary-button"
                     data-ui="create-vm"
                     disabled={!canCreate}
@@ -365,6 +366,7 @@ export function CreatePage() {
                     {creationStatus.state === 'saving' ? 'Creating...' : 'Create instance'}
                   </button>
                   <button
+                    type="button"
                     className="ghost-button"
                     onClick={() =>
                       document.getElementById('basic')?.scrollIntoView({ behavior: 'smooth' })

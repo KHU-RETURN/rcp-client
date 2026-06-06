@@ -1541,11 +1541,26 @@ h3 {
   justify-content: flex-end;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .section-stats {
   display: flex;
   align-items: stretch;
   gap: 10px;
   flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+  border: 0;
 }
 
 .section-head h2 {
@@ -2338,6 +2353,9 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 0;
+  margin: 0;
+  border: 0;
 }
 
 .filter-chip {
@@ -2409,6 +2427,206 @@ h3 {
 .instance-table tr td:first-child small {
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.admin-workspace {
+  display: block;
+}
+
+.admin-main {
+  width: min(1180px, calc(100vw - 48px));
+  margin: 0 auto;
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.admin-stat {
+  min-height: 88px;
+}
+
+.admin-system .line-block-head {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.admin-system-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-system-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-system-item:last-child {
+  border-bottom: 0;
+}
+
+.admin-system-item > span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-system-item strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-system-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-system-message {
+  margin-top: 14px;
+}
+
+.admin-table-section {
+  margin-top: 28px;
+}
+
+.admin-table td {
+  vertical-align: top;
+}
+
+.admin-table tbody tr {
+  cursor: pointer;
+}
+
+.admin-resource-groups {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-resource-group {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-resource-group > strong {
+  font-size: 0.9rem;
+}
+
+.admin-resource-group ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-resource-group li {
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-resource-link,
+.admin-resource-static {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.admin-resource-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-resource-link:hover {
+  background: rgba(17, 17, 17, 0.04);
+}
+
+.admin-resource-group li:last-child {
+  border-bottom: 0;
+}
+
+.admin-resource-link > span,
+.admin-resource-static > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.admin-resource-link small,
+.admin-resource-static small {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.admin-pagination > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-pagination > div {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.5fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-detail-list {
+  display: grid;
+  gap: 0;
+}
+
+.admin-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-detail-row > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-detail-row > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .list-main,
@@ -3295,6 +3513,20 @@ h3 {
 
   .terminal-breadcrumb {
     flex-wrap: wrap;
+  }
+
+  .admin-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-detail-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-detail-row > strong {
+    text-align: left;
   }
 
   .terminal-host {
