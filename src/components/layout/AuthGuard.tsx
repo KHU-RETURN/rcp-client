@@ -1,42 +1,50 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { describeSession, fetchAuthSession } from '../../services/auth';
+import { fetchAuthSession } from '../../services/auth';
 import { useStore } from '../../store';
 
 export function AuthGuard() {
-  const { session, login, setPendingRoutePath } = useStore();
+  const { session, login, logout, setPendingRoutePath } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const checkedRef = useRef(false);
-  const [isChecking, setIsChecking] = useState(!session);
+  const checkedSessionKeyRef = useRef<string | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (session) {
+    const sessionKey = session ? (session.email ?? session.id) : null;
+    if (sessionKey && checkedSessionKeyRef.current === sessionKey) {
       setIsChecking(false);
       return;
     }
 
-    if (checkedRef.current) {
-      return;
-    }
-
-    checkedRef.current = true;
+    checkedSessionKeyRef.current = sessionKey;
+    setIsChecking(true);
+    let cancelled = false;
 
     async function restoreProtectedRouteSession() {
       try {
         const restoredSession = await fetchAuthSession();
-        login(restoredSession);
+        if (cancelled) return;
+        checkedSessionKeyRef.current = restoredSession.email ?? restoredSession.id;
+        login(restoredSession, location.pathname);
         setIsChecking(false);
-      } catch (error) {
+      } catch {
+        if (cancelled) return;
+        checkedSessionKeyRef.current = null;
+        logout();
         setPendingRoutePath(location.pathname);
         navigate('/login', { replace: true });
       }
     }
 
     void restoreProtectedRouteSession();
-  }, [session, login, navigate, location.pathname, setPendingRoutePath, isChecking]);
 
-  if (!session && isChecking) return null;
+    return () => {
+      cancelled = true;
+    };
+  }, [session, login, logout, navigate, location.pathname, setPendingRoutePath]);
+
+  if (isChecking) return null;
   if (!session) return null;
 
   return <Outlet />;
