@@ -2411,6 +2411,87 @@ h3 {
   font-size: 0.78rem;
 }
 
+.admin-workspace {
+  display: block;
+}
+
+.admin-main {
+  width: min(1180px, calc(100vw - 48px));
+  margin: 0 auto;
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.admin-stat {
+  min-height: 88px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 16px;
+  margin: 18px 0 28px;
+}
+
+.admin-system .line-block-head {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.admin-system-list,
+.admin-status-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-system-item,
+.admin-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-system-item:last-child,
+.admin-status-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-system-item > span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-system-item strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-system-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-system-message {
+  margin-top: 14px;
+}
+
+.admin-table-section {
+  margin-top: 28px;
+}
+
+.admin-table td {
+  vertical-align: top;
+}
+
 .list-main,
 .terminal-main {
   min-width: 0;

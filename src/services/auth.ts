@@ -65,7 +65,7 @@ export function normalizeAuthSession(payload: AuthUserPayload): Session {
   return {
     id: user.id ?? user.email ?? 'google',
     name: user.name ?? user.email ?? 'Google User',
-    role: user.role ?? 'student',
+    role: user.role ?? 'user',
     subtitle: user.subtitle ?? 'Authenticated with Google',
     email: user.email,
     accessToken,
