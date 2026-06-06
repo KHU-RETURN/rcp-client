@@ -2788,6 +2788,184 @@ h3 {
   background: transparent;
 }
 
+.easter-egg-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.easter-egg-return-unfold {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  width: clamp(280px, 34vw, 465px);
+  aspect-ratio: 320 / 260;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  will-change: transform;
+}
+
+.easter-egg-return-mark {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 24px 44px rgba(0, 0, 0, 0.28));
+}
+
+.easter-egg-return-branch {
+  transform-box: view-box;
+  transform-origin: 160px 130px;
+}
+
+.easter-egg-return-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.96);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  animation: easterEggReturnTrace 3200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-return-origin {
+  fill: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.22));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: easterEggReturnDot 3200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-return-arrowhead {
+  fill: rgba(255, 255, 255, 0.96);
+  offset-distance: 0%;
+  offset-rotate: auto;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: easterEggReturnArrowhead 3200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-return-arrowhead.is-upper {
+  offset-path: var(--easter-egg-return-upper-path);
+}
+
+.easter-egg-return-arrowhead.is-lower {
+  offset-path: var(--easter-egg-return-lower-path);
+}
+
+@keyframes easterEggReturnTrace {
+  0% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0.86;
+  }
+
+  18% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0.72;
+    opacity: 1;
+  }
+
+  46% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0.42;
+    opacity: 1;
+  }
+
+  64% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  82% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: -0.58;
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: -1;
+    opacity: 1;
+  }
+}
+
+@keyframes easterEggReturnDot {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  10% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  52%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes easterEggReturnArrowhead {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+
+  8% {
+    offset-distance: 14%;
+    opacity: 1;
+  }
+
+  18% {
+    offset-distance: 28%;
+    opacity: 1;
+  }
+
+  46% {
+    offset-distance: 58%;
+    opacity: 1;
+  }
+
+  64% {
+    offset-distance: 100%;
+    opacity: 1;
+  }
+
+  100% {
+    offset-distance: 100%;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .easter-egg-return-unfold,
+  .easter-egg-return-branch,
+  .easter-egg-return-path,
+  .easter-egg-return-origin,
+  .easter-egg-return-arrowhead {
+    animation-duration: 1ms;
+  }
+}
+
 
 @media (max-width: 1180px) {
   .topbar-nav {

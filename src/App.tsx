@@ -12,6 +12,7 @@ import { CreatePage } from './components/compute/CreatePage';
 import { StoragePage } from './components/storage/StoragePage';
 import { StorageContainerPage } from './components/storage/StorageContainerPage';
 import { TerminalPage } from './components/terminal/TerminalPage';
+import { EasterEggLayer } from './components/easter-eggs';
 
 export function App() {
   return (
@@ -39,6 +40,7 @@ export function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      <EasterEggLayer />
     </BrowserRouter>
   );
 }
