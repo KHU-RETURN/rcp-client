@@ -40,7 +40,6 @@ export type { TerminalRuntime } from './terminal';
 export type { ReleaseNote } from './release';
 export type { ImageTemplate, NetworkTemplate } from './templates';
 export type {
-  AdminApp,
   AdminContainer,
   AdminInstance,
   AdminKeypair,

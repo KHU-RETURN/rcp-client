@@ -4,9 +4,11 @@ import {
   ADMIN_SUMMARY_PATH,
   ADMIN_SYSTEM_PATH,
   adminInstancesPath,
+  adminInstancePath,
   adminUserResourcesPath,
   adminUsersPath,
   adminContainersPath,
+  adminContainerPath,
 } from './admin-paths.ts';
 
 test('admin paths use dashboard endpoints with default limit', () => {
@@ -25,4 +27,9 @@ test('admin paths allow explicit list limits', () => {
 
 test('admin paths include user resource detail endpoint', () => {
   assert.equal(adminUserResourcesPath('user-1'), '/api/v1/admin/users/user-1/resources');
+});
+
+test('admin paths include resource detail endpoints', () => {
+  assert.equal(adminInstancePath('vm-1'), '/api/v1/admin/instances/vm-1');
+  assert.equal(adminContainerPath('container-1'), '/api/v1/admin/containers/container-1');
 });

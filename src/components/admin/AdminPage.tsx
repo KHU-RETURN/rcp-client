@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   fetchAdminContainers,
   fetchAdminInstances,
   fetchAdminSummary,
   fetchAdminSystem,
-  fetchAdminUserResources,
   fetchAdminUsers,
 } from '../../services/admin';
 import type {
@@ -15,7 +15,6 @@ import type {
   AdminSummary,
   AdminSystem,
   AdminUser,
-  AdminUserResources,
 } from '../../types';
 import { ROUTE_NAMES } from '../../constants';
 import { Topbar } from '../layout/Topbar';
@@ -129,104 +128,8 @@ function PaginationControls({
   );
 }
 
-function ResourceSummary({ resources }: { resources: AdminUserResources | null }) {
-  if (!resources) {
-    return (
-      <section className="line-block admin-detail-panel">
-        <strong>유저 리소스</strong>
-        <p className="muted">사용자를 클릭하면 해당 유저가 소유한 리소스와 상태가 표시됩니다.</p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="line-block admin-detail-panel">
-      <div className="line-block-head">
-        <div>
-          <strong>{resources.user.name || resources.user.email}</strong>
-          <p className="muted">{resources.user.email}</p>
-        </div>
-        <StatusBadge value={resources.user.role} />
-      </div>
-
-      <div className="admin-resource-groups">
-        <ResourceGroup
-          title="컴퓨트"
-          emptyText="소유한 인스턴스가 없습니다."
-          items={resources.instances.map((item) => ({
-            key: item.id,
-            name: item.name || item.id,
-            meta: item.flavor_name || item.flavor_id || '-',
-            status: item.status,
-          }))}
-        />
-        <ResourceGroup
-          title="스토리지"
-          emptyText="소유한 컨테이너가 없습니다."
-          items={resources.containers.map((item) => ({
-            key: item.id,
-            name: item.name,
-            meta: item.openstack_name,
-            status: item.status,
-          }))}
-        />
-        <ResourceGroup
-          title="키페어"
-          emptyText="등록한 키페어가 없습니다."
-          items={resources.keypairs.map((item) => ({
-            key: item.id,
-            name: item.name,
-            meta: `연결 인스턴스 ${item.instance_count}개`,
-            status: item.status,
-          }))}
-        />
-        <ResourceGroup
-          title="앱"
-          emptyText="등록한 앱이 없습니다."
-          items={resources.apps.map((item) => ({
-            key: item.id,
-            name: item.host,
-            meta: item.instance_name || item.instance_id || '-',
-            status: item.status,
-          }))}
-        />
-      </div>
-    </section>
-  );
-}
-
-function ResourceGroup({
-  title,
-  emptyText,
-  items,
-}: {
-  title: string;
-  emptyText: string;
-  items: Array<{ key: string; name: string; meta: string; status: string }>;
-}) {
-  return (
-    <div className="admin-resource-group">
-      <strong>{title}</strong>
-      {items.length ? (
-        <ul>
-          {items.map((item) => (
-            <li key={item.key}>
-              <span>
-                <strong>{item.name}</strong>
-                <small>{item.meta}</small>
-              </span>
-              <StatusBadge value={item.status} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="muted">{emptyText}</p>
-      )}
-    </div>
-  );
-}
-
 export function AdminPage() {
+  const navigate = useNavigate();
   const [state, setState] = useState<LoadState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
@@ -237,9 +140,6 @@ export function AdminPage() {
   const [userPage, setUserPage] = useState(1);
   const [instancePage, setInstancePage] = useState(1);
   const [containerPage, setContainerPage] = useState(1);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [resources, setResources] = useState<AdminUserResources | null>(null);
-  const [resourceState, setResourceState] = useState<LoadState>('idle');
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -269,31 +169,6 @@ export function AdminPage() {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
-
-  useEffect(() => {
-    if (!selectedUserId) {
-      setResources(null);
-      return;
-    }
-
-    let cancelled = false;
-    setResourceState('loading');
-    void fetchAdminUserResources(selectedUserId)
-      .then((nextResources) => {
-        if (cancelled) return;
-        setResources(nextResources);
-        setResourceState('ready');
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : '유저 리소스를 불러오지 못했습니다.');
-        setResourceState('error');
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedUserId]);
 
   const statusCounts = useMemo(
     () =>
@@ -333,7 +208,6 @@ export function AdminPage() {
               <Stat label="사용자" value={summary?.users ?? 0} />
               <Stat label="인스턴스" value={summary?.instances ?? 0} />
               <Stat label="컨테이너" value={summary?.containers ?? 0} />
-              <Stat label="앱" value={summary?.apps ?? 0} />
               <Stat label="키페어" value={summary?.keypairs ?? 0} />
             </div>
 
@@ -344,56 +218,43 @@ export function AdminPage() {
                   <h2>유저</h2>
                 </div>
               </div>
-              <div className="admin-users-layout">
-                <div className="table-frame">
-                  <table className="flavor-table admin-table">
-                    <thead>
-                      <tr>
-                        <th>사용자</th>
-                        <th>권한</th>
-                        <th>인스턴스</th>
-                        <th>스토리지</th>
-                        <th>앱</th>
-                        <th>가입일</th>
+              <div className="table-frame">
+                <table className="flavor-table admin-table">
+                  <thead>
+                    <tr>
+                      <th>사용자</th>
+                      <th>권한</th>
+                      <th>인스턴스</th>
+                      <th>스토리지</th>
+                      <th>가입일</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.items.map((user) => (
+                      <tr
+                        key={user.id}
+                        onClick={() => navigate(`/admin/users/${encodeURIComponent(user.id)}`)}
+                      >
+                        <td>
+                          <strong>{user.name || user.email}</strong>
+                          <small>{user.email}</small>
+                        </td>
+                        <td>
+                          <StatusBadge value={user.role} />
+                        </td>
+                        <td>{user.instance_count}</td>
+                        <td>{user.container_count}</td>
+                        <td>{formatDate(user.created_at)}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {users.items.map((user) => (
-                        <tr
-                          key={user.id}
-                          className={selectedUserId === user.id ? 'selected' : ''}
-                          onClick={() => setSelectedUserId(user.id)}
-                        >
-                          <td>
-                            <strong>{user.name || user.email}</strong>
-                            <small>{user.email}</small>
-                          </td>
-                          <td>
-                            <StatusBadge value={user.role} />
-                          </td>
-                          <td>{user.instance_count}</td>
-                          <td>{user.container_count}</td>
-                          <td>{user.app_count}</td>
-                          <td>{formatDate(user.created_at)}</td>
-                        </tr>
-                      ))}
-                      {!users.items.length && (
-                        <tr>
-                          <td colSpan={6}>사용자가 없습니다.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                  <PaginationControls pagination={users.pagination} onPageChange={setUserPage} />
-                </div>
-                {resourceState === 'loading' ? (
-                  <section className="line-block admin-detail-panel">
-                    <strong>유저 리소스</strong>
-                    <p className="muted">리소스를 불러오는 중입니다.</p>
-                  </section>
-                ) : (
-                  <ResourceSummary resources={resources} />
-                )}
+                    ))}
+                    {!users.items.length && (
+                      <tr>
+                        <td colSpan={5}>사용자가 없습니다.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                <PaginationControls pagination={users.pagination} onPageChange={setUserPage} />
               </div>
             </section>
 
@@ -418,7 +279,12 @@ export function AdminPage() {
                   </thead>
                   <tbody>
                     {instances.items.map((instance) => (
-                      <tr key={instance.id}>
+                      <tr
+                        key={instance.id}
+                        onClick={() =>
+                          navigate(`/admin/instances/${encodeURIComponent(instance.id)}`)
+                        }
+                      >
                         <td>
                           <strong>{instance.name || instance.id}</strong>
                           <small>{instance.id}</small>
@@ -469,7 +335,12 @@ export function AdminPage() {
                   </thead>
                   <tbody>
                     {containers.items.map((container) => (
-                      <tr key={container.id}>
+                      <tr
+                        key={container.id}
+                        onClick={() =>
+                          navigate(`/admin/containers/${encodeURIComponent(container.id)}`)
+                        }
+                      >
                         <td>
                           <strong>{container.name}</strong>
                           <small>{container.id}</small>

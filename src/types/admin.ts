@@ -2,7 +2,6 @@ export interface AdminSummary {
   users: number;
   instances: number;
   containers: number;
-  apps: number;
   keypairs: number;
   status_counts: Record<string, number>;
 }
@@ -16,7 +15,6 @@ export interface AdminUser {
   updated_at: string;
   instance_count: number;
   container_count: number;
-  app_count: number;
   keypair_count: number;
 }
 
@@ -43,7 +41,6 @@ export interface AdminInstance {
   flavor_name: string;
   image_id: string;
   fixed_ip: string;
-  app_host: string;
   created_at: string;
   updated_at: string;
 }
@@ -71,22 +68,11 @@ export interface AdminKeypair {
   updated_at: string;
 }
 
-export interface AdminApp {
-  id: string;
-  host: string;
-  status: string;
-  instance_id: string;
-  instance_name: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface AdminUserResources {
   user: AdminUser;
   instances: AdminInstance[];
   containers: AdminContainer[];
   keypairs: AdminKeypair[];
-  apps: AdminApp[];
 }
 
 export interface AdminSystem {

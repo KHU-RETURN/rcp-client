@@ -10,8 +10,16 @@ export function adminInstancesPath(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): 
   return `/api/v1/admin/instances?page=${page}&limit=${limit}`;
 }
 
+export function adminInstancePath(id: string): string {
+  return `/api/v1/admin/instances/${encodeURIComponent(id)}`;
+}
+
 export function adminContainersPath(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): string {
   return `/api/v1/admin/containers?page=${page}&limit=${limit}`;
+}
+
+export function adminContainerPath(id: string): string {
+  return `/api/v1/admin/containers/${encodeURIComponent(id)}`;
 }
 
 export function adminUserResourcesPath(userId: string): string {

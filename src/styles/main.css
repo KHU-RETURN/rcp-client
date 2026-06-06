@@ -2496,22 +2496,6 @@ h3 {
   cursor: pointer;
 }
 
-.admin-table tbody tr.selected {
-  background: rgba(17, 17, 17, 0.06);
-}
-
-.admin-users-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.admin-detail-panel {
-  position: sticky;
-  top: 96px;
-}
-
 .admin-resource-groups {
   display: grid;
   gap: 16px;
@@ -2535,25 +2519,45 @@ h3 {
 }
 
 .admin-resource-group li {
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-resource-link,
+.admin-resource-static {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-resource-link {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-resource-link:hover {
+  background: rgba(17, 17, 17, 0.04);
 }
 
 .admin-resource-group li:last-child {
   border-bottom: 0;
 }
 
-.admin-resource-group li > span {
+.admin-resource-link > span,
+.admin-resource-static > span {
   display: grid;
   min-width: 0;
   gap: 3px;
 }
 
-.admin-resource-group li small {
+.admin-resource-link small,
+.admin-resource-static small {
   overflow: hidden;
   color: var(--muted);
   text-overflow: ellipsis;
@@ -2578,6 +2582,43 @@ h3 {
 .admin-pagination > div {
   display: flex;
   gap: 8px;
+}
+
+.admin-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.5fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-detail-list {
+  display: grid;
+  gap: 0;
+}
+
+.admin-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-detail-row > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-detail-row > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .list-main,
@@ -3464,6 +3505,20 @@ h3 {
 
   .terminal-breadcrumb {
     flex-wrap: wrap;
+  }
+
+  .admin-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-detail-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .admin-detail-row > strong {
+    text-align: left;
   }
 
   .terminal-host {

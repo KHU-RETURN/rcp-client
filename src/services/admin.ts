@@ -11,7 +11,9 @@ import { apiRequest } from './api';
 import {
   ADMIN_SUMMARY_PATH,
   ADMIN_SYSTEM_PATH,
+  adminContainerPath,
   adminContainersPath,
+  adminInstancePath,
   adminInstancesPath,
   adminUserResourcesPath,
   adminUsersPath,
@@ -35,11 +37,19 @@ export function fetchAdminInstances(
   return apiRequest<AdminPaginatedResponse<AdminInstance>>(adminInstancesPath(page, limit));
 }
 
+export function fetchAdminInstance(id: string): Promise<AdminInstance> {
+  return apiRequest<AdminInstance>(adminInstancePath(id));
+}
+
 export function fetchAdminContainers(
   page?: number,
   limit?: number,
 ): Promise<AdminPaginatedResponse<AdminContainer>> {
   return apiRequest<AdminPaginatedResponse<AdminContainer>>(adminContainersPath(page, limit));
+}
+
+export function fetchAdminContainer(id: string): Promise<AdminContainer> {
+  return apiRequest<AdminContainer>(adminContainerPath(id));
 }
 
 export function fetchAdminUserResources(userId: string): Promise<AdminUserResources> {
