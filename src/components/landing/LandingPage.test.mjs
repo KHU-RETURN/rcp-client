@@ -39,3 +39,19 @@ test('landing platform cards show the requested names, order, and pending states
   );
   assert.equal(source.includes('Cloud Database'), false);
 });
+
+test('landing platform details are available for compute and storage only', () => {
+  assert.match(source, /const platformFeatureDetails = \{/);
+  assert.match(source, /Compute:\s*\{/);
+  assert.match(source, /Storage:\s*\{/);
+  assert.doesNotMatch(source, /Database:\s*\{/);
+  assert.doesNotMatch(source, /Network:\s*\{/);
+  assert.equal(
+    source.includes('VM 생성부터 접속, 배포 도메인 연결까지 한 흐름으로 관리합니다.'),
+    true,
+  );
+  assert.equal(
+    source.includes('컨테이너 안에 파일과 폴더를 올리고 필요한 형태로 내려받습니다.'),
+    true,
+  );
+});
