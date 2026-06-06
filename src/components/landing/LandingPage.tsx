@@ -1,15 +1,21 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EasterEggLogoMark } from '../easter-eggs';
 
 const platformFeatures = [
   {
     name: 'Compute',
-    body: 'VM 생성과 터미널 접속.',
+    body: 'VM 생성, 웹 터미널, SSH, 도메인 연결.',
     status: 'available',
   },
   {
     name: 'Storage',
-    body: '파일과 볼륨 관리.',
+    body: '파일과 폴더 업로드.',
+    status: 'available',
+  },
+  {
+    name: 'Database',
+    body: '배포용 데이터베이스.',
     status: 'pending',
   },
   {
@@ -17,12 +23,28 @@ const platformFeatures = [
     body: '포트와 보안 규칙.',
     status: 'pending',
   },
-  {
-    name: 'Cloud Database',
-    body: '배포용 데이터베이스.',
-    status: 'pending',
-  },
 ];
+
+const platformFeatureDetails = {
+  Compute: {
+    summary: 'VM 생성부터 접속, 배포 도메인 연결까지 한 흐름으로 관리합니다.',
+    items: [
+      ['인스턴스 생성', '이미지, 사양, 네트워크, SSH 키, 보안 그룹을 선택해 VM을 만듭니다.'],
+      ['운영 관리', '상태, IP, 사양, 사용량을 확인하고 일시정지, 재개, 삭제를 처리합니다.'],
+      ['접속', '웹 터미널과 Cloudflare SSH 게이트웨이로 VM 셸에 접속합니다.'],
+      ['도메인 연결', '서브도메인을 등록해 VM의 웹 서비스를 연결합니다.'],
+    ],
+  },
+  Storage: {
+    summary: '컨테이너 안에 파일과 폴더를 올리고 필요한 형태로 내려받습니다.',
+    items: [
+      ['컨테이너 관리', '저장 공간을 만들고 목록을 확인하며 삭제할 수 있습니다.'],
+      ['파일/폴더 업로드', '폴더 경로를 유지한 채 파일을 업로드합니다.'],
+      ['파일 관리', '크기, 형식, 수정 시간을 확인하고 다운로드/삭제합니다.'],
+      ['ZIP 다운로드', '폴더 prefix 또는 전체 파일을 zip으로 내려받습니다.'],
+    ],
+  },
+};
 
 const featureCards = [
   ['Free for KHU', '경희대 학생 무료 리소스.'],
@@ -53,6 +75,10 @@ export function LandingPage() {
   const navigate = useNavigate();
   const heroRef = useRef<HTMLElement>(null);
   const [heroProgress, setHeroProgress] = useState(0);
+  const [activeFeatureName, setActiveFeatureName] = useState<string | null>(null);
+  const activeFeatureDetail = activeFeatureName
+    ? platformFeatureDetails[activeFeatureName as keyof typeof platformFeatureDetails]
+    : undefined;
 
   useEffect(() => {
     function updateHeroProgress() {
@@ -108,22 +134,28 @@ export function LandingPage() {
     <div className="page landing-page">
       <header className="landing-nav">
         <button
+          type="button"
           className="landing-brand"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
-          <img src="/assets/return-black.svg" alt="" />
+          <EasterEggLogoMark className="landing-brand-logo" src="/assets/return-black.svg" alt="" />
           <span>Return Cloud Platform</span>
         </button>
         <nav aria-label="Landing navigation">
-          <button onClick={scrollToStory}>Features</button>
+          <button type="button" onClick={scrollToStory}>
+            Features
+          </button>
           <button
+            type="button"
             onClick={() =>
               document.getElementById('landing-flavors')?.scrollIntoView({ behavior: 'smooth' })
             }
           >
             Options
           </button>
-          <button onClick={() => navigate('/login')}>Login</button>
+          <button type="button" onClick={() => navigate('/login')}>
+            Login
+          </button>
         </nav>
       </header>
 
@@ -146,6 +178,7 @@ export function LandingPage() {
             </div>
 
             <button
+              type="button"
               className="landing-scroll"
               onClick={scrollToStory}
               aria-label="Scroll to features"
@@ -164,21 +197,66 @@ export function LandingPage() {
           </div>
 
           <div className="landing-platform-grid">
-            {platformFeatures.map((feature) => (
-              <article
-                key={feature.name}
-                className={`landing-platform-card landing-reveal ${
-                  feature.status === 'pending' ? 'is-pending' : 'is-available'
-                }`}
-              >
-                <div className="landing-card-title">
-                  <span>{feature.name}</span>
-                  {feature.status === 'pending' && <small>구현중</small>}
-                </div>
-                <p>{feature.body}</p>
-              </article>
-            ))}
+            {platformFeatures.map((feature) => {
+              const detail =
+                platformFeatureDetails[feature.name as keyof typeof platformFeatureDetails];
+              const isActive = activeFeatureName === feature.name;
+              const className = `landing-platform-card landing-reveal is-visible ${
+                feature.status === 'pending' ? 'is-pending' : 'is-available'
+              }${detail ? ' is-interactive' : ''}${isActive ? ' is-active' : ''}`;
+              const content = (
+                <>
+                  <div className="landing-card-title">
+                    <span>{feature.name}</span>
+                    {feature.status === 'pending' && <small>구현중</small>}
+                  </div>
+                  <p>{feature.body}</p>
+                </>
+              );
+
+              if (detail) {
+                return (
+                  <button
+                    key={feature.name}
+                    type="button"
+                    className={className}
+                    onClick={() => setActiveFeatureName(feature.name)}
+                    aria-controls="landing-platform-detail"
+                    aria-expanded={isActive}
+                  >
+                    {content}
+                  </button>
+                );
+              }
+
+              return (
+                <article key={feature.name} className={className}>
+                  {content}
+                </article>
+              );
+            })}
           </div>
+
+          {activeFeatureName && activeFeatureDetail && (
+            <section
+              id="landing-platform-detail"
+              className="landing-platform-detail"
+              aria-label={`${activeFeatureName} details`}
+            >
+              <div className="landing-platform-detail-head">
+                <span>{activeFeatureName}</span>
+                <h3>{activeFeatureDetail.summary}</h3>
+              </div>
+              <ul className="landing-platform-detail-list">
+                {activeFeatureDetail.items.map(([title, body]) => (
+                  <li key={title}>
+                    <strong>{title}</strong>
+                    <p>{body}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </section>
 
         <section className="landing-story-grid">
@@ -218,7 +296,7 @@ export function LandingPage() {
           <img src="/assets/return-black.svg" alt="" />
           <h2>RETURN Cloud Platform</h2>
           <p>필요한 리소스를 바로 준비하세요.</p>
-          <button className="primary-button" onClick={() => navigate('/login')}>
+          <button type="button" className="primary-button" onClick={() => navigate('/login')}>
             Login to RCP
           </button>
         </section>

@@ -8,6 +8,8 @@ import type {
   KeypairResponse,
   KeypairStatus,
   Instance,
+  RegisterInstanceAppPayload,
+  RegisterInstanceAppResponse,
   ServerInstanceResponse,
   UpdateInstancePayload,
 } from '../types';
@@ -51,6 +53,7 @@ function buildInventoryRecord(
     cpuUsage: undefined,
     memoryUsage: undefined,
     note: description,
+    app: null,
   };
 }
 
@@ -77,6 +80,7 @@ function buildInventoryRecordFromServer(response: ServerInstanceResponse): Insta
     cpuUsage: response.usage?.cpu_usage,
     memoryUsage: response.usage?.memory_usage,
     note: response.note ?? '',
+    app: response.app ?? null,
   };
 }
 
@@ -156,5 +160,24 @@ export async function pauseInstance(id: string): Promise<void> {
 export async function unpauseInstance(id: string): Promise<void> {
   await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(id)}/unpause`, {
     method: 'POST',
+  });
+}
+
+export async function registerInstanceApp(
+  instanceId: string,
+  payload: RegisterInstanceAppPayload,
+): Promise<RegisterInstanceAppResponse> {
+  return apiRequest<RegisterInstanceAppResponse>(
+    `/api/v1/compute/instances/${encodeURIComponent(instanceId)}/app`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function deleteInstanceApp(instanceId: string): Promise<void> {
+  await apiRequest(`/api/v1/compute/instances/${encodeURIComponent(instanceId)}/app`, {
+    method: 'DELETE',
   });
 }

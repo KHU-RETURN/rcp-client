@@ -113,10 +113,9 @@ h3 {
   line-height: 1.15;
 }
 
-.landing-brand img {
+.landing-brand-logo {
   width: 34px;
   height: 34px;
-  object-fit: contain;
 }
 
 .landing-nav nav {
@@ -331,6 +330,8 @@ h3 {
 }
 
 .landing-platform-card {
+  appearance: none;
+  min-width: 0;
   min-height: 190px;
   display: grid;
   align-content: end;
@@ -342,6 +343,8 @@ h3 {
     #0b0d10;
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  font: inherit;
+  text-align: left;
 }
 
 .landing-platform-card.is-pending {
@@ -351,6 +354,22 @@ h3 {
 
 .landing-platform-card.is-available {
   border-color: rgba(255, 255, 255, 0.24);
+}
+
+.landing-platform-card.is-interactive {
+  cursor: pointer;
+}
+
+.landing-platform-card.is-interactive:hover,
+.landing-platform-card.is-active {
+  border-color: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.landing-platform-card:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
 }
 
 .landing-card-title {
@@ -388,6 +407,77 @@ h3 {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.landing-platform-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: clamp(24px, 4vw, 52px);
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0)),
+    #0b0d10;
+  color: #ffffff;
+}
+
+.landing-platform-detail-head {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.landing-platform-detail-head span {
+  color: rgba(255, 255, 255, 0.58);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.landing-platform-detail-head h3 {
+  max-width: 520px;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(22px, 2.2vw, 34px);
+  line-height: 1.16;
+}
+
+.landing-platform-detail-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-platform-detail-list li {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.landing-platform-detail-list strong {
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.landing-platform-detail-list p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 .landing-story-grid {
@@ -558,6 +648,11 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .landing-platform-detail,
+  .landing-platform-detail-list {
+    grid-template-columns: 1fr;
+  }
+
   .landing-story-grid,
   .landing-flavor-row {
     grid-template-columns: 1fr;
@@ -620,7 +715,6 @@ h3 {
 .brand-logo {
   width: 30px;
   height: 30px;
-  object-fit: contain;
 }
 
 .brand strong,
@@ -1912,6 +2006,36 @@ h3 {
   text-align: center;
 }
 
+.flavor-table td.object-empty-cell {
+  padding: 0;
+  text-align: center;
+}
+
+.empty-upload-button {
+  display: flex;
+  width: 100%;
+  min-height: 80px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 24px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.empty-upload-button:hover {
+  background: rgba(17, 17, 17, 0.03);
+  color: var(--ink);
+}
+
+.empty-upload-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 @keyframes shimmer {
   from {
     background-position: 200% 0;
@@ -2467,6 +2591,99 @@ h3 {
   line-height: 1.55;
 }
 
+.instance-app-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto;
+  align-items: end;
+  gap: 18px;
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(17, 17, 17, 0.03);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.instance-app-registered {
+  grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1fr) auto;
+  align-items: center;
+}
+
+.instance-app-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.instance-app-copy h4 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.instance-app-copy p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.instance-app-field {
+  min-width: 0;
+}
+
+.instance-app-meta {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+
+.instance-app-meta > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.instance-app-meta dt {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.instance-app-meta dd {
+  margin: 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.instance-app-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  word-break: break-word;
+}
+
+.instance-app-link:hover {
+  opacity: 0.72;
+}
+
+.instance-app-actions {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.instance-app-actions .inline-status {
+  max-width: 220px;
+  text-align: right;
+}
+
+.instance-app-registered .inline-status {
+  max-width: none;
+  white-space: nowrap;
+}
+
 .instance-build-hint {
   margin: 0;
   font-size: 0.88rem;
@@ -2701,6 +2918,334 @@ h3 {
   background: transparent;
 }
 
+.easter-egg-logo-mark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.easter-egg-logo-base,
+.easter-egg-logo-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.easter-egg-logo-base {
+  object-fit: contain;
+}
+
+.easter-egg-logo-mark.is-swapped .easter-egg-logo-base {
+  animation: easterEggLogoBaseSwap 3100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-logo-avatar-shell {
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ffffff;
+  opacity: 0;
+  box-shadow:
+    0 0 0 1px rgba(17, 17, 17, 0.12),
+    0 10px 22px rgba(17, 17, 17, 0.18);
+}
+
+.easter-egg-logo-avatar-shell.is-loaded {
+  animation: easterEggLogoAvatarSwap 3100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-brand-logo .easter-egg-logo-avatar-shell {
+  inset: -2px;
+}
+
+.easter-egg-logo-avatar {
+  object-fit: cover;
+}
+
+.easter-egg-logo-signature {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 2;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.78);
+  box-shadow: 0 10px 20px rgba(17, 17, 17, 0.18);
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: easterEggLogoSignature 3100ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.easter-egg-return-unfold {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  width: clamp(280px, 34vw, 465px);
+  aspect-ratio: 320 / 260;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  will-change: transform;
+}
+
+.easter-egg-return-mark {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 24px 44px rgba(0, 0, 0, 0.28));
+}
+
+.easter-egg-return-branch {
+  transform-box: view-box;
+  transform-origin: 160px 130px;
+}
+
+.easter-egg-return-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.96);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  animation: easterEggReturnTrace 3200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-return-origin {
+  fill: rgba(255, 255, 255, 0.96);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.22));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: easterEggReturnDot 3200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-return-arrowhead {
+  fill: rgba(255, 255, 255, 0.96);
+  offset-distance: 0%;
+  offset-rotate: auto;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: easterEggReturnArrowhead 3200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.easter-egg-return-arrowhead.is-upper {
+  offset-path: var(--easter-egg-return-upper-path);
+}
+
+.easter-egg-return-arrowhead.is-lower {
+  offset-path: var(--easter-egg-return-lower-path);
+}
+
+@keyframes easterEggLogoBaseSwap {
+  0% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+
+  14% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.78);
+  }
+
+  76% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.78);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes easterEggLogoAvatarSwap {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.72) rotate(-2deg);
+  }
+
+  16% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) rotate(0);
+  }
+
+  72% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.9) rotate(2deg);
+  }
+}
+
+@keyframes easterEggLogoSignature {
+  0% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  20% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  32% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  68% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes easterEggReturnTrace {
+  0% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0.86;
+  }
+
+  18% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0.72;
+    opacity: 1;
+  }
+
+  46% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0.42;
+    opacity: 1;
+  }
+
+  64% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  82% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: -0.58;
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: -1;
+    opacity: 1;
+  }
+}
+
+@keyframes easterEggReturnDot {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  10% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  52%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes easterEggReturnArrowhead {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+
+  8% {
+    offset-distance: 14%;
+    opacity: 1;
+  }
+
+  18% {
+    offset-distance: 28%;
+    opacity: 1;
+  }
+
+  46% {
+    offset-distance: 58%;
+    opacity: 1;
+  }
+
+  64% {
+    offset-distance: 100%;
+    opacity: 1;
+  }
+
+  100% {
+    offset-distance: 100%;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .easter-egg-logo-base,
+  .easter-egg-logo-avatar-shell,
+  .easter-egg-logo-signature,
+  .easter-egg-return-unfold,
+  .easter-egg-return-branch,
+  .easter-egg-return-path,
+  .easter-egg-return-origin,
+  .easter-egg-return-arrowhead {
+    animation-duration: 1ms;
+  }
+}
+
 
 @media (max-width: 1180px) {
   .topbar-nav {
@@ -2710,6 +3255,25 @@ h3 {
   .instance-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 28px;
+  }
+
+  .instance-app-form {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .instance-app-registered {
+    grid-template-columns: 1fr;
+  }
+
+  .instance-app-actions {
+    justify-items: start;
+  }
+
+  .instance-app-actions .inline-status {
+    max-width: none;
+    text-align: left;
+    white-space: normal;
   }
 }
 

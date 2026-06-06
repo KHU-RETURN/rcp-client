@@ -1,14 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../store';
+import { deleteInstanceApp, registerInstanceApp } from '../../services/compute';
 import { Topbar } from '../layout/Topbar';
 import { InlineBadge } from '../shared/InlineBadge';
 import { EmptyBlock } from '../shared/EmptyBlock';
 import { ROUTE_NAMES, imageTemplates } from '../../constants';
-import { formatRam, getTerminalAvailability, humanizeDate, statusTone } from '../../utils';
+import {
+  formatRam,
+  getTerminalAvailability,
+  humanizeDate,
+  statusTone,
+  translateError,
+} from '../../utils';
 import type { Instance } from '../../types';
 
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
+type AppRegistrationState = 'idle' | 'saving' | 'saved' | 'error';
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -31,6 +39,10 @@ function getMemoryUsageLabel(instance: Instance): string {
   return formatRam(instance.memoryUsage);
 }
 
+function getAppHostUrl(host: string): string {
+  return host.startsWith('http://') || host.startsWith('https://') ? host : `https://${host}`;
+}
+
 export function InstanceDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -48,6 +60,12 @@ export function InstanceDetailPage() {
 
   const [form, setForm] = useState({ name: '', keyName: '', note: '' });
   const [actionError, setActionError] = useState('');
+
+  const [appSubdomain, setAppSubdomain] = useState('');
+  const [appStatus, setAppStatus] = useState<{
+    state: AppRegistrationState;
+    message: string;
+  }>({ state: 'idle', message: '' });
   const terminalAvailability = getTerminalAvailability(instance, now);
   const status = String(instance?.status ?? '').toUpperCase();
   const isPaused = status === 'PAUSED';
@@ -68,6 +86,8 @@ export function InstanceDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    setAppSubdomain('');
+    setAppStatus({ state: 'idle', message: '' });
     let cancelled = false;
     if (!instance) setLoadState('loading');
 
@@ -146,6 +166,47 @@ export function InstanceDetailPage() {
       }
     } catch {
       // clipboard not available — silently ignore
+    }
+  }
+
+  async function handleRegisterApp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!instance || appStatus.state === 'saving') return;
+
+    const subdomain = appSubdomain.trim();
+    if (!subdomain) {
+      setAppStatus({ state: 'error', message: '서브도메인을 입력해 주세요.' });
+      return;
+    }
+
+    setAppStatus({ state: 'saving', message: '앱 등록 요청을 보내는 중입니다.' });
+
+    try {
+      await registerInstanceApp(instance.id, { subdomain });
+      await ensureInstanceById(instance.id);
+      setAppSubdomain('');
+      setAppStatus({
+        state: 'saved',
+        message: '등록되었습니다.',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setAppStatus({ state: 'error', message: translateError(message) });
+    }
+  }
+
+  async function handleDeleteApp() {
+    if (!instance || appStatus.state === 'saving') return;
+
+    setAppStatus({ state: 'saving', message: '앱 등록을 삭제하는 중입니다.' });
+
+    try {
+      await deleteInstanceApp(instance.id);
+      await ensureInstanceById(instance.id);
+      setAppStatus({ state: 'saved', message: '삭제되었습니다.' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setAppStatus({ state: 'error', message: translateError(message) });
     }
   }
 
@@ -375,6 +436,85 @@ export function InstanceDetailPage() {
                     <p>{instance.note}</p>
                   </div>
                 ) : null}
+
+                {instance.app ? (
+                  <section className="instance-app-form instance-app-registered">
+                    <div className="instance-app-copy">
+                      <p className="eyebrow">App routing</p>
+                      <h4>Registered app</h4>
+                      <p className="muted">VM 서비스 바로가기입니다.</p>
+                    </div>
+                    <dl className="instance-app-meta">
+                      <div>
+                        <dt>Host</dt>
+                        <dd>
+                          <a
+                            className="instance-app-link"
+                            href={getAppHostUrl(instance.app.host)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {instance.app.host}
+                          </a>
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="instance-app-actions">
+                      <button
+                        type="button"
+                        className="danger-button"
+                        onClick={() => void handleDeleteApp()}
+                        disabled={appStatus.state === 'saving'}
+                      >
+                        {appStatus.state === 'saving' ? 'Deleting…' : 'Delete app'}
+                      </button>
+                      {appStatus.message && (
+                        <p className={`inline-status ${appStatus.state}`}>{appStatus.message}</p>
+                      )}
+                    </div>
+                  </section>
+                ) : (
+                  <form
+                    className="instance-app-form"
+                    onSubmit={(event) => void handleRegisterApp(event)}
+                  >
+                    <div className="instance-app-copy">
+                      <p className="eyebrow">App routing</p>
+                      <h4>Register app</h4>
+                      <p className="muted">
+                        서브도메인을 등록하면 VM에서 실행 중인 앱을 외부 도메인으로 연결합니다.
+                      </p>
+                    </div>
+                    <label className="field instance-app-field">
+                      <span>Subdomain</span>
+                      <input
+                        type="text"
+                        value={appSubdomain}
+                        onChange={(event) => {
+                          setAppSubdomain(event.target.value);
+                          if (appStatus.state !== 'idle') {
+                            setAppStatus({ state: 'idle', message: '' });
+                          }
+                        }}
+                        placeholder="return"
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </label>
+                    <div className="instance-app-actions">
+                      <button
+                        type="submit"
+                        className="primary-button"
+                        disabled={appStatus.state === 'saving'}
+                      >
+                        {appStatus.state === 'saving' ? 'Registering…' : 'Register app'}
+                      </button>
+                      {appStatus.message && (
+                        <p className={`inline-status ${appStatus.state}`}>{appStatus.message}</p>
+                      )}
+                    </div>
+                  </form>
+                )}
 
                 {String(instance.status).toUpperCase() === 'BUILD' && (
                   <p className="muted instance-build-hint">상태가 변하면 자동으로 갱신됩니다.</p>
