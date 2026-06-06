@@ -44,13 +44,15 @@ function formatDate(value: string): string {
 function statusClass(value: string): string {
   const normalized = value.toLowerCase();
   if (['healthy', 'active', 'ready', 'registered'].includes(normalized)) return 'valid';
-  if (normalized === 'unknown' || normalized === 'build') return 'pending';
+  if (['unknown', 'build', 'unconfigured'].includes(normalized)) return 'pending';
   return 'error';
 }
 
 function displayStatus(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === 'healthy') return '정상';
+  if (normalized === 'unhealthy') return '장애';
+  if (normalized === 'unconfigured') return '미설정';
   if (normalized === 'unknown') return '확인 전';
   if (normalized === 'active') return '실행 중';
   if (normalized === 'ready') return '준비됨';
@@ -75,15 +77,12 @@ function StatusBadge({ value }: { value: string }) {
   return <span className={`inline-badge ${statusClass(value)}`}>{displayStatus(value)}</span>;
 }
 
-function MockStatus({ label, value }: { label: string; value: string }) {
-  const isMock = value.toLowerCase() === 'unknown';
-
+function SystemStatus({ label, value }: { label: string; value: string }) {
   return (
     <div className="admin-system-item">
       <span>{label}</span>
       <strong>
         <StatusBadge value={value} />
-        {isMock && <small>(mock)</small>}
       </strong>
     </div>
   );
@@ -366,19 +365,17 @@ export function AdminPage() {
               <div className="line-block-head">
                 <div>
                   <strong>시스템 상태</strong>
-                  <p className="muted">
-                    아직 실제 상태 확인이 연결되지 않은 값은 (mock)으로 표시합니다.
-                  </p>
+                  <p className="muted">API 서버에서 연결된 provider 상태를 확인합니다.</p>
                 </div>
               </div>
               <div className="admin-system-list">
-                <MockStatus label="API" value={system?.api_status ?? 'unknown'} />
-                <MockStatus label="OpenStack" value={system?.openstack_status ?? 'unknown'} />
-                <MockStatus
+                <SystemStatus label="API" value={system?.api_status ?? 'unknown'} />
+                <SystemStatus label="OpenStack" value={system?.openstack_status ?? 'unknown'} />
+                <SystemStatus
                   label="SSH 게이트웨이"
                   value={system?.ssh_gateway_status ?? 'unknown'}
                 />
-                <MockStatus label="스토리지" value={system?.storage_status ?? 'unknown'} />
+                <SystemStatus label="스토리지" value={system?.storage_status ?? 'unknown'} />
               </div>
               {system?.message && <p className="muted admin-system-message">{system.message}</p>}
               {system?.last_updated_at && (

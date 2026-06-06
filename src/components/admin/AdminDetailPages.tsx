@@ -22,13 +22,15 @@ function formatDate(value: string): string {
 function statusClass(value: string): string {
   const normalized = value.toLowerCase();
   if (['healthy', 'active', 'ready', 'registered'].includes(normalized)) return 'valid';
-  if (normalized === 'unknown' || normalized === 'build') return 'pending';
+  if (['unknown', 'build', 'unconfigured'].includes(normalized)) return 'pending';
   return 'error';
 }
 
 function displayStatus(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === 'healthy') return '정상';
+  if (normalized === 'unhealthy') return '장애';
+  if (normalized === 'unconfigured') return '미설정';
   if (normalized === 'unknown') return '확인 전';
   if (normalized === 'active') return '실행 중';
   if (normalized === 'ready') return '준비됨';
