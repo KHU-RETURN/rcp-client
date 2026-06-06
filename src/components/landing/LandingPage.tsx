@@ -1,25 +1,25 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const platformFeatures = [
   {
     name: 'Compute',
-    body: 'VM 생성과 터미널 접속.',
+    body: 'VM 생성, 웹 터미널, SSH, 도메인 연결.',
     status: 'available',
   },
   {
     name: 'Storage',
-    body: '파일과 볼륨 관리.',
+    body: '파일과 폴더 업로드.',
+    status: 'available',
+  },
+  {
+    name: 'Database',
+    body: '배포용 데이터베이스.',
     status: 'pending',
   },
   {
     name: 'Network',
     body: '포트와 보안 규칙.',
-    status: 'pending',
-  },
-  {
-    name: 'Cloud Database',
-    body: '배포용 데이터베이스.',
     status: 'pending',
   },
 ];
@@ -108,6 +108,7 @@ export function LandingPage() {
     <div className="page landing-page">
       <header className="landing-nav">
         <button
+          type="button"
           className="landing-brand"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
@@ -115,15 +116,20 @@ export function LandingPage() {
           <span>Return Cloud Platform</span>
         </button>
         <nav aria-label="Landing navigation">
-          <button onClick={scrollToStory}>Features</button>
+          <button type="button" onClick={scrollToStory}>
+            Features
+          </button>
           <button
+            type="button"
             onClick={() =>
               document.getElementById('landing-flavors')?.scrollIntoView({ behavior: 'smooth' })
             }
           >
             Options
           </button>
-          <button onClick={() => navigate('/login')}>Login</button>
+          <button type="button" onClick={() => navigate('/login')}>
+            Login
+          </button>
         </nav>
       </header>
 
@@ -146,6 +152,7 @@ export function LandingPage() {
             </div>
 
             <button
+              type="button"
               className="landing-scroll"
               onClick={scrollToStory}
               aria-label="Scroll to features"
@@ -218,7 +225,7 @@ export function LandingPage() {
           <img src="/assets/return-black.svg" alt="" />
           <h2>RETURN Cloud Platform</h2>
           <p>필요한 리소스를 바로 준비하세요.</p>
-          <button className="primary-button" onClick={() => navigate('/login')}>
+          <button type="button" className="primary-button" onClick={() => navigate('/login')}>
             Login to RCP
           </button>
         </section>
