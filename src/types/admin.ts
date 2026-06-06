@@ -79,6 +79,8 @@ export interface AdminSystem {
   api_status: string;
   openstack_status: string;
   ssh_gateway_status: string;
+  ns_proxy_status: string;
+  http_proxy_status: string;
   storage_status: string;
   last_updated_at: string;
   message: string;

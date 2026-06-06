@@ -37,7 +37,7 @@ function displayStatus(value: string): string {
   if (normalized === 'registered') return '등록됨';
   if (normalized === 'build') return '생성 중';
   if (normalized === 'paused') return '일시정지';
-  if (normalized === 'admin') return '관리자';
+  if (normalized === 'admin') return 'admin';
   if (normalized === 'user') return '사용자';
   return value || '-';
 }

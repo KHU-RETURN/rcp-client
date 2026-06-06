@@ -59,7 +59,7 @@ function displayStatus(value: string): string {
   if (normalized === 'registered') return '등록됨';
   if (normalized === 'build') return '생성 중';
   if (normalized === 'paused') return '일시정지';
-  if (normalized === 'admin') return '관리자';
+  if (normalized === 'admin') return 'admin';
   if (normalized === 'user') return '사용자';
   return value || '-';
 }
@@ -160,7 +160,7 @@ export function AdminPage() {
       setSystem(nextSystem);
       setState('ready');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '관리자 대시보드를 불러오지 못했습니다.');
+      setError(err instanceof Error ? err.message : 'admin 대시보드를 불러오지 못했습니다.');
       setState('error');
     }
   }, [userPage, instancePage, containerPage]);
@@ -177,7 +177,7 @@ export function AdminPage() {
           <section className="editor-section editor-section-flat">
             <div className="section-head section-head-tight">
               <div>
-                <p className="eyebrow">관리자</p>
+                <p className="eyebrow">admin</p>
                 <h2>대시보드</h2>
                 <p className="muted section-support">
                   전체 사용자, 컴퓨트, 스토리지와 유저별 리소스 상태를 확인합니다.
@@ -371,10 +371,9 @@ export function AdminPage() {
               <div className="admin-system-list">
                 <SystemStatus label="API" value={system?.api_status ?? 'unknown'} />
                 <SystemStatus label="OpenStack" value={system?.openstack_status ?? 'unknown'} />
-                <SystemStatus
-                  label="SSH 게이트웨이"
-                  value={system?.ssh_gateway_status ?? 'unknown'}
-                />
+                <SystemStatus label="NS 프록시" value={system?.ns_proxy_status ?? 'unknown'} />
+                <SystemStatus label="SSH 프록시" value={system?.ssh_gateway_status ?? 'unknown'} />
+                <SystemStatus label="HTTP 프록시" value={system?.http_proxy_status ?? 'unknown'} />
                 <SystemStatus label="스토리지" value={system?.storage_status ?? 'unknown'} />
               </div>
               {system?.message && <p className="muted admin-system-message">{system.message}</p>}

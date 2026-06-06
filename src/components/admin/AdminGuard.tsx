@@ -10,31 +10,49 @@ function isAdminRole(role: string | undefined): boolean {
 export function AdminGuard() {
   const { session, login } = useStore();
   const location = useLocation();
-  const checkedRef = useRef(false);
-  const [isChecking, setIsChecking] = useState(Boolean(session && !isAdminRole(session.role)));
+  const checkedKeyRef = useRef('');
+  const [verifiedRole, setVerifiedRole] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(Boolean(session));
 
   useEffect(() => {
-    if (!session || isAdminRole(session.role) || checkedRef.current) {
+    if (!session) {
+      checkedKeyRef.current = '';
+      setVerifiedRole(null);
       setIsChecking(false);
       return;
     }
 
-    checkedRef.current = true;
+    const sessionKey = session.email ?? session.id;
+    if (checkedKeyRef.current === sessionKey) {
+      setIsChecking(false);
+      return;
+    }
+
+    checkedKeyRef.current = sessionKey;
+    setVerifiedRole(null);
+    setIsChecking(true);
+    let cancelled = false;
 
     async function refreshRole() {
       try {
         const restoredSession = await fetchAuthSession();
+        if (cancelled) return;
+        setVerifiedRole(restoredSession.role);
         login(restoredSession, location.pathname);
       } finally {
-        setIsChecking(false);
+        if (!cancelled) setIsChecking(false);
       }
     }
 
     void refreshRole();
+
+    return () => {
+      cancelled = true;
+    };
   }, [session, login, location.pathname]);
 
-  if (session && isAdminRole(session.role)) return <Outlet />;
   if (isChecking) return null;
+  if (session && isAdminRole(verifiedRole ?? undefined)) return <Outlet />;
 
   return <Navigate to="/compute" replace />;
 }
