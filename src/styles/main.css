@@ -2492,6 +2492,94 @@ h3 {
   vertical-align: top;
 }
 
+.admin-table tbody tr {
+  cursor: pointer;
+}
+
+.admin-table tbody tr.selected {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.admin-users-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-detail-panel {
+  position: sticky;
+  top: 96px;
+}
+
+.admin-resource-groups {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-resource-group {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-resource-group > strong {
+  font-size: 0.9rem;
+}
+
+.admin-resource-group ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-resource-group li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
+}
+
+.admin-resource-group li:last-child {
+  border-bottom: 0;
+}
+
+.admin-resource-group li > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.admin-resource-group li small {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.admin-pagination > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-pagination > div {
+  display: flex;
+  gap: 8px;
+}
+
 .list-main,
 .terminal-main {
   min-width: 0;

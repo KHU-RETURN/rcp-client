@@ -1,11 +1,21 @@
-const DEFAULT_LIMIT = 100;
+const DEFAULT_LIMIT = 10;
 
-export function adminUsersPath(limit = DEFAULT_LIMIT): string {
-  return `/api/v1/admin/users?limit=${limit}`;
+const DEFAULT_PAGE = 1;
+
+export function adminUsersPath(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): string {
+  return `/api/v1/admin/users?page=${page}&limit=${limit}`;
 }
 
-export function adminInstancesPath(limit = DEFAULT_LIMIT): string {
-  return `/api/v1/admin/instances?limit=${limit}`;
+export function adminInstancesPath(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): string {
+  return `/api/v1/admin/instances?page=${page}&limit=${limit}`;
+}
+
+export function adminContainersPath(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): string {
+  return `/api/v1/admin/containers?page=${page}&limit=${limit}`;
+}
+
+export function adminUserResourcesPath(userId: string): string {
+  return `/api/v1/admin/users/${encodeURIComponent(userId)}/resources`;
 }
 
 export const ADMIN_SUMMARY_PATH = '/api/v1/admin/summary';

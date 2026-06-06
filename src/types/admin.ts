@@ -20,6 +20,18 @@ export interface AdminUser {
   keypair_count: number;
 }
 
+export interface AdminPagination {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface AdminPaginatedResponse<T> {
+  items: T[];
+  pagination: AdminPagination;
+}
+
 export interface AdminInstance {
   id: string;
   name: string;
@@ -34,6 +46,47 @@ export interface AdminInstance {
   app_host: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface AdminContainer {
+  id: string;
+  name: string;
+  status: string;
+  openstack_name: string;
+  owner_id: string;
+  owner_email: string;
+  owner_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminKeypair {
+  id: string;
+  name: string;
+  status: string;
+  fingerprint: string;
+  source_type: string;
+  instance_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminApp {
+  id: string;
+  host: string;
+  status: string;
+  instance_id: string;
+  instance_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminUserResources {
+  user: AdminUser;
+  instances: AdminInstance[];
+  containers: AdminContainer[];
+  keypairs: AdminKeypair[];
+  apps: AdminApp[];
 }
 
 export interface AdminSystem {
