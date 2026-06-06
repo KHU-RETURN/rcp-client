@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EasterEggLogoMark } from '../easter-eggs';
 
 const platformFeatures = [
   {
@@ -137,7 +138,7 @@ export function LandingPage() {
           className="landing-brand"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
-          <img src="/assets/return-black.svg" alt="" />
+          <EasterEggLogoMark className="landing-brand-logo" src="/assets/return-black.svg" alt="" />
           <span>Return Cloud Platform</span>
         </button>
         <nav aria-label="Landing navigation">
