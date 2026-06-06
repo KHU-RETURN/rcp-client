@@ -2430,26 +2430,17 @@ h3 {
   min-height: 88px;
 }
 
-.admin-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 16px;
-  margin: 18px 0 28px;
-}
-
 .admin-system .line-block-head {
   padding-bottom: 14px;
   margin-bottom: 14px;
 }
 
-.admin-system-list,
-.admin-status-list {
+.admin-system-list {
   display: grid;
   gap: 10px;
 }
 
-.admin-system-item,
-.admin-status-row {
+.admin-system-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2458,8 +2449,7 @@ h3 {
   border-bottom: 1px solid rgba(17, 17, 17, 0.06);
 }
 
-.admin-system-item:last-child,
-.admin-status-row:last-child {
+.admin-system-item:last-child {
   border-bottom: 0;
 }
 

@@ -305,6 +305,7 @@ export function AdminInstanceDetailPage() {
             <StatusBadge value={instance.status} />
           </div>
           <div className="admin-detail-list">
+            <DetailRow label="상태" value={displayStatus(instance.status)} />
             <DetailRow label="소유자" value={instance.owner_name || instance.owner_email} />
             <DetailRow label="이메일" value={instance.owner_email} />
             <DetailRow label="Flavor" value={instance.flavor_name || instance.flavor_id} />

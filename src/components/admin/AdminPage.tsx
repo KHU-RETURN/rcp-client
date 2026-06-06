@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchAdminContainers,
@@ -169,14 +169,6 @@ export function AdminPage() {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
-
-  const statusCounts = useMemo(
-    () =>
-      Object.entries(summary?.status_counts ?? {}).sort(([left], [right]) =>
-        left.localeCompare(right),
-      ),
-    [summary],
-  );
 
   return (
     <div className="page page-admin shell-enter">
@@ -370,54 +362,31 @@ export function AdminPage() {
               </div>
             </section>
 
-            <div className="admin-grid">
-              <section className="line-block admin-system">
-                <div className="line-block-head">
-                  <div>
-                    <strong>시스템 상태</strong>
-                    <p className="muted">
-                      아직 실제 상태 확인이 연결되지 않은 값은 (mock)으로 표시합니다.
-                    </p>
-                  </div>
-                </div>
-                <div className="admin-system-list">
-                  <MockStatus label="API" value={system?.api_status ?? 'unknown'} />
-                  <MockStatus label="OpenStack" value={system?.openstack_status ?? 'unknown'} />
-                  <MockStatus
-                    label="SSH 게이트웨이"
-                    value={system?.ssh_gateway_status ?? 'unknown'}
-                  />
-                  <MockStatus label="스토리지" value={system?.storage_status ?? 'unknown'} />
-                </div>
-                {system?.message && <p className="muted admin-system-message">{system.message}</p>}
-                {system?.last_updated_at && (
-                  <p className="muted admin-system-message">
-                    마지막 갱신 {formatDate(system.last_updated_at)}
+            <section className="line-block admin-system">
+              <div className="line-block-head">
+                <div>
+                  <strong>시스템 상태</strong>
+                  <p className="muted">
+                    아직 실제 상태 확인이 연결되지 않은 값은 (mock)으로 표시합니다.
                   </p>
-                )}
-              </section>
-
-              <section className="line-block admin-system">
-                <div className="line-block-head">
-                  <div>
-                    <strong>인스턴스 상태</strong>
-                    <p className="muted">전체 인스턴스 상태별 집계</p>
-                  </div>
                 </div>
-                <div className="admin-status-list">
-                  {statusCounts.length ? (
-                    statusCounts.map(([status, count]) => (
-                      <div className="admin-status-row" key={status}>
-                        <StatusBadge value={status} />
-                        <strong>{count}</strong>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="muted">인스턴스가 없습니다.</p>
-                  )}
-                </div>
-              </section>
-            </div>
+              </div>
+              <div className="admin-system-list">
+                <MockStatus label="API" value={system?.api_status ?? 'unknown'} />
+                <MockStatus label="OpenStack" value={system?.openstack_status ?? 'unknown'} />
+                <MockStatus
+                  label="SSH 게이트웨이"
+                  value={system?.ssh_gateway_status ?? 'unknown'}
+                />
+                <MockStatus label="스토리지" value={system?.storage_status ?? 'unknown'} />
+              </div>
+              {system?.message && <p className="muted admin-system-message">{system.message}</p>}
+              {system?.last_updated_at && (
+                <p className="muted admin-system-message">
+                  마지막 갱신 {formatDate(system.last_updated_at)}
+                </p>
+              )}
+            </section>
           </section>
         </section>
       </main>
