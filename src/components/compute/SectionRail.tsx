@@ -22,7 +22,12 @@ export function SectionRail({ sections }: SectionRailProps) {
           const section = sections[key];
           const tone = section.error ? 'error' : section.valid ? 'valid' : 'pending';
           return (
-            <button key={key} className={`rail-link ${tone}`} onClick={() => handleJump(key)}>
+            <button
+              type="button"
+              key={key}
+              className={`rail-link ${tone}`}
+              onClick={() => handleJump(key)}
+            >
               <span className="rail-num">0{index + 1}</span>
               <span className="rail-copy">
                 <strong>{section.title}</strong>
