@@ -1529,6 +1529,33 @@ h3 {
   margin-bottom: 22px;
 }
 
+.instance-note {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(17, 17, 17, 0.03);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.instance-note strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.instance-note p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+}
+
 .section-head-tight {
   margin-bottom: 18px;
 }
@@ -2478,11 +2505,7 @@ h3 {
   word-break: break-all;
 }
 
-.instance-note-inline {
-  color: var(--muted);
-  line-height: 1.45;
-  word-break: break-word;
-}
+/* .instance-note-inline removed (unused) */
 
 .instance-head-actions {
   display: flex;
@@ -2565,31 +2588,7 @@ h3 {
   box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.06);
 }
 
-.instance-note-editor {
-  gap: 8px;
-}
-
-.instance-note {
-  padding: 18px 20px;
-  border-radius: 18px;
-  background: rgba(17, 17, 17, 0.03);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-}
-
-.instance-note strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.instance-note p {
-  margin: 0;
-  color: var(--ink);
-  line-height: 1.55;
-}
+/* Duplicate instance-note block removed; unified definition kept earlier */
 
 .instance-app-form {
   display: grid;
@@ -3378,22 +3377,8 @@ h3 {
   word-break: break-word;
 }
 
-.instance-note {
-  padding: 18px 20px;
-  border-radius: 18px;
-  background: rgba(17, 17, 17, 0.03);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  display: flex;  
-  flex-direction: column; 
-  height: 100%;  
-}
+/* Duplicate .instance-note block removed here — unified definition kept earlier in the file. */
 
-.instance-note p {
-  margin: 0;
-  color: var(--ink);
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
 
 .property-action-row {
   display: flex;

@@ -200,7 +200,7 @@ export function InstancesPage() {
                     navigate(`/compute/instances/${encodeURIComponent(selectedInstance.id)}`)
                   }
                 >
-                  View details & Edit
+                  View details & edit
                 </button>
                 <button
                   className="ghost-button"
