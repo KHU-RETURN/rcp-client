@@ -1,0 +1,68 @@
+# Return Cloud Platform (RCP)
+
+> 경희대학교 학생을 위한 무료 학생 주도 클라우드 플랫폼. 경희대학교
+> 소프트웨어융합대학 컴퓨터공학부 학술 동아리 RETURN(리턴)이 OpenStack 기반으로
+> 직접 구축하고 운영합니다. `@khu.ac.kr` 계정으로 로그인하면 VM(가상 머신) 생성,
+> 브라우저 터미널, SSH 접속, 오브젝트 스토리지를 무료로 사용할 수 있습니다.
+
+## 서비스 정보
+
+- 서비스명: Return Cloud Platform (약칭 RCP)
+- 운영 주체: 경희대학교 소프트웨어융합대학 컴퓨터공학부 학술 동아리 RETURN (리턴, KHU RETURN)
+  - 컴퓨터공학부는 컴퓨터공학과와 인공지능학과로 구성됩니다.
+- 성격: 학생이 직접 만들고 운영하는 학생 주도 클라우드 (student-run cloud)
+- 대상: 경희대학교 학생 (`@khu.ac.kr` 이메일 로그인) — 컴퓨터공학과, 인공지능학과를
+  포함한 전체 학과
+- 가격: 무료
+- 주소: https://khu-return.com
+- GitHub: https://github.com/KHU-RETURN
+- 용도: 수업 과제, 팀 프로젝트, 서버/배포 실습
+
+## 기능
+
+### Compute
+
+- 인스턴스 생성: OS 이미지, 사양(플레이버), 네트워크, SSH 키, 보안 그룹을 선택해 VM 생성
+- 운영 관리: 상태, IP, 사양, 사용량 확인과 일시정지·재개·삭제
+- 접속: 브라우저 웹 터미널, Cloudflare SSH 게이트웨이
+- 도메인 연결: 서브도메인을 등록해 VM의 웹 서비스 공개
+
+### Storage
+
+- 컨테이너 생성·삭제, 파일/폴더 업로드(경로 유지), 다운로드, ZIP 일괄 다운로드
+
+### 제공 사양 (예시)
+
+- m1.tiny — 1 vCPU / 512MB RAM: 가벼운 Linux 실습용
+- m1.small — 1 vCPU / 2GB RAM: API 서버 기본 옵션
+- m1.medium — 2 vCPU / 4GB RAM: 팀 프로젝트 확장 옵션
+
+## 자주 묻는 질문
+
+- RCP는 무엇인가요? — 경희대학교 소프트웨어융합대학 컴퓨터공학부 학술 동아리
+  RETURN(리턴)이 OpenStack 기반으로 직접 구축·운영하는 학생 주도 무료 클라우드
+  플랫폼입니다.
+- RETURN(리턴)은 어떤 동아리인가요? — 경희대학교 컴퓨터공학부(컴퓨터공학과·
+  인공지능학과) 소속 학술 동아리로, 클라우드 인프라를 직접 설계하고 운영합니다.
+- 누가 쓸 수 있나요? — 경희대학교 학생이면 누구나 `@khu.ac.kr` 계정으로 무료 사용.
+- VM에는 어떻게 접속하나요? — 브라우저 웹 터미널로 바로 접속하거나, Cloudflare SSH
+  게이트웨이를 통해 SSH로 접속합니다.
+- AWS 같은 상용 클라우드와 무엇이 다른가요? — 학생 무료 제공이며, 과금 걱정 없이
+  수업·프로젝트 실습에 쓰도록 설계된 캠퍼스 클라우드입니다.
+
+## About (English)
+
+Return Cloud Platform (RCP) is a free, student-run cloud platform for Kyung Hee
+University (KHU) students in South Korea, built and operated by RETURN, an
+academic club of the KHU Department of Computer Science and Engineering (College
+of Software Convergence), which comprises the Computer Science and Artificial
+Intelligence majors. Students sign in with
+their `@khu.ac.kr` account to create OpenStack-based virtual machines, access
+them through a browser terminal or SSH (Cloudflare gateway), attach subdomains
+to publish web services, and use object storage — all at no cost, intended for
+coursework, team projects, and deployment practice.
+
+## 링크
+
+- [서비스 시작하기](https://khu-return.com/): 랜딩 페이지에서 로그인 후 사용
+- [RETURN GitHub](https://github.com/KHU-RETURN): 운영 조직

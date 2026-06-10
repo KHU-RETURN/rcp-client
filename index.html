@@ -3,11 +3,134 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Return Cloud Platform</title>
+    <title>Return Cloud Platform — 경희대 학생을 위한 클라우드</title>
     <meta
       name="description"
-      content="RCP VM creation console aligned to rcp-front/PRD.md with mock auth, guided sizing, and review-before-create UX."
+      content="경희대학교 학생을 위한 무료 클라우드 플랫폼. VM 생성, 브라우저 터미널, SSH 접속, 스토리지를 한 화면에서. 컴퓨터공학부 학술 동아리 RETURN(리턴)이 직접 만들고 운영하는 학생 주도 클라우드입니다."
     />
+    <link rel="canonical" href="https://khu-return.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Return Cloud Platform" />
+    <meta property="og:title" content="Return Cloud Platform — 경희대 학생을 위한 클라우드" />
+    <meta
+      property="og:description"
+      content="경희대학교 학생을 위한 무료 클라우드 플랫폼. VM 생성, 브라우저 터미널, SSH 접속, 스토리지를 한 화면에서."
+    />
+    <meta property="og:url" content="https://khu-return.com/" />
+    <meta property="og:image" content="https://khu-return.com/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RETURN 로고" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Return Cloud Platform — 경희대 학생을 위한 클라우드" />
+    <meta
+      name="twitter:description"
+      content="경희대학교 학생을 위한 무료 클라우드 플랫폼. VM 생성, 브라우저 터미널, SSH 접속, 스토리지를 한 화면에서."
+    />
+    <meta name="twitter:image" content="https://khu-return.com/assets/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://khu-return.com/#org",
+            "name": "RETURN",
+            "alternateName": ["리턴", "KHU RETURN"],
+            "url": "https://khu-return.com/",
+            "sameAs": ["https://github.com/KHU-RETURN"],
+            "logo": "https://khu-return.com/assets/return-black.png",
+            "description": "경희대학교 소프트웨어융합대학 컴퓨터공학부(컴퓨터공학과·인공지능학과) 학술 동아리 RETURN(리턴). 학생 주도로 클라우드 플랫폼 RCP를 직접 구축하고 운영합니다.",
+            "parentOrganization": {
+              "@type": "EducationalOrganization",
+              "name": "경희대학교 소프트웨어융합대학 컴퓨터공학부",
+              "alternateName": "KHU Department of Computer Science and Engineering",
+              "parentOrganization": {
+                "@type": "CollegeOrUniversity",
+                "name": "경희대학교",
+                "alternateName": "Kyung Hee University"
+              }
+            }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://khu-return.com/#app",
+            "name": "Return Cloud Platform",
+            "alternateName": "RCP",
+            "url": "https://khu-return.com/",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Web",
+            "inLanguage": "ko",
+            "description": "경희대학교 학생을 위한 무료 학생 주도 클라우드 플랫폼. OpenStack 기반 VM 생성, 브라우저 터미널, SSH 접속, 오브젝트 스토리지를 제공합니다.",
+            "keywords": "경희대학교 클라우드, 학생 주도 클라우드, 경희대 소프트웨어융합대학, 경희대 컴퓨터공학부, 경희대 컴퓨터공학과, 경희대 인공지능학과, RETURN, 리턴, RCP",
+            "featureList": [
+              "VM 인스턴스 생성 (OS 이미지·사양·네트워크·SSH 키 선택)",
+              "브라우저 웹 터미널",
+              "Cloudflare SSH 게이트웨이 접속",
+              "서브도메인 연결로 웹 서비스 공개",
+              "오브젝트 스토리지 (파일·폴더 업로드, ZIP 다운로드)"
+            ],
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "KRW",
+              "description": "경희대학교 학생(@khu.ac.kr) 무료 제공"
+            },
+            "provider": { "@id": "https://khu-return.com/#org" }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://khu-return.com/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "RCP(Return Cloud Platform)는 무엇인가요?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "경희대학교 소프트웨어융합대학 컴퓨터공학부 학술 동아리 RETURN(리턴)이 OpenStack 기반으로 직접 구축하고 운영하는 학생 주도 무료 클라우드 플랫폼입니다. VM 생성, 브라우저 터미널, SSH 접속, 스토리지를 제공합니다."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "누가 사용할 수 있나요?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "경희대학교 학생이면 누구나 @khu.ac.kr 계정으로 로그인해 무료로 사용할 수 있습니다."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "VM에는 어떻게 접속하나요?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "브라우저 웹 터미널로 바로 접속하거나, Cloudflare SSH 게이트웨이를 통해 SSH로 접속합니다."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "AWS 같은 상용 클라우드와 무엇이 다른가요?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "과금 걱정 없이 수업 과제와 팀 프로젝트 실습에 쓸 수 있도록 설계된 캠퍼스 클라우드로, 경희대 학생에게 무료로 제공됩니다."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <noscript>
+      <style>
+        /* JS 없이 읽는 환경(크롤러, noscript 브라우저)에서 reveal 콘텐츠 표시.
+           번들 CSS(.landing-reveal)보다 특이도를 높여 덮어쓴다. */
+        .landing-page .landing-reveal {
+          opacity: 1;
+          transform: none;
+        }
+      </style>
+    </noscript>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

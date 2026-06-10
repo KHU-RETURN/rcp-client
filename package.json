@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/create-spa-fallback.mjs",
+    "postbuild": "node scripts/create-spa-fallback.mjs && node scripts/prerender.mjs",
     "preview": "vite preview",
     "serve": "node server.mjs",
     "test": "node --test server.test.mjs src/services/*.test.ts src/components/landing/*.test.mjs",
