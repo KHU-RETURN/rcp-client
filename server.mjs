@@ -23,6 +23,8 @@ const mimeTypes = new Map([
   ['.jpeg', 'image/jpeg'],
   ['.webp', 'image/webp'],
   ['.ico', 'image/x-icon'],
+  ['.txt', 'text/plain; charset=utf-8'],
+  ['.xml', 'application/xml; charset=utf-8'],
 ]);
 
 export function createFrontendServer({
@@ -113,6 +115,17 @@ async function serveStatic(res, pathname, distDir) {
   const looksLikeAsset = path.extname(normalized).length > 0;
 
   if (!looksLikeAsset) {
+    // Mirror GitHub Pages: only "/" serves the prerendered index.html. Deep
+    // links get the empty-root 404.html so landing markup never flashes on
+    // console routes. Falls back to index.html when postbuild hasn't run.
+    if (pathname !== '/') {
+      try {
+        await sendFile(res, path.join(distDir, '404.html'));
+        return;
+      } catch {
+        // dist built without postbuild — index.html below still works.
+      }
+    }
     await sendFile(res, path.join(distDir, 'index.html'));
     return;
   }

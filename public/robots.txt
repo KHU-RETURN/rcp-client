@@ -1,0 +1,18 @@
+# Return Cloud Platform — https://khu-return.com
+# AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, ...) are
+# welcome under the same rules below. The landing page (/) is the only
+# public content; console routes require authentication.
+# Keep the Disallow list in sync with the routes in src/App.tsx.
+
+User-agent: *
+Disallow: /compute
+Disallow: /storage
+Disallow: /admin
+Disallow: /terminal
+Disallow: /instances
+Disallow: /auth/
+Disallow: /ssh-auth
+Disallow: /ssh/
+Disallow: /changes
+
+Sitemap: https://khu-return.com/sitemap.xml
