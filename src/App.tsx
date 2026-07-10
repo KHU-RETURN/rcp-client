@@ -9,6 +9,7 @@ import { LandingPage } from './components/landing/LandingPage';
 import { InstancesPage } from './components/compute/InstancesPage';
 import { InstanceDetailPage } from './components/compute/InstanceDetailPage';
 import { CreatePage } from './components/compute/CreatePage';
+import { SshGuidePage } from './components/compute/SshGuidePage';
 import { StoragePage } from './components/storage/StoragePage';
 import { StorageContainerPage } from './components/storage/StorageContainerPage';
 import { TerminalPage } from './components/terminal/TerminalPage';
@@ -41,6 +42,7 @@ export function App() {
             <Route path="/instances/:id" element={<InstanceDetailPage />} />
             <Route path="/compute/instances/:id/terminal" element={<TerminalPage />} />
             <Route path="/instances/:id/terminal" element={<TerminalPage />} />
+            <Route path="/compute/ssh-guide" element={<SshGuidePage />} />
             <Route path="/storage" element={<StoragePage />} />
             <Route path="/storage/:name" element={<StorageContainerPage />} />
             <Route element={<AdminGuard />}>

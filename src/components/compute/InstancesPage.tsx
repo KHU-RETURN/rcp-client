@@ -123,6 +123,13 @@ export function InstancesPage() {
                 </fieldset>
                 <button
                   type="button"
+                  className="ghost-button"
+                  onClick={() => navigate('/compute/ssh-guide')}
+                >
+                  SSH guide
+                </button>
+                <button
+                  type="button"
                   className="primary-button"
                   onClick={() => navigate('/compute/create')}
                 >

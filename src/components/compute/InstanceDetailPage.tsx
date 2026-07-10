@@ -276,6 +276,13 @@ export function InstanceDetailPage() {
                         <dd>{instance.keyName || 'Not registered'}</dd>
                       </div>
                     </dl>
+                    <button
+                      type="button"
+                      className="ghost-button ghost-button-small"
+                      onClick={() => navigate('/compute/ssh-guide')}
+                    >
+                      SSH guide
+                    </button>
                   </section>
 
                   <section className="instance-block">
