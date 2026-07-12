@@ -14,6 +14,7 @@ export type {
   SectionStates,
   InstanceStatusFilter,
   StatusTone,
+  UpdateInstancePayload,
 } from './compute';
 export type {
   StorageContainer,

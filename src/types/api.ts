@@ -4,6 +4,7 @@ export interface CreateInstancePayload {
   flavor_id: string;
   network_id?: string;
   key_name?: string;
+  note?: string;
   security_groups?: string[];
 }
 
@@ -60,6 +61,7 @@ export interface ServerInstanceResponse {
   flavor?: { id: string; name?: string; vcpus?: number; ram?: number; disk?: number };
   flavor_id?: string;
   key_name?: string;
+  note?: string;
   fixed_ip?: string;
   floating_ip?: string;
   usage?: { cpu_usage: number; memory_usage: number };

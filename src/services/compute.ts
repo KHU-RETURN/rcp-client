@@ -11,6 +11,7 @@ import type {
   RegisterInstanceAppPayload,
   RegisterInstanceAppResponse,
   ServerInstanceResponse,
+  UpdateInstancePayload,
 } from '../types';
 
 function buildTerminalReadyAt(
@@ -78,7 +79,7 @@ function buildInventoryRecordFromServer(response: ServerInstanceResponse): Insta
     fixedIp: response.fixed_ip ?? '',
     cpuUsage: response.usage?.cpu_usage,
     memoryUsage: response.usage?.memory_usage,
-    note: '',
+    note: response.note ?? '',
     app: response.app ?? null,
   };
 }
@@ -132,6 +133,20 @@ export async function fetchInstances(): Promise<Instance[]> {
 export async function fetchInstanceById(id: string): Promise<Instance> {
   const response = await apiRequest<ServerInstanceResponse>(
     `/api/v1/compute/instances/${encodeURIComponent(id)}`,
+  );
+  return buildInventoryRecordFromServer(response);
+}
+
+export async function updateInstance(
+  id: string,
+  payload: UpdateInstancePayload,
+): Promise<Instance> {
+  const response = await apiRequest<ServerInstanceResponse>(
+    `/api/v1/compute/instances/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
   );
   return buildInventoryRecordFromServer(response);
 }
