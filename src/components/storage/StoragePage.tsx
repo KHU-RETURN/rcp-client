@@ -257,7 +257,11 @@ export function StoragePage() {
               <div>
                 <p className="eyebrow">Storage</p>
                 <h2>{mode === 'object' ? 'Object Storage' : 'Block Storage'}</h2>
-                <p className="muted section-support">컨테이너 단위로 파일을 보관합니다.</p>
+                <p className="muted section-support">
+                  {mode === 'object'
+                    ? '컨테이너 단위로 파일을 보관합니다.'
+                    : 'VM에 연결할 수 있는 영구 볼륨을 관리합니다.'}
+                </p>
               </div>
               <div className="section-head-meta">
                 <fieldset className="section-stats">
