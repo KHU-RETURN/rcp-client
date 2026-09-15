@@ -19,6 +19,7 @@ import {
   fetchInstanceById as fetchComputeInstanceById,
   pauseInstance as pauseComputeInstance,
   unpauseInstance as unpauseComputeInstance,
+  updateInstance as updateComputeInstance,
 } from '../../services/compute';
 import { TERMINAL_READY_DELAY_MS } from '../../constants';
 
@@ -37,6 +38,11 @@ export interface ComputeSlice {
   ensureFlavorData: () => Promise<void>;
   ensureInstanceData: () => Promise<void>;
   ensureInstanceById: (id: string) => Promise<'ok' | 'not-found' | 'error'>;
+  updateInstanceDetails: (
+    id: string,
+    payload: { name: string; key_name: string; note: string },
+  ) => Promise<{ ok: boolean; error?: string }>;
+  setInstancePaused: (id: string, paused: boolean) => Promise<{ ok: boolean; error?: string }>;
   upsertInstance: (instance: Instance) => void;
   setSelectedInstanceId: (id: string | null) => void;
   ensureSelectedInstance: () => void;
@@ -175,6 +181,7 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
       image_id: imageId,
       flavor_id: draft.selectedFlavorId,
       ...(keypairStatus.response?.name ? { key_name: keypairStatus.response.name } : {}),
+      ...(draft.description.trim() ? { note: draft.description.trim() } : {}),
     };
 
     setCreationStatus({ state: 'saving', message: '인스턴스 생성 요청을 보내는 중입니다.' });
@@ -195,6 +202,29 @@ export const createComputeSlice: StateCreator<ComputeSliceDeps, [], [], ComputeS
   getSelectedFlavor: () => {
     const { flavors, draft } = get();
     return flavors.find((f) => f.id === draft.selectedFlavorId) ?? null;
+  },
+
+  updateInstanceDetails: async (id, payload) => {
+    try {
+      const instance = await updateComputeInstance(id, payload);
+      get().upsertInstance(instance);
+      return { ok: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update instance';
+      return { ok: false, error: translateError(message) };
+    }
+  },
+
+  setInstancePaused: async (id, paused) => {
+    try {
+      if (paused) await pauseComputeInstance(id);
+      else await unpauseComputeInstance(id);
+      await get().ensureInstanceById(id);
+      return { ok: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update instance state';
+      return { ok: false, error: translateError(message) };
+    }
   },
 
   deleteInstance: async (id) => {
