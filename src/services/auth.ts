@@ -16,6 +16,31 @@ type AuthPayload = Partial<Session> & {
 
 const ACCESS_TOKEN_KEYS = ['accessToken', 'access_token', 'AccessToken', 'token', 'Token'];
 const REFRESH_TOKEN_KEYS = ['refreshToken', 'refresh_token', 'RefreshToken'];
+const DEV_AUTH_BYPASS_KEY = 'rcp:dev-auth-bypass';
+
+export function isDevAuthBypassEnabled(): boolean {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('dev_auth') === '1') {
+    window.localStorage.setItem(DEV_AUTH_BYPASS_KEY, '1');
+    return true;
+  }
+
+  return window.localStorage.getItem(DEV_AUTH_BYPASS_KEY) === '1';
+}
+
+function buildDevSession(): Session {
+  return {
+    id: 'dev-user',
+    name: 'Local Dev User',
+    role: 'user',
+    subtitle: 'Local development session',
+    email: 'dev@khu.ac.kr',
+    accessToken: 'dev-local-token',
+    source: 'local-dev',
+  };
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -62,6 +87,10 @@ export function normalizeAuthSession(payload: AuthPayload): Session {
 }
 
 export async function fetchAuthSession(): Promise<Session> {
+  if (isDevAuthBypassEnabled()) {
+    return buildDevSession();
+  }
+
   const response = await fetch(buildApiUrl('/api/v1/auth/me'), {
     credentials: 'include',
   });

@@ -1,7 +1,7 @@
 import { rcpConfig } from '../config';
 import { ApiRequestError } from '../types';
 import { STORAGE_KEYS } from '../constants';
-import { RefreshFailedError, refreshAccessToken } from './auth';
+import { RefreshFailedError, isDevAuthBypassEnabled, refreshAccessToken } from './auth';
 // useStore 는 함수 본문에서만 참조하여 store ↔ services 간 순환 참조 평가 순서 문제를 피한다.
 import { useStore } from '../store';
 
@@ -10,6 +10,99 @@ const LOGOUT_PATH = '/api/v1/auth/logout';
 const LOGIN_ROUTE = '/login';
 const AUTH_CALLBACK_ROUTE = '/auth/callback';
 const REFRESH_NETWORK_RETRY_DELAY_MS = 500;
+
+const devVolumes = [
+  {
+    id: 'vol-dev-database',
+    name: 'database-data',
+    description: 'PostgreSQL persistent data',
+    sizeGiB: 20,
+    status: 'available',
+    bootable: false,
+    encrypted: false,
+    volumeType: 'default',
+    availabilityZone: 'nova',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+    attachments: [],
+  },
+  {
+    id: 'vol-dev-logs',
+    name: 'service-logs',
+    description: 'Attached log volume',
+    sizeGiB: 10,
+    status: 'in-use',
+    bootable: false,
+    encrypted: false,
+    volumeType: 'default',
+    availabilityZone: 'nova',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 28).toISOString(),
+    attachments: [
+      {
+        instanceId: 'inst-dev-ubuntu',
+        instanceName: 'ubuntu-server-01',
+        device: '/dev/vdb',
+        attachedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+      },
+    ],
+  },
+];
+
+const devSnapshots = [
+  {
+    id: 'snap-dev-before-upgrade',
+    name: 'before-upgrade',
+    description: 'Before PostgreSQL upgrade',
+    volumeId: 'vol-dev-database',
+    sizeGiB: 20,
+    status: 'available',
+    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+  },
+];
+
+function buildJsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+function maybeBuildDevResponse(path: string, options: RequestInit): Response | null {
+  if (!isDevAuthBypassEnabled() || rcpConfig.apiBaseUrl) return null;
+
+  const method = options.method ?? 'GET';
+  if (path === '/api/v1/compute/instances' && method === 'GET') {
+    return buildJsonResponse([
+      {
+        id: 'inst-dev-ubuntu',
+        name: 'ubuntu-server-01',
+        status: 'ACTIVE',
+        image: 'ubuntu-24.04',
+        flavor: { id: 'm1.small', name: 'm1.small', vcpus: 1, ram: 2048, disk: 20 },
+        key_name: 'dev-key',
+        fixed_ip: '10.0.0.12',
+        created: new Date(Date.now() - 1000 * 60 * 60 * 32).toISOString(),
+      },
+    ]);
+  }
+
+  if (path === '/api/v1/block-storage/volumes' && method === 'GET') {
+    return buildJsonResponse({ volumes: devVolumes });
+  }
+
+  if (path === '/api/v1/block-storage/snapshots' && method === 'GET') {
+    return buildJsonResponse({ snapshots: devSnapshots });
+  }
+
+  if (path === '/api/v1/block-storage/volumes' && method === 'POST') {
+    return buildJsonResponse({ ...devVolumes[0], id: 'vol-dev-new', status: 'creating' }, 202);
+  }
+
+  if (path.includes('/api/v1/block-storage/') && method !== 'GET') {
+    return new Response(null, { status: method === 'DELETE' ? 204 : 202 });
+  }
+
+  return null;
+}
 
 export function buildApiUrl(path: string): string {
   return `${rcpConfig.apiBaseUrl}${path}`;
@@ -135,6 +228,11 @@ interface AuthedFetchOptions extends RequestInit {
 }
 
 async function authedFetch(path: string, options: AuthedFetchOptions): Promise<Response> {
+  const devResponse = maybeBuildDevResponse(path, options);
+  if (devResponse) {
+    return devResponse;
+  }
+
   const { __retried, ...init } = options;
   const url = buildApiUrl(path);
   const headers = buildAuthHeaders(init.headers);

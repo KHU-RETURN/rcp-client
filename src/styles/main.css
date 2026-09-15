@@ -2252,6 +2252,27 @@ h3 {
   cursor: default;
 }
 
+.summary-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.summary-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.summary-list-item > div {
+  min-width: 0;
+}
+
 .upload-progress {
   display: grid;
   gap: 8px;
