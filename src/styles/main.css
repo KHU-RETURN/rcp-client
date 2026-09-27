@@ -3723,6 +3723,97 @@ h3 {
   border-top: 1px solid var(--line);
 }
 
+.function-databases {
+  margin-top: 24px;
+}
+
+.function-database-create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.function-database-create label {
+  font-weight: 700;
+}
+
+.function-database-create input,
+.function-database-create select {
+  min-width: 180px;
+  max-width: 280px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-small);
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
+.function-database-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.function-database-results {
+  min-width: 0;
+}
+
+.function-database-results h4 {
+  margin-bottom: 10px;
+}
+
+.function-table-scroll {
+  overflow: auto;
+  max-height: 360px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+}
+
+.function-table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.function-table-scroll th,
+.function-table-scroll td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.function-table-scroll th {
+  background: var(--bg-alt);
+}
+
+.function-binding-list {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.function-binding-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+}
+
+.function-binding-list code,
+.function-data code {
+  overflow-wrap: anywhere;
+}
+
 .function-curl {
   margin-top: 20px;
 }
@@ -3883,6 +3974,16 @@ h3 {
 @media (max-width: 760px) {
   .function-grid {
     grid-template-columns: 1fr;
+  }
+
+  .function-database-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .function-database-create input,
+  .function-database-create select {
+    max-width: none;
+    width: 100%;
   }
 
   .function-list-item {

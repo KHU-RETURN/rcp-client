@@ -29,3 +29,21 @@ export interface FunctionDataItem {
   value: unknown;
   updated_at: string;
 }
+
+export interface AppDatabase {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface DatabaseBinding {
+  alias: string;
+  database_id: string;
+  database_name: string;
+}
+
+export interface SQLResult {
+  columns: string[];
+  rows: Record<string, unknown>[];
+  rows_affected: number;
+}

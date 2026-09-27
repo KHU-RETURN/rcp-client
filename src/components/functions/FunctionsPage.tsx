@@ -2,6 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { ROUTE_NAMES } from '../../constants';
 import { rcpConfig } from '../../config';
 import {
+  bindDatabase,
+  createDatabase,
+  deleteDatabase,
+  listDatabaseBindings,
+  listDatabases,
+  queryDatabase,
+  unbindDatabase,
+} from '../../services/databases';
+import {
   createFunction,
   deleteFunction,
   deleteFunctionData,
@@ -17,9 +26,12 @@ import {
 import { buildApiUrl } from '../../services/api';
 import type {
   CloudFunction,
+  AppDatabase,
+  DatabaseBinding,
   FunctionDataItem,
   FunctionLanguage,
   FunctionResult,
+  SQLResult,
 } from '../../types/functions';
 import { Topbar } from '../layout/Topbar';
 
@@ -33,6 +45,15 @@ export function FunctionsPage() {
   const [name, setName] = useState('');
   const [language, setLanguage] = useState<FunctionLanguage>('rust');
   const [dataMode, setDataMode] = useState(false);
+  const [databases, setDatabases] = useState<AppDatabase[]>([]);
+  const [databaseName, setDatabaseName] = useState('');
+  const [selectedDatabase, setSelectedDatabase] = useState<string>('');
+  const [sql, setSQL] = useState('SELECT name FROM sqlite_master WHERE type = ?');
+  const [sqlParams, setSQLParams] = useState('["table"]');
+  const [sqlResult, setSQLResult] = useState<SQLResult | null>(null);
+  const [bindings, setBindings] = useState<DatabaseBinding[]>([]);
+  const [bindingAlias, setBindingAlias] = useState('DB');
+  const [bindingDatabase, setBindingDatabase] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [replacement, setReplacement] = useState<File | null>(null);
   const [replacementLanguage, setReplacementLanguage] = useState<FunctionLanguage>('rust');
@@ -58,15 +79,35 @@ export function FunctionsPage() {
     );
   }, []);
 
+  const refreshDatabases = useCallback(async () => {
+    const next = await listDatabases();
+    setDatabases(next);
+    setSelectedDatabase((current) =>
+      next.some((item) => item.id === current) ? current : (next[0]?.id ?? ''),
+    );
+    setBindingDatabase((current) =>
+      next.some((item) => item.id === current) ? current : (next[0]?.id ?? ''),
+    );
+  }, []);
+
   useEffect(() => {
-    void refresh()
+    void Promise.all([refresh(), refreshDatabases()])
       .catch((cause: unknown) => {
         setError(cause instanceof Error ? cause.message : '함수 목록을 불러오지 못했습니다.');
       })
       .finally(() => setLoading(false));
-  }, [refresh]);
+  }, [refresh, refreshDatabases]);
 
   const active = items.find((item) => item.id === selected);
+  const selectedDatabaseItem = databases.find((item) => item.id === selectedDatabase);
+
+  const refreshBindings = useCallback(async () => {
+    setBindings(selected ? await listDatabaseBindings(selected) : []);
+  }, [selected]);
+
+  useEffect(() => {
+    void refreshBindings().catch(() => setBindings([]));
+  }, [refreshBindings]);
   const endpoint = active
     ? new URL(buildApiUrl(`/api/v1/run/${active.id}/`), window.location.origin).toString()
     : '';
@@ -114,10 +155,9 @@ export function FunctionsPage() {
             <div className="section-head section-head-tight">
               <div>
                 <p className="eyebrow">Serverless</p>
-                <h2>WASM Functions</h2>
+                <h2>Functions</h2>
                 <p className="muted section-support">
-                  소스 파일을 올리면 WASM으로 빌드해 실행합니다. 기존 WASI 모듈도 직접 등록할 수
-                  있습니다.
+                  코드를 API로 실행하고, 필요한 데이터베이스를 연결합니다.
                 </p>
               </div>
             </div>
@@ -126,11 +166,157 @@ export function FunctionsPage() {
                 {error}
               </p>
             )}
+            <section className="function-panel function-databases" aria-label="Databases">
+              <div className="function-detail-head">
+                <div>
+                  <h3>
+                    Databases <span className="muted">{databases.length}/10</span>
+                  </h3>
+                  <p className="muted">SQLite 데이터베이스를 만들고 함수에 연결하세요.</p>
+                </div>
+              </div>
+              <form
+                className="function-database-create"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void run(async () => {
+                    const created = await createDatabase(databaseName);
+                    await refreshDatabases();
+                    setSelectedDatabase(created.id);
+                    setBindingDatabase(created.id);
+                    setDatabaseName('');
+                  });
+                }}
+              >
+                <label htmlFor="database-name">Name</label>
+                <input
+                  id="database-name"
+                  required
+                  pattern="[a-z][a-z0-9-]{0,62}"
+                  placeholder="my-app-db"
+                  value={databaseName}
+                  onChange={(event) => setDatabaseName(event.target.value)}
+                />
+                <button className="primary-button" type="submit" disabled={busy}>
+                  Create database
+                </button>
+              </form>
+              {databases.length > 0 && (
+                <div className="function-database-workspace">
+                  <div className="function-form">
+                    <label htmlFor="database-select">Database</label>
+                    <select
+                      id="database-select"
+                      value={selectedDatabase}
+                      onChange={(event) => {
+                        setSelectedDatabase(event.target.value);
+                        setSQLResult(null);
+                      }}
+                    >
+                      {databases.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                    <label htmlFor="database-sql">SQL</label>
+                    <textarea
+                      id="database-sql"
+                      rows={5}
+                      value={sql}
+                      onChange={(event) => setSQL(event.target.value)}
+                      spellCheck={false}
+                    />
+                    <label htmlFor="database-params">Parameters (JSON array)</label>
+                    <input
+                      id="database-params"
+                      value={sqlParams}
+                      onChange={(event) => setSQLParams(event.target.value)}
+                      spellCheck={false}
+                    />
+                    <div className="function-data-actions">
+                      <button
+                        className="primary-button"
+                        type="button"
+                        disabled={busy || !selectedDatabase}
+                        onClick={() =>
+                          void run(async () => {
+                            const parsed: unknown = JSON.parse(sqlParams);
+                            if (!Array.isArray(parsed))
+                              throw new Error('Parameters는 JSON 배열이어야 합니다.');
+                            setSQLResult(await queryDatabase(selectedDatabase, sql, parsed));
+                          })
+                        }
+                      >
+                        Run query
+                      </button>
+                      <button
+                        className="danger-button"
+                        type="button"
+                        disabled={busy || !selectedDatabase}
+                        onClick={() => {
+                          if (
+                            !window.confirm(
+                              `'${selectedDatabaseItem?.name}' 데이터베이스와 모든 데이터를 영구 삭제할까요?`,
+                            )
+                          )
+                            return;
+                          void run(async () => {
+                            await deleteDatabase(selectedDatabase);
+                            setSQLResult(null);
+                            await Promise.all([refreshDatabases(), refreshBindings()]);
+                          });
+                        }}
+                      >
+                        Delete database
+                      </button>
+                    </div>
+                  </div>
+                  <div className="function-database-results" aria-live="polite">
+                    <h4>Result</h4>
+                    {!sqlResult ? (
+                      <p className="muted">SQL을 실행하면 결과가 표시됩니다.</p>
+                    ) : (
+                      <>
+                        <p className="muted">
+                          {sqlResult.rows.length} rows · {sqlResult.rows_affected} affected
+                        </p>
+                        {sqlResult.columns.length > 0 && (
+                          <div className="function-table-scroll">
+                            <table>
+                              <thead>
+                                <tr>
+                                  {sqlResult.columns.map((column) => (
+                                    <th key={column}>{column}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {sqlResult.rows.map((row) => (
+                                  <tr key={JSON.stringify(row)}>
+                                    {sqlResult.columns.map((column) => (
+                                      <td key={column}>
+                                        {row[column] == null ? 'NULL' : String(row[column])}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
             <div className="function-grid">
               <section className="function-panel" aria-label="Deploy function">
                 <h3>Deploy</h3>
                 <p className="muted">
-                  Rust·Go·JavaScript·Python 소스는 256 KB, WASI 모듈은 32 MB까지 등록합니다.
+                  Rust·Go·JavaScript·Python 소스는 WASM으로 빌드합니다. WASI 모듈도 직접 올릴 수
+                  있습니다. 소스는 256 KB, 모듈은 32 MB까지 등록합니다.
                 </p>
                 <form
                   className="function-form"
@@ -194,7 +380,7 @@ export function FunctionsPage() {
                       checked={dataMode}
                       onChange={(event) => setDataMode(event.target.checked)}
                     />
-                    Enable SQLite data protocol
+                    Enable data access
                   </label>
                   <button className="primary-button" type="submit" disabled={busy || !file}>
                     Deploy
@@ -227,10 +413,7 @@ export function FunctionsPage() {
                           }}
                         >
                           <strong>{item.name}</strong>
-                          <small>
-                            {item.language?.toUpperCase() ?? 'WASM'} ·{' '}
-                            {new Date(item.updated_at).toLocaleString('ko-KR')}
-                          </small>
+                          <small>{new Date(item.updated_at).toLocaleString('ko-KR')}</small>
                         </button>
                       </li>
                     ))}
@@ -373,6 +556,95 @@ export function FunctionsPage() {
                     <pre>{curlExample}</pre>
                   </div>
                 </div>
+                <section className="function-data" aria-label="Database bindings">
+                  <div className="function-detail-head">
+                    <div>
+                      <h4>Database bindings</h4>
+                      <p className="muted">
+                        함수 코드에서는 바인딩 이름으로 연결된 DB에 쿼리합니다.
+                      </p>
+                    </div>
+                  </div>
+                  {!active.data_mode ? (
+                    <p className="muted">이 함수의 데이터 접근을 켠 뒤 DB를 연결할 수 있습니다.</p>
+                  ) : (
+                    <>
+                      <form
+                        className="function-database-create"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          if (!bindingDatabase) return;
+                          void run(async () => {
+                            await bindDatabase(active.id, bindingAlias, bindingDatabase);
+                            await refreshBindings();
+                          });
+                        }}
+                      >
+                        <label htmlFor="binding-alias">Binding</label>
+                        <input
+                          id="binding-alias"
+                          required
+                          pattern="[A-Z][A-Z0-9_]{0,31}"
+                          value={bindingAlias}
+                          onChange={(event) => setBindingAlias(event.target.value.toUpperCase())}
+                        />
+                        <label htmlFor="binding-database">Database</label>
+                        <select
+                          id="binding-database"
+                          value={bindingDatabase}
+                          onChange={(event) => setBindingDatabase(event.target.value)}
+                        >
+                          {databases.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="ghost-button"
+                          type="submit"
+                          disabled={busy || !bindingDatabase}
+                        >
+                          Bind database
+                        </button>
+                      </form>
+                      {bindings.length === 0 ? (
+                        <p className="muted">연결된 DB가 없습니다.</p>
+                      ) : (
+                        <ul className="function-binding-list">
+                          {bindings.map((binding) => (
+                            <li key={binding.alias}>
+                              <span>
+                                <strong>{binding.alias}</strong> → {binding.database_name}
+                              </span>
+                              <button
+                                className="danger-button"
+                                type="button"
+                                disabled={busy}
+                                onClick={() =>
+                                  void run(async () => {
+                                    await unbindDatabase(active.id, binding.alias);
+                                    await refreshBindings();
+                                  })
+                                }
+                              >
+                                Unbind
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <p className="muted">
+                        코드 요청 예:{' '}
+                        <code>
+                          {
+                            '{"$rcp":"sql","binding":"DB","sql":"SELECT * FROM notes WHERE id = ?","params":[1]}'
+                          }
+                        </code>
+                      </p>
+                    </>
+                  )}
+                </section>
                 <div className="function-grid">
                   <div className="function-form">
                     <label htmlFor="function-input">Input (JSON)</label>
@@ -432,7 +704,7 @@ export function FunctionsPage() {
                         checked={replacementDataMode}
                         onChange={(event) => setReplacementDataMode(event.target.checked)}
                       />
-                      Enable SQLite data protocol
+                      Enable data access
                     </label>
                     <button
                       className="ghost-button"
