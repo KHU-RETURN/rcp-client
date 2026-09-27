@@ -81,6 +81,40 @@ const devFunctionData = new Map<
   string,
   { collection: string; key: string; value: unknown; updated_at: string }
 >();
+const devDatabases: Array<{ id: string; name: string; created_at: string }> = [];
+const devDatabaseBindings = new Map<string, string>();
+
+function mockDatabaseResponse(path: string, options: RequestInit): Response | null {
+  const base = '/api/v1/databases';
+  if (path !== base && !path.startsWith(`${base}/`)) return null;
+  const method = options.method ?? 'GET';
+  if (path === base && method === 'GET') return buildJsonResponse(devDatabases);
+  if (path === base && method === 'POST') {
+    const request = JSON.parse(String(options.body ?? '{}')) as { name?: string };
+    const item = {
+      id: crypto.randomUUID(),
+      name: request.name ?? '',
+      created_at: new Date().toISOString(),
+    };
+    devDatabases.push(item);
+    return buildJsonResponse(item, 201);
+  }
+  const database = devDatabases.find(
+    (item) => path === `${base}/${item.id}` || path === `${base}/${item.id}/query`,
+  );
+  if (!database) return buildJsonResponse({ error: 'database not found' }, 404);
+  if (method === 'POST' && path.endsWith('/query')) {
+    return buildJsonResponse({ columns: [], rows: [], rows_affected: 0 });
+  }
+  if (method === 'DELETE' && path === `${base}/${database.id}`) {
+    devDatabases.splice(devDatabases.indexOf(database), 1);
+    for (const [binding, id] of devDatabaseBindings) {
+      if (id === database.id) devDatabaseBindings.delete(binding);
+    }
+    return new Response(null, { status: 204 });
+  }
+  return buildJsonResponse({ error: 'unsupported database request' }, 404);
+}
 
 function mockFunctionResponse(path: string, options: RequestInit): Response | null {
   const base = '/api/v1/functions';
@@ -113,6 +147,36 @@ function mockFunctionResponse(path: string, options: RequestInit): Response | nu
   }
   const item = devFunctions.find((entry) => path.startsWith(`${base}/${entry.id}`));
   if (!item) return buildJsonResponse({ error: 'function not found' }, 404);
+  const bindingPrefix = `${base}/${item.id}/databases`;
+  if (path === bindingPrefix && method === 'GET') {
+    const bindings = [...devDatabaseBindings.entries()]
+      .filter(([key]) => key.startsWith(`${item.id}/`))
+      .map(([key, id]) => ({
+        alias: key.slice(item.id.length + 1),
+        database_id: id,
+        database_name: devDatabases.find((database) => database.id === id)?.name ?? '',
+      }));
+    return buildJsonResponse(bindings);
+  }
+  if (path.startsWith(`${bindingPrefix}/`)) {
+    const alias = decodeURIComponent(path.slice(bindingPrefix.length + 1));
+    const key = `${item.id}/${alias}`;
+    if (method === 'PUT') {
+      const request = JSON.parse(String(options.body ?? '{}')) as { database_id?: string };
+      if (
+        !request.database_id ||
+        !devDatabases.some((database) => database.id === request.database_id)
+      ) {
+        return buildJsonResponse({ error: 'database not found' }, 404);
+      }
+      devDatabaseBindings.set(key, request.database_id);
+      return new Response(null, { status: 204 });
+    }
+    if (method === 'DELETE') {
+      devDatabaseBindings.delete(key);
+      return new Response(null, { status: 204 });
+    }
+  }
   const dataPrefix = `${base}/${item.id}/data/`;
   if (path.startsWith(dataPrefix)) {
     const [resource, query] = path.slice(dataPrefix.length).split('?');
@@ -173,6 +237,9 @@ function mockFunctionResponse(path: string, options: RequestInit): Response | nu
     for (const key of devFunctionData.keys()) {
       if (key.startsWith(`${item.id}/`)) devFunctionData.delete(key);
     }
+    for (const key of devDatabaseBindings.keys()) {
+      if (key.startsWith(`${item.id}/`)) devDatabaseBindings.delete(key);
+    }
     devFunctions.splice(devFunctions.indexOf(item), 1);
     return new Response(null, { status: 204 });
   }
@@ -184,6 +251,9 @@ function mockFunctionResponse(path: string, options: RequestInit): Response | nu
 
 function maybeBuildDevResponse(path: string, options: RequestInit): Response | null {
   if (!isDevAuthBypassEnabled() || rcpConfig.apiBaseUrl) return null;
+
+  const databaseResponse = mockDatabaseResponse(path, options);
+  if (databaseResponse) return databaseResponse;
 
   const functionResponse = mockFunctionResponse(path, options);
   if (functionResponse) return functionResponse;
