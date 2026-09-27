@@ -1,6 +1,6 @@
 # Return Cloud Platform — Frontend (rcp-front)
 
-경희대학교 Return 연구실 내부 사용자가 OpenStack 기반 VM을 셀프서비스로 만들고 관리하는 콘솔의 프론트엔드입니다.
+경희대학교 Return 연구실 내부 사용자가 OpenStack 기반 VM과 WASM 함수를 셀프서비스로 만들고 관리하는 콘솔의 프론트엔드입니다.
 `@khu.ac.kr` Google 계정으로 로그인하면 플레이버 + OS 이미지를 골라 VM을 생성하고, 브라우저 터미널로 접속할 수 있습니다.
 
 > 백엔드는 별도 저장소에서 관리됩니다. 이 저장소는 React SPA 빌드 결과만 담고 있고, 런타임에 `VITE_API_BASE_URL` 환경변수로 백엔드 API를 가리킵니다.
@@ -66,11 +66,12 @@ src/
     landing/             # LandingPage (marketing, scroll-driven)
     compute/             # CreatePage, InstancesPage, InstanceDetailPage, FlavorTable, InstanceTable, SectionRail
     storage/             # StoragePage, StorageContainerPage
+    functions/           # FunctionsPage (WASI 배포/교체/호출)
     terminal/            # TerminalPage, TerminalHost
     shared/              # EmptyBlock, InlineBadge
   constants/             # brand, routes, templates, terminal-theme, storage-keys
   hooks/                 # useFullscreen, useTerminal
-  services/              # api, auth, compute, storage (HTTP layer)
+  services/              # api, auth, compute, storage, functions (HTTP layer)
   store/                 # zustand store + slices/
   types/                 # api, auth, compute, config, release, storage, templates, terminal
   utils/                 # format, helpers, validation

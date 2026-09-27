@@ -12,6 +12,7 @@ import { CreatePage } from './components/compute/CreatePage';
 import { SshGuidePage } from './components/compute/SshGuidePage';
 import { StoragePage } from './components/storage/StoragePage';
 import { StorageContainerPage } from './components/storage/StorageContainerPage';
+import { FunctionsPage } from './components/functions/FunctionsPage';
 import { TerminalPage } from './components/terminal/TerminalPage';
 import { EasterEggLayer, EasterEggProvider } from './components/easter-eggs';
 import { AdminGuard } from './components/admin/AdminGuard';
@@ -45,6 +46,7 @@ export function App() {
             <Route path="/compute/ssh-guide" element={<SshGuidePage />} />
             <Route path="/storage" element={<StoragePage />} />
             <Route path="/storage/:name" element={<StorageContainerPage />} />
+            <Route path="/functions" element={<FunctionsPage />} />
             <Route element={<AdminGuard />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />

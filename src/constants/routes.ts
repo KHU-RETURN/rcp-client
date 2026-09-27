@@ -4,6 +4,7 @@ export const ROUTE_NAMES = {
   changes: 'changes',
   instances: 'instances',
   storage: 'storage',
+  functions: 'functions',
   create: 'create',
   detail: 'detail',
   terminal: 'terminal',
