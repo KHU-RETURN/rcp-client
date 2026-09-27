@@ -207,7 +207,7 @@ export function FunctionsPage() {
               </form>
               {databases.length > 0 && (
                 <details className="function-disclosure function-database-editor">
-                  <summary>SQL editor · {selectedDatabaseItem?.name}</summary>
+                  <summary>SQL editor (임시) · {selectedDatabaseItem?.name}</summary>
                   {import.meta.env.DEV && !rcpConfig.apiBaseUrl && (
                     <p className="muted function-demo-note">
                       로컬 모의 콘솔에서는 SQL이 실제로 저장되거나 실행되지 않습니다.
