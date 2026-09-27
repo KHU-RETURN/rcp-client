@@ -66,8 +66,127 @@ function buildJsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+const devFunctions: Array<{
+  id: string;
+  name: string;
+  language: string;
+  data_mode: boolean;
+  key_enabled: boolean;
+  key_created_at?: string;
+  key_expires_at?: string;
+  created_at: string;
+  updated_at: string;
+}> = [];
+const devFunctionData = new Map<
+  string,
+  { collection: string; key: string; value: unknown; updated_at: string }
+>();
+
+function mockFunctionResponse(path: string, options: RequestInit): Response | null {
+  const base = '/api/v1/functions';
+  if (path !== base && !path.startsWith(`${base}/`)) return null;
+  const method = options.method ?? 'GET';
+  if (path === base && method === 'GET') return buildJsonResponse(devFunctions);
+  if (options.body instanceof FormData && (method === 'POST' || method === 'PUT')) {
+    const language = String(options.body.get('language') ?? 'wasm');
+    const dataMode = options.body.get('data_mode') === 'true';
+    const now = new Date().toISOString();
+    if (method === 'POST') {
+      const item = {
+        id: crypto.randomUUID(),
+        name: String(options.body.get('name') ?? ''),
+        language,
+        data_mode: dataMode,
+        key_enabled: false,
+        created_at: now,
+        updated_at: now,
+      };
+      devFunctions.unshift(item);
+      return buildJsonResponse(item, 201);
+    }
+    const item = devFunctions.find((entry) => path === `${base}/${entry.id}`);
+    if (!item) return buildJsonResponse({ error: 'function not found' }, 404);
+    item.language = language;
+    item.data_mode = dataMode;
+    item.updated_at = now;
+    return buildJsonResponse(item);
+  }
+  const item = devFunctions.find((entry) => path.startsWith(`${base}/${entry.id}`));
+  if (!item) return buildJsonResponse({ error: 'function not found' }, 404);
+  const dataPrefix = `${base}/${item.id}/data/`;
+  if (path.startsWith(dataPrefix)) {
+    const [resource, query] = path.slice(dataPrefix.length).split('?');
+    const [rawCollection, rawKey] = resource.split('/');
+    const collection = decodeURIComponent(rawCollection);
+    const key = rawKey ? decodeURIComponent(rawKey) : undefined;
+    const storeKey = key ? `${item.id}/${collection}/${key}` : '';
+    if (method === 'GET' && !key) {
+      const offset = Number(new URLSearchParams(query).get('offset') ?? 0);
+      const items = [...devFunctionData.entries()]
+        .filter(([entryKey]) => entryKey.startsWith(`${item.id}/${collection}/`))
+        .map(([, entry]) => entry)
+        .sort((a, b) => a.key.localeCompare(b.key));
+      return buildJsonResponse(items.slice(offset, offset + 100));
+    }
+    if (!key) return buildJsonResponse({ error: 'data key required' }, 400);
+    if (method === 'GET') {
+      const entry = devFunctionData.get(storeKey);
+      return entry
+        ? buildJsonResponse(entry)
+        : buildJsonResponse({ error: 'data item not found' }, 404);
+    }
+    if (method === 'PUT') {
+      const entry = {
+        collection,
+        key,
+        value: JSON.parse(String(options.body ?? 'null')) as unknown,
+        updated_at: new Date().toISOString(),
+      };
+      devFunctionData.set(storeKey, entry);
+      return buildJsonResponse(entry);
+    }
+    if (method === 'DELETE') {
+      devFunctionData.delete(storeKey);
+      return new Response(null, { status: 204 });
+    }
+  }
+  if (path === `${base}/${item.id}/key` && method === 'POST') {
+    const request = JSON.parse(String(options.body ?? '{}')) as { expires_in_days?: number };
+    const days = request.expires_in_days ?? 30;
+    const created = new Date();
+    const expiry = new Date(created.getTime() + days * 86400000);
+    item.key_enabled = true;
+    item.key_created_at = created.toISOString();
+    item.key_expires_at = expiry.toISOString();
+    return buildJsonResponse(
+      { key: `rcpf_mock_${crypto.randomUUID()}`, expires_at: item.key_expires_at },
+      201,
+    );
+  }
+  if (path === `${base}/${item.id}/key` && method === 'DELETE') {
+    item.key_enabled = false;
+    delete item.key_created_at;
+    delete item.key_expires_at;
+    return new Response(null, { status: 204 });
+  }
+  if (method === 'DELETE' && path === `${base}/${item.id}`) {
+    for (const key of devFunctionData.keys()) {
+      if (key.startsWith(`${item.id}/`)) devFunctionData.delete(key);
+    }
+    devFunctions.splice(devFunctions.indexOf(item), 1);
+    return new Response(null, { status: 204 });
+  }
+  if (method === 'POST' && path === `${base}/${item.id}/invoke`) {
+    return buildJsonResponse({ stdout: String(options.body ?? '{}'), stderr: '', exit_code: 0 });
+  }
+  return buildJsonResponse({ error: 'unsupported function request' }, 404);
+}
+
 function maybeBuildDevResponse(path: string, options: RequestInit): Response | null {
   if (!isDevAuthBypassEnabled() || rcpConfig.apiBaseUrl) return null;
+
+  const functionResponse = mockFunctionResponse(path, options);
+  if (functionResponse) return functionResponse;
 
   const method = options.method ?? 'GET';
   if (path === '/api/v1/compute/instances' && method === 'GET') {

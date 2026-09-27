@@ -37,7 +37,9 @@ export function Topbar({ active }: TopbarProps) {
               ? 'admin'
               : active === ROUTE_NAMES.storage
                 ? 'Storage'
-                : 'Compute'}
+                : active === ROUTE_NAMES.functions
+                  ? 'Functions'
+                  : 'Compute'}
           </span>
         </div>
       </div>
@@ -55,6 +57,13 @@ export function Topbar({ active }: TopbarProps) {
           onClick={() => navigate('/storage')}
         >
           Storage
+        </button>
+        <button
+          type="button"
+          className={`nav-button ${active === ROUTE_NAMES.functions ? 'active' : ''}`}
+          onClick={() => navigate('/functions')}
+        >
+          Functions
         </button>
         {isAdmin && (
           <button
