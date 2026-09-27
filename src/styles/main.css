@@ -3717,6 +3717,65 @@ h3 {
   accent-color: var(--ink);
 }
 
+.function-form .function-field-hint {
+  margin: -6px 0 0 26px;
+  font-size: 13px;
+}
+
+.function-disclosure > summary {
+  width: fit-content;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.function-disclosure > summary::marker {
+  color: var(--muted);
+}
+
+.function-disclosure > summary:hover {
+  text-decoration: underline;
+}
+
+.function-disclosure > summary:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.function-database-editor {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.function-database-editor .function-demo-note {
+  margin: 10px 0 0;
+}
+
+.function-update {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+}
+
+.function-update .function-form,
+.function-disclosure-content {
+  margin-top: 16px;
+}
+
+.function-code-example {
+  margin-top: 16px;
+}
+
+.function-code-example p {
+  margin: 10px 0 6px;
+}
+
+.function-code-example code {
+  display: block;
+}
+
 .function-data {
   margin-top: 24px;
   padding-top: 24px;
@@ -3751,11 +3810,14 @@ h3 {
 
 .function-database-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 600px);
   gap: 24px;
   margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
+  padding-top: 0;
+}
+
+.function-database-workspace.has-result {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .function-database-results {
@@ -3816,6 +3878,7 @@ h3 {
 
 .function-curl {
   margin-top: 20px;
+  min-width: 0;
 }
 
 .function-curl .function-detail-head {
@@ -3914,7 +3977,9 @@ h3 {
 
 .function-access {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+  min-width: 0;
   margin: 22px 0;
   padding: 18px;
   border: 1px solid var(--line-strong);
@@ -3976,7 +4041,7 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .function-database-workspace {
+  .function-database-workspace.has-result {
     grid-template-columns: 1fr;
   }
 

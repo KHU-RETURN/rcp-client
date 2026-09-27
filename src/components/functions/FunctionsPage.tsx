@@ -166,7 +166,11 @@ export function FunctionsPage() {
                 {error}
               </p>
             )}
-            <section className="function-panel function-databases" aria-label="Databases">
+            <section
+              id="function-databases"
+              className="function-panel function-databases"
+              aria-label="Databases"
+            >
               <div className="function-detail-head">
                 <div>
                   <h3>
@@ -202,84 +206,91 @@ export function FunctionsPage() {
                 </button>
               </form>
               {databases.length > 0 && (
-                <div className="function-database-workspace">
-                  <div className="function-form">
-                    <label htmlFor="database-select">Database</label>
-                    <select
-                      id="database-select"
-                      value={selectedDatabase}
-                      onChange={(event) => {
-                        setSelectedDatabase(event.target.value);
-                        setSQLResult(null);
-                      }}
-                    >
-                      {databases.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                    <label htmlFor="database-sql">SQL</label>
-                    <textarea
-                      id="database-sql"
-                      rows={5}
-                      value={sql}
-                      onChange={(event) => setSQL(event.target.value)}
-                      spellCheck={false}
-                    />
-                    <label htmlFor="database-params">Parameters (JSON array)</label>
-                    <input
-                      id="database-params"
-                      value={sqlParams}
-                      onChange={(event) => setSQLParams(event.target.value)}
-                      spellCheck={false}
-                    />
-                    <div className="function-data-actions">
-                      <button
-                        className="primary-button"
-                        type="button"
-                        disabled={busy || !selectedDatabase}
-                        onClick={() =>
-                          void run(async () => {
-                            const parsed: unknown = JSON.parse(sqlParams);
-                            if (!Array.isArray(parsed))
-                              throw new Error('Parameters는 JSON 배열이어야 합니다.');
-                            setSQLResult(await queryDatabase(selectedDatabase, sql, parsed));
-                          })
-                        }
-                      >
-                        Run query
-                      </button>
-                      <button
-                        className="danger-button"
-                        type="button"
-                        disabled={busy || !selectedDatabase}
-                        onClick={() => {
-                          if (
-                            !window.confirm(
-                              `'${selectedDatabaseItem?.name}' 데이터베이스와 모든 데이터를 영구 삭제할까요?`,
-                            )
-                          )
-                            return;
-                          void run(async () => {
-                            await deleteDatabase(selectedDatabase);
-                            setSQLResult(null);
-                            await Promise.all([refreshDatabases(), refreshBindings()]);
-                          });
+                <details className="function-disclosure function-database-editor">
+                  <summary>SQL editor · {selectedDatabaseItem?.name}</summary>
+                  {import.meta.env.DEV && !rcpConfig.apiBaseUrl && (
+                    <p className="muted function-demo-note">
+                      로컬 모의 콘솔에서는 SQL이 실제로 저장되거나 실행되지 않습니다.
+                    </p>
+                  )}
+                  <div className={`function-database-workspace ${sqlResult ? 'has-result' : ''}`}>
+                    <div className="function-form">
+                      <label htmlFor="database-select">Database</label>
+                      <select
+                        id="database-select"
+                        value={selectedDatabase}
+                        onChange={(event) => {
+                          setSelectedDatabase(event.target.value);
+                          setSQLResult(null);
                         }}
                       >
-                        Delete database
-                      </button>
+                        {databases.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                      <label htmlFor="database-sql">SQL</label>
+                      <textarea
+                        id="database-sql"
+                        rows={5}
+                        value={sql}
+                        onChange={(event) => setSQL(event.target.value)}
+                        spellCheck={false}
+                      />
+                      <label htmlFor="database-params">Parameters (JSON array)</label>
+                      <input
+                        id="database-params"
+                        value={sqlParams}
+                        onChange={(event) => setSQLParams(event.target.value)}
+                        spellCheck={false}
+                      />
+                      <div className="function-data-actions">
+                        <button
+                          className="primary-button"
+                          type="button"
+                          disabled={busy || !selectedDatabase}
+                          onClick={() =>
+                            void run(async () => {
+                              const parsed: unknown = JSON.parse(sqlParams);
+                              if (!Array.isArray(parsed))
+                                throw new Error('Parameters는 JSON 배열이어야 합니다.');
+                              setSQLResult(null);
+                              setSQLResult(await queryDatabase(selectedDatabase, sql, parsed));
+                            })
+                          }
+                        >
+                          Run query
+                        </button>
+                        <button
+                          className="danger-button"
+                          type="button"
+                          disabled={busy || !selectedDatabase}
+                          onClick={() => {
+                            if (
+                              !window.confirm(
+                                `'${selectedDatabaseItem?.name}' 데이터베이스와 모든 데이터를 영구 삭제할까요?`,
+                              )
+                            )
+                              return;
+                            void run(async () => {
+                              await deleteDatabase(selectedDatabase);
+                              setSQLResult(null);
+                              await Promise.all([refreshDatabases(), refreshBindings()]);
+                            });
+                          }}
+                        >
+                          Delete database
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="function-database-results" aria-live="polite">
-                    <h4>Result</h4>
-                    {!sqlResult ? (
-                      <p className="muted">SQL을 실행하면 결과가 표시됩니다.</p>
-                    ) : (
-                      <>
+                    {sqlResult && (
+                      <div className="function-database-results" aria-live="polite">
+                        <h4>Result</h4>
                         <p className="muted">
-                          {sqlResult.rows.length} rows · {sqlResult.rows_affected} affected
+                          {sqlResult.columns.length > 0
+                            ? `${sqlResult.rows.length} rows returned`
+                            : `Query completed · ${sqlResult.rows_affected} rows affected`}
                         </p>
                         {sqlResult.columns.length > 0 && (
                           <div className="function-table-scroll">
@@ -305,10 +316,10 @@ export function FunctionsPage() {
                             </table>
                           </div>
                         )}
-                      </>
+                      </div>
                     )}
                   </div>
-                </div>
+                </details>
               )}
             </section>
             <div className="function-grid">
@@ -360,7 +371,9 @@ export function FunctionsPage() {
                     <option value="python">Python</option>
                     <option value="wasm">WASM</option>
                   </select>
-                  <label htmlFor="function-file">Source file</label>
+                  <label htmlFor="function-file">
+                    {language === 'wasm' ? 'Module file' : 'Source file'}
+                  </label>
                   <input
                     key={language}
                     id="function-file"
@@ -382,6 +395,7 @@ export function FunctionsPage() {
                     />
                     Enable data access
                   </label>
+                  <p className="muted function-field-hint">데이터베이스를 연결하려면 켜세요.</p>
                   <button className="primary-button" type="submit" disabled={busy || !file}>
                     Deploy
                   </button>
@@ -413,7 +427,14 @@ export function FunctionsPage() {
                           }}
                         >
                           <strong>{item.name}</strong>
-                          <small>{new Date(item.updated_at).toLocaleString('ko-KR')}</small>
+                          <small>
+                            {item.key_enabled &&
+                            (!item.key_expires_at || new Date(item.key_expires_at) > new Date())
+                              ? 'API key active'
+                              : 'API key needed'}
+                            {' · '}
+                            {item.data_mode ? 'Data access on' : 'Data access off'}
+                          </small>
                         </button>
                       </li>
                     ))}
@@ -451,6 +472,9 @@ export function FunctionsPage() {
                     이 URL은 외부에서 호출할 수 있습니다. 요청에는 함수 전용 Bearer 키가 필요합니다.
                   </p>
                   <input aria-label="HTTP endpoint" readOnly value={endpoint} />
+                  {!active.key_enabled && (
+                    <p className="muted">외부에서 호출하려면 아래에서 API 키를 발급하세요.</p>
+                  )}
                   {import.meta.env.DEV && !rcpConfig.apiBaseUrl && (
                     <p className="muted">
                       로컬 모의 콘솔에서는 이 URL이 외부 요청을 받지 않습니다.
@@ -566,7 +590,13 @@ export function FunctionsPage() {
                     </div>
                   </div>
                   {!active.data_mode ? (
-                    <p className="muted">이 함수의 데이터 접근을 켠 뒤 DB를 연결할 수 있습니다.</p>
+                    <p className="muted">
+                      DB를 연결하려면 Update function에서 파일을 다시 올리며 데이터 접근을 켜세요.
+                    </p>
+                  ) : databases.length === 0 ? (
+                    <p className="muted">
+                      먼저 <a href="#function-databases">데이터베이스를 만드세요</a>.
+                    </p>
                   ) : (
                     <>
                       <form
@@ -634,14 +664,22 @@ export function FunctionsPage() {
                           ))}
                         </ul>
                       )}
-                      <p className="muted">
-                        코드 요청 예:{' '}
-                        <code>
-                          {
-                            '{"$rcp":"sql","binding":"DB","sql":"SELECT * FROM notes WHERE id = ?","params":[1]}'
-                          }
-                        </code>
-                      </p>
+                      {bindings.length > 0 && (
+                        <details className="function-disclosure function-code-example">
+                          <summary>Code example</summary>
+                          <p className="muted">
+                            함수 코드에서 바인딩 이름을 사용해 SQL을 실행합니다.
+                          </p>
+                          <code>
+                            {JSON.stringify({
+                              $rcp: 'sql',
+                              binding: bindings[0].alias,
+                              sql: 'SELECT * FROM notes WHERE id = ?',
+                              params: [1],
+                            })}
+                          </code>
+                        </details>
+                      )}
                     </>
                   )}
                 </section>
@@ -669,181 +707,197 @@ export function FunctionsPage() {
                       Invoke
                     </button>
                   </div>
-                  <div className="function-form">
-                    <label htmlFor="function-replace-language">Replacement language</label>
-                    <select
-                      id="function-replace-language"
-                      value={replacementLanguage}
-                      onChange={(event) => {
-                        setReplacementLanguage(event.target.value as FunctionLanguage);
-                        setReplacement(null);
-                      }}
-                    >
-                      <option value="rust">Rust</option>
-                      <option value="go">Go</option>
-                      <option value="javascript">JavaScript</option>
-                      <option value="python">Python</option>
-                      <option value="wasm">WASM</option>
-                    </select>
-                    <label htmlFor="function-replace">Replace file</label>
-                    <input
-                      key={replacementLanguage}
-                      id="function-replace"
-                      type="file"
-                      accept={
-                        { rust: '.rs', go: '.go', javascript: '.js', python: '.py', wasm: '.wasm' }[
-                          replacementLanguage
-                        ]
-                      }
-                      onChange={(event) => setReplacement(event.target.files?.[0] ?? null)}
-                    />
-                    <label className="function-checkbox" htmlFor="function-replace-data-mode">
-                      <input
-                        id="function-replace-data-mode"
-                        type="checkbox"
-                        checked={replacementDataMode}
-                        onChange={(event) => setReplacementDataMode(event.target.checked)}
-                      />
-                      Enable data access
-                    </label>
-                    <button
-                      className="ghost-button"
-                      type="button"
-                      disabled={busy || !replacement}
-                      onClick={() => {
-                        if (!replacement) return;
-                        void run(async () => {
-                          await updateFunction(
-                            active.id,
-                            replacementLanguage,
-                            replacement,
-                            replacementDataMode,
-                          );
-                          await refresh();
-                          setReplacement(null);
-                        });
-                      }}
-                    >
-                      Update
-                    </button>
-                  </div>
-                </div>
-                <section className="function-data" aria-label="Function data">
-                  <div className="function-detail-head">
-                    <div>
-                      <h4>SQLite data</h4>
-                      <p className="muted">
-                        데이터는 이 함수에만 속합니다. 값은 JSON으로 저장합니다.
-                      </p>
-                    </div>
-                    <button
-                      className="ghost-button"
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void run(refreshData)}
-                    >
-                      Refresh
-                    </button>
-                  </div>
-                  <div className="function-grid">
+                  <details className="function-disclosure function-update">
+                    <summary>Update function</summary>
                     <div className="function-form">
-                      <label htmlFor="function-data-collection">Collection</label>
+                      <label htmlFor="function-replace-language">Replacement language</label>
+                      <select
+                        id="function-replace-language"
+                        value={replacementLanguage}
+                        onChange={(event) => {
+                          setReplacementLanguage(event.target.value as FunctionLanguage);
+                          setReplacement(null);
+                        }}
+                      >
+                        <option value="rust">Rust</option>
+                        <option value="go">Go</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="wasm">WASM</option>
+                      </select>
+                      <label htmlFor="function-replace">Replace file</label>
                       <input
-                        id="function-data-collection"
-                        value={dataCollection}
-                        onChange={(event) => setDataCollection(event.target.value)}
-                        placeholder="default"
+                        key={replacementLanguage}
+                        id="function-replace"
+                        type="file"
+                        accept={
+                          {
+                            rust: '.rs',
+                            go: '.go',
+                            javascript: '.js',
+                            python: '.py',
+                            wasm: '.wasm',
+                          }[replacementLanguage]
+                        }
+                        onChange={(event) => setReplacement(event.target.files?.[0] ?? null)}
                       />
-                      <label htmlFor="function-data-key">Key</label>
-                      <input
-                        id="function-data-key"
-                        value={dataKey}
-                        onChange={(event) => setDataKey(event.target.value)}
-                        placeholder="item-1"
-                      />
-                      <label htmlFor="function-data-value">Value (JSON)</label>
-                      <textarea
-                        id="function-data-value"
-                        rows={5}
-                        value={dataValue}
-                        onChange={(event) => setDataValue(event.target.value)}
-                      />
-                      <div className="function-data-actions">
-                        <button
-                          className="primary-button"
-                          type="button"
-                          disabled={busy || !dataKey}
-                          onClick={() =>
-                            void run(async () => {
-                              const value: unknown = JSON.parse(dataValue);
-                              await putFunctionData(active.id, dataCollection, dataKey, value);
-                              await refreshData();
-                            })
-                          }
-                        >
-                          Save
-                        </button>
+                      <label className="function-checkbox" htmlFor="function-replace-data-mode">
+                        <input
+                          id="function-replace-data-mode"
+                          type="checkbox"
+                          checked={replacementDataMode}
+                          onChange={(event) => setReplacementDataMode(event.target.checked)}
+                        />
+                        Enable data access
+                      </label>
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        disabled={busy || !replacement}
+                        onClick={() => {
+                          if (!replacement) return;
+                          void run(async () => {
+                            await updateFunction(
+                              active.id,
+                              replacementLanguage,
+                              replacement,
+                              replacementDataMode,
+                            );
+                            await refresh();
+                            setReplacement(null);
+                          });
+                        }}
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </details>
+                </div>
+                {active.data_mode && (
+                  <details
+                    className="function-disclosure function-data"
+                    aria-label="Key-value data"
+                  >
+                    <summary>Key-value data</summary>
+                    <div className="function-disclosure-content">
+                      <div className="function-detail-head">
+                        <div>
+                          <p className="muted">이 함수만 사용하는 JSON 값을 관리합니다.</p>
+                        </div>
                         <button
                           className="ghost-button"
                           type="button"
-                          disabled={busy || !dataKey}
-                          onClick={() =>
-                            void run(async () => {
-                              const item = await getFunctionData(
-                                active.id,
-                                dataCollection,
-                                dataKey,
-                              );
-                              setDataValue(JSON.stringify(item.value, null, 2));
-                            })
-                          }
+                          disabled={busy}
+                          onClick={() => void run(refreshData)}
                         >
-                          Load
-                        </button>
-                        <button
-                          className="danger-button"
-                          type="button"
-                          disabled={busy || !dataKey}
-                          onClick={() =>
-                            void run(async () => {
-                              if (!window.confirm(`'${dataKey}' 값을 삭제할까요?`)) return;
-                              await deleteFunctionData(active.id, dataCollection, dataKey);
-                              await refreshData();
-                            })
-                          }
-                        >
-                          Delete value
+                          Refresh
                         </button>
                       </div>
+                      <div className="function-grid">
+                        <div className="function-form">
+                          <label htmlFor="function-data-collection">Collection</label>
+                          <input
+                            id="function-data-collection"
+                            value={dataCollection}
+                            onChange={(event) => setDataCollection(event.target.value)}
+                            placeholder="default"
+                          />
+                          <label htmlFor="function-data-key">Key</label>
+                          <input
+                            id="function-data-key"
+                            value={dataKey}
+                            onChange={(event) => setDataKey(event.target.value)}
+                            placeholder="item-1"
+                          />
+                          <label htmlFor="function-data-value">Value (JSON)</label>
+                          <textarea
+                            id="function-data-value"
+                            rows={5}
+                            value={dataValue}
+                            onChange={(event) => setDataValue(event.target.value)}
+                          />
+                          <div className="function-data-actions">
+                            <button
+                              className="primary-button"
+                              type="button"
+                              disabled={busy || !dataKey}
+                              onClick={() =>
+                                void run(async () => {
+                                  const value: unknown = JSON.parse(dataValue);
+                                  await putFunctionData(active.id, dataCollection, dataKey, value);
+                                  await refreshData();
+                                })
+                              }
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="ghost-button"
+                              type="button"
+                              disabled={busy || !dataKey}
+                              onClick={() =>
+                                void run(async () => {
+                                  const item = await getFunctionData(
+                                    active.id,
+                                    dataCollection,
+                                    dataKey,
+                                  );
+                                  setDataValue(JSON.stringify(item.value, null, 2));
+                                })
+                              }
+                            >
+                              Load
+                            </button>
+                            <button
+                              className="danger-button"
+                              type="button"
+                              disabled={busy || !dataKey}
+                              onClick={() =>
+                                void run(async () => {
+                                  if (!window.confirm(`'${dataKey}' 값을 삭제할까요?`)) return;
+                                  await deleteFunctionData(active.id, dataCollection, dataKey);
+                                  await refreshData();
+                                })
+                              }
+                            >
+                              Delete value
+                            </button>
+                          </div>
+                        </div>
+                        <div className="function-data-list">
+                          {dataItems.length === 0 ? (
+                            <p className="muted">이 컬렉션에 저장된 값이 없습니다.</p>
+                          ) : (
+                            dataItems.map((item) => (
+                              <button
+                                key={item.key}
+                                type="button"
+                                onClick={() => {
+                                  setDataKey(item.key);
+                                  setDataValue(JSON.stringify(item.value, null, 2));
+                                }}
+                              >
+                                <strong>{item.key}</strong>
+                                <small>{new Date(item.updated_at).toLocaleString('ko-KR')}</small>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="function-data-list">
-                      {dataItems.length === 0 ? (
-                        <p className="muted">이 컬렉션에 저장된 값이 없습니다.</p>
-                      ) : (
-                        dataItems.map((item) => (
-                          <button
-                            key={item.key}
-                            type="button"
-                            onClick={() => {
-                              setDataKey(item.key);
-                              setDataValue(JSON.stringify(item.value, null, 2));
-                            }}
-                          >
-                            <strong>{item.key}</strong>
-                            <small>{new Date(item.updated_at).toLocaleString('ko-KR')}</small>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </section>
+                  </details>
+                )}
                 {result && (
                   <div className="function-result" aria-live="polite">
-                    <p>Exit code: {result.exit_code}</p>
-                    <h4>stdout</h4>
+                    <h4>Response</h4>
                     <pre>{result.stdout || '(empty)'}</pre>
-                    <h4>stderr</h4>
-                    <pre>{result.stderr || '(empty)'}</pre>
+                    {result.stderr && (
+                      <>
+                        <h4>Logs</h4>
+                        <pre>{result.stderr}</pre>
+                      </>
+                    )}
+                    {result.exit_code !== 0 && <p>Exit code: {result.exit_code}</p>}
                   </div>
                 )}
               </section>
