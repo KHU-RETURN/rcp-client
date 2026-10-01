@@ -196,7 +196,7 @@ export function FunctionsPage() {
                 <input
                   id="database-name"
                   required
-                  pattern="[a-z][a-z0-9-]{0,62}"
+                  pattern={'[a-z][a-z0-9\\-]{0,62}'}
                   placeholder="my-app-db"
                   value={databaseName}
                   onChange={(event) => setDatabaseName(event.target.value)}
@@ -351,7 +351,7 @@ export function FunctionsPage() {
                   <input
                     id="function-name"
                     required
-                    pattern="[a-z][a-z0-9-]{0,62}"
+                    pattern={'[a-z][a-z0-9\\-]{0,62}'}
                     placeholder="hello-world"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
