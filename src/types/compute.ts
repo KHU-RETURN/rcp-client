@@ -18,6 +18,7 @@ export interface Instance {
   name: string;
   status: string;
   created: string;
+  serverCreatedAt?: string;
   updated: string;
   terminalReadyAt?: string;
   flavorId: string;

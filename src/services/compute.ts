@@ -66,6 +66,7 @@ function buildInventoryRecordFromServer(response: ServerInstanceResponse): Insta
     name: response.name,
     status: response.status,
     created,
+    serverCreatedAt: response.created,
     updated: response.updated ?? created,
     flavorId,
     flavorName,
