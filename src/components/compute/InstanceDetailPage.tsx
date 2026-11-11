@@ -345,11 +345,23 @@ export function InstanceDetailPage() {
                                 부가세·트래픽·백업·할인 제외 · 요금 확인일{' '}
                                 {VM_COST_SOURCES.checkedOn}
                               </p>
-                              <a href={VM_COST_SOURCES.serverPricingUrl}>서버 공개 요금</a>
+                              <a
+                                href={VM_COST_SOURCES.serverPricingUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                서버 공개 요금
+                              </a>
                               {costReference.diskHourlyWonPerGb && (
                                 <>
                                   {' · '}
-                                  <a href={VM_COST_SOURCES.diskPricingUrl}>SSD 공개 요금</a>
+                                  <a
+                                    href={VM_COST_SOURCES.diskPricingUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    SSD 공개 요금
+                                  </a>
                                 </>
                               )}
                             </details>

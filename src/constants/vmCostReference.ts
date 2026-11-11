@@ -21,8 +21,8 @@ const NCP_COMPACT = 'NCP Compact-g1 · 한국 리전 · Classic Linux';
 
 export const VM_COST_SOURCES = {
   checkedOn: '2026-11-11',
-  serverPricingUrl: 'https://www.ncloud.com/charge/region/ko',
-  diskPricingUrl: 'https://www.ncloud.com/api-cms/service-product/static/blockStorage',
+  serverPricingUrl: 'https://www.ncloud.com/charge/region/ko?name=Server',
+  diskPricingUrl: 'https://www.ncloud.com/charge/region/ko?name=Block+Storage',
 };
 
 const vmCostReferences: VmCostReference[] = [
