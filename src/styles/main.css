@@ -2772,6 +2772,34 @@ h3 {
   word-break: break-word;
 }
 
+.instance-savings {
+  display: grid;
+  gap: 4px;
+}
+
+.instance-savings > p {
+  margin: 0;
+}
+
+.instance-savings > .muted,
+.instance-savings > details {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.instance-savings summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.instance-savings summary:hover {
+  text-decoration: underline;
+}
+
+.instance-savings details > p {
+  margin: 6px 0;
+}
+
 .instance-note {
   padding: 18px 20px;
   border-radius: 18px;
