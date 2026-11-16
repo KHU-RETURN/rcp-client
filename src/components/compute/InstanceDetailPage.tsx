@@ -15,7 +15,7 @@ import {
   translateError,
 } from '../../utils';
 import type { Instance } from '../../types';
-import { VM_COST_HOURLY_RATE, VM_COST_REFERENCE } from '../../constants/vmCostReference';
+import { VM_COST_SOURCES, findVmCostReference } from '../../constants/vmCostReference';
 import { estimateVmCost } from '../../utils/estimateVmCost';
 
 type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
@@ -63,13 +63,10 @@ export function InstanceDetailPage() {
     message: string;
   }>({ state: 'idle', message: '' });
   const terminalAvailability = getTerminalAvailability(instance, now);
-  const { rcpSpec } = VM_COST_REFERENCE;
+  const costReference = instance ? findVmCostReference(instance) : null;
   const costEstimate =
-    instance &&
-    instance.vcpus === rcpSpec.vcpus &&
-    instance.ram === rcpSpec.ramMb &&
-    instance.disk === rcpSpec.diskGb
-      ? estimateVmCost(instance.serverCreatedAt, VM_COST_HOURLY_RATE, now)
+    instance && costReference
+      ? estimateVmCost(instance.serverCreatedAt, costReference.hourlyWon, now)
       : null;
 
   useEffect(() => {
@@ -310,39 +307,63 @@ export function InstanceDetailPage() {
                         <dt>Created</dt>
                         <dd>{humanizeDate(instance.created)}</dd>
                       </div>
-                      {costEstimate && (
+                      {costEstimate && costReference && (
                         <div>
                           <dt>Estimated savings</dt>
-                          <dd>
-                            <strong>
+                          <dd className="instance-savings">
+                            <span>
                               RCP로 약 {costEstimate.estimatedWon.toLocaleString('ko-KR')}원을
                               아꼈어요
-                            </strong>
-                            <p>비슷한 유료 VM을 같은 기간 빌렸다고 가정한 추정액이에요.</p>
+                            </span>
+                            <p className="muted">유료 VM 대비 추정액</p>
                             <details>
-                              <summary>계산 기준 보기</summary>
-                              <p>{VM_COST_REFERENCE.productName}</p>
+                              <summary>계산 기준</summary>
+                              <p>{costReference.productName}</p>
                               <p>
-                                2 vCPU · RAM 4GB · 기본 SSD(CB1/CB2) {rcpSpec.diskGb}GB · 공인 IP
-                                미할당
+                                {costReference.comparisonSpec.vcpus} vCPU · RAM{' '}
+                                {formatRam(costReference.comparisonSpec.ramMb)} · 기본 디스크{' '}
+                                {costReference.comparisonSpec.diskGb}GB · 공인 IP 미할당
                               </p>
-                              <p>
-                                서버 {VM_COST_REFERENCE.serverHourlyWon}원/시간 + SSD{' '}
-                                {VM_COST_REFERENCE.diskHourlyWonPerGb}원/GB·시간 × {rcpSpec.diskGb}
-                                GB = {VM_COST_HOURLY_RATE}원/시간
-                              </p>
+                              {costReference.diskHourlyWonPerGb ? (
+                                <p>
+                                  서버 {costReference.serverHourlyWon}원/시간 + SSD{' '}
+                                  {costReference.diskHourlyWonPerGb}원/GB·시간 ×{' '}
+                                  {costReference.comparisonSpec.diskGb}GB ={' '}
+                                  {costReference.hourlyWon}
+                                  원/시간
+                                </p>
+                              ) : (
+                                <p>서버·기본 디스크 포함 {costReference.hourlyWon}원/시간</p>
+                              )}
+                              {costReference.note && <p>{costReference.note}</p>}
                               <p>
                                 생성 후 {costEstimate.elapsedMinutes.toLocaleString('ko-KR')}분 ÷ 60
-                                × {VM_COST_HOURLY_RATE}원/시간. 일시정지 포함, 최종 금액은 원 미만
-                                내림.
+                                × {costReference.hourlyWon}원/시간. 일시정지 포함, 최종 금액은 원
+                                미만 내림.
                               </p>
                               <p>
                                 부가세·트래픽·백업·할인 제외 · 요금 확인일{' '}
-                                {VM_COST_REFERENCE.checkedOn}
+                                {VM_COST_SOURCES.checkedOn}
                               </p>
-                              <a href={VM_COST_REFERENCE.serverPricingUrl}>서버 공개 요금</a>
-                              {' · '}
-                              <a href={VM_COST_REFERENCE.diskPricingUrl}>SSD 공개 요금</a>
+                              <a
+                                href={VM_COST_SOURCES.serverPricingUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                서버 공개 요금
+                              </a>
+                              {costReference.diskHourlyWonPerGb && (
+                                <>
+                                  {' · '}
+                                  <a
+                                    href={VM_COST_SOURCES.diskPricingUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    SSD 공개 요금
+                                  </a>
+                                </>
+                              )}
                             </details>
                           </dd>
                         </div>
